@@ -1,0 +1,21 @@
+PODS:
+  - PureXML (1.0.beta.1)
+
+DEPENDENCIES:
+  - PureXML (from `https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git`, tag
+    `1.0.beta.2`)
+
+EXTERNAL SOURCES:
+  PureXML:
+    :git: https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git
+    :tag: 1.0.beta.2
+
+CHECKOUT OPTIONS:
+  PureXML:
+    :git: https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git
+    :tag: 1.0.beta.2
+
+SPEC CHECKSUMS:
+  PureXML: 86a36735ce8fdeb369f1e9b998f11501b21ed8af
+
+COCOAPODS: 0.39.0

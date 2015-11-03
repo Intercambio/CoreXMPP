@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3F81C2860648DF0E84791593 /* libPods-CoreXMPPOSXTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */; };
+		58682F1D7733FAE16C01537E /* libPods-CoreXMPPiOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */; };
 		F6476A881BE40E3100B0DF82 /* CoreXMPP.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476A871BE40E3100B0DF82 /* CoreXMPP.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6476A8F1BE40E3100B0DF82 /* CoreXMPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6476A841BE40E3100B0DF82 /* CoreXMPP.framework */; };
 		F6476A941BE40E3100B0DF82 /* CoreXMPPTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */; };
@@ -33,6 +35,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		10917603C01564007ADF71EB /* Pods-CoreXMPPOSXTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSXTests.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests.debug.xcconfig"; sourceTree = "<group>"; };
+		21B7255A93768C9A671F3147 /* Pods-CoreXMPPiOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOSTests.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		60769E19B75D977C34AC6E91 /* Pods-CoreXMPPiOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOSTests.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests.debug.xcconfig"; sourceTree = "<group>"; };
+		6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPiOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPOSXTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD727AEFA125323B7192892B /* Pods-CoreXMPPOSXTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSXTests.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests.release.xcconfig"; sourceTree = "<group>"; };
 		F6476A841BE40E3100B0DF82 /* CoreXMPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CoreXMPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6476A871BE40E3100B0DF82 /* CoreXMPP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreXMPP.h; sourceTree = "<group>"; };
 		F6476A891BE40E3100B0DF82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -56,6 +64,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6476A8F1BE40E3100B0DF82 /* CoreXMPP.framework in Frameworks */,
+				58682F1D7733FAE16C01537E /* libPods-CoreXMPPiOSTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,18 +80,41 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6476AAD1BE40E8B00B0DF82 /* CoreXMPP.framework in Frameworks */,
+				3F81C2860648DF0E84791593 /* libPods-CoreXMPPOSXTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BA291890388B014D6FFC8A75 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				10917603C01564007ADF71EB /* Pods-CoreXMPPOSXTests.debug.xcconfig */,
+				DD727AEFA125323B7192892B /* Pods-CoreXMPPOSXTests.release.xcconfig */,
+				60769E19B75D977C34AC6E91 /* Pods-CoreXMPPiOSTests.debug.xcconfig */,
+				21B7255A93768C9A671F3147 /* Pods-CoreXMPPiOSTests.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		C79B557DD41BAAB5736E0111 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */,
+				6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F6476A7A1BE40E3100B0DF82 = {
 			isa = PBXGroup;
 			children = (
 				F6476A861BE40E3100B0DF82 /* CoreXMPP */,
 				F6476A921BE40E3100B0DF82 /* CoreXMPPTests */,
 				F6476A851BE40E3100B0DF82 /* Products */,
+				BA291890388B014D6FFC8A75 /* Pods */,
+				C79B557DD41BAAB5736E0111 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -101,7 +133,7 @@
 			isa = PBXGroup;
 			children = (
 				F6476A871BE40E3100B0DF82 /* CoreXMPP.h */,
-				F6476A891BE40E3100B0DF82 /* Info.plist */,
+				F6476ABC1BE411B900B0DF82 /* Supporting Files */,
 			);
 			path = CoreXMPP;
 			sourceTree = "<group>";
@@ -110,9 +142,25 @@
 			isa = PBXGroup;
 			children = (
 				F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */,
-				F6476A951BE40E3100B0DF82 /* Info.plist */,
+				F6476ABD1BE411C100B0DF82 /* Supporting Files */,
 			);
 			path = CoreXMPPTests;
+			sourceTree = "<group>";
+		};
+		F6476ABC1BE411B900B0DF82 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F6476A891BE40E3100B0DF82 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		F6476ABD1BE411C100B0DF82 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F6476A951BE40E3100B0DF82 /* Info.plist */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -159,9 +207,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F6476A9B1BE40E3100B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPiOSTests" */;
 			buildPhases = (
+				8DE16552B0524CF2AAA76D03 /* Check Pods Manifest.lock */,
 				F6476A8A1BE40E3100B0DF82 /* Sources */,
 				F6476A8B1BE40E3100B0DF82 /* Frameworks */,
 				F6476A8C1BE40E3100B0DF82 /* Resources */,
+				28F5F2A6B21F97937A1DD65B /* Embed Pods Frameworks */,
+				AD1164572942D2698C5CB573 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -195,9 +246,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F6476AB71BE40E8B00B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPOSXTests" */;
 			buildPhases = (
+				4A1555DC01C3BE32588B9F8C /* Check Pods Manifest.lock */,
 				F6476AA81BE40E8B00B0DF82 /* Sources */,
 				F6476AA91BE40E8B00B0DF82 /* Frameworks */,
 				F6476AAA1BE40E8B00B0DF82 /* Resources */,
+				BDD7B6787DB4732FB708B7FC /* Embed Pods Frameworks */,
+				D8A4C51B4E4E14F7D6948FC5 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -282,6 +336,99 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		28F5F2A6B21F97937A1DD65B /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4A1555DC01C3BE32588B9F8C /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		8DE16552B0524CF2AAA76D03 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		AD1164572942D2698C5CB573 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BDD7B6787DB4732FB708B7FC /* Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D8A4C51B4E4E14F7D6948FC5 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		F6476A7F1BE40E3100B0DF82 /* Sources */ = {
@@ -454,6 +601,7 @@
 		};
 		F6476A9C1BE40E3100B0DF82 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 60769E19B75D977C34AC6E91 /* Pods-CoreXMPPiOSTests.debug.xcconfig */;
 			buildSettings = {
 				INFOPLIST_FILE = CoreXMPPTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -464,6 +612,7 @@
 		};
 		F6476A9D1BE40E3100B0DF82 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 21B7255A93768C9A671F3147 /* Pods-CoreXMPPiOSTests.release.xcconfig */;
 			buildSettings = {
 				INFOPLIST_FILE = CoreXMPPTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -516,6 +665,7 @@
 		};
 		F6476AB81BE40E8B00B0DF82 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 10917603C01564007ADF71EB /* Pods-CoreXMPPOSXTests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -530,6 +680,7 @@
 		};
 		F6476AB91BE40E8B00B0DF82 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DD727AEFA125323B7192892B /* Pods-CoreXMPPOSXTests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -561,6 +712,7 @@
 				F6476A9A1BE40E3100B0DF82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F6476A9B1BE40E3100B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPiOSTests" */ = {
 			isa = XCConfigurationList;
@@ -569,6 +721,7 @@
 				F6476A9D1BE40E3100B0DF82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F6476AB41BE40E8B00B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPOSX" */ = {
 			isa = XCConfigurationList;
@@ -577,6 +730,7 @@
 				F6476AB61BE40E8B00B0DF82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		F6476AB71BE40E8B00B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPOSXTests" */ = {
 			isa = XCConfigurationList;
@@ -585,6 +739,7 @@
 				F6476AB91BE40E8B00B0DF82 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
