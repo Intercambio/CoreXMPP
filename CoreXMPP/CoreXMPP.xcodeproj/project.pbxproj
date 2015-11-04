@@ -15,6 +15,10 @@
 		F6476AAD1BE40E8B00B0DF82 /* CoreXMPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6476AA31BE40E8B00B0DF82 /* CoreXMPP.framework */; };
 		F6476ABA1BE40EAF00B0DF82 /* CoreXMPP.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476A871BE40E3100B0DF82 /* CoreXMPP.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6476ABB1BE40EB500B0DF82 /* CoreXMPPTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */; };
+		F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; };
+		F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; };
+		F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC01BEA586000B0DF82 /* XMPPStream.m */; };
+		F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC01BEA586000B0DF82 /* XMPPStream.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +53,8 @@
 		F6476A951BE40E3100B0DF82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F6476AA31BE40E8B00B0DF82 /* CoreXMPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CoreXMPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6476AAC1BE40E8B00B0DF82 /* CoreXMPPOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreXMPPOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		F6476ABF1BEA586000B0DF82 /* XMPPStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStream.h; sourceTree = "<group>"; };
+		F6476AC01BEA586000B0DF82 /* XMPPStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStream.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				F6476A871BE40E3100B0DF82 /* CoreXMPP.h */,
+				F6476ABE1BEA584700B0DF82 /* XMPP Stream */,
 				F6476ABC1BE411B900B0DF82 /* Supporting Files */,
 			);
 			path = CoreXMPP;
@@ -163,6 +170,15 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		F6476ABE1BEA584700B0DF82 /* XMPP Stream */ = {
+			isa = PBXGroup;
+			children = (
+				F6476ABF1BEA586000B0DF82 /* XMPPStream.h */,
+				F6476AC01BEA586000B0DF82 /* XMPPStream.m */,
+			);
+			name = "XMPP Stream";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -171,6 +187,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6476A881BE40E3100B0DF82 /* CoreXMPP.h in Headers */,
+				F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -179,6 +196,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6476ABA1BE40EAF00B0DF82 /* CoreXMPP.h in Headers */,
+				F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,6 +453,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,6 +469,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,6 +534,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Pods/Headers/Public";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -556,6 +577,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Pods/Headers/Public";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
