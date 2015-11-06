@@ -24,7 +24,7 @@
 
 #pragma mark Tests
 
-- (void)testStreamManagement
+- (void)testOpenAndCloseStream
 {
     //
     // Create stream
