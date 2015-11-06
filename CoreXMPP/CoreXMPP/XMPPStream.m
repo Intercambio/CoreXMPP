@@ -15,13 +15,11 @@ NSString * const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
 #pragma mark Life-cycle
 
 - (instancetype)initWithHostname:(NSString *)hostname
-                        language:(NSString *)language
                          options:(NSDictionary *)options
 {
     self = [super init];
     if (self) {
         _hostname = [hostname copy];
-        _language = [language copy];
         _options = [options copy];
     }
     return self;

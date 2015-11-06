@@ -26,11 +26,9 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 #pragma mark Life-cycle
 
 - (instancetype)initWithHostname:(NSString *)hostname
-                        language:(NSString *)language
                          options:(NSDictionary *)options
 {
     self = [super initWithHostname:hostname
-                          language:language
                            options:options];
     if (self) {
         NSString *queueName = [NSString stringWithFormat:@"XMPPWebsocketStream Operation Queue (%@)", hostname];

@@ -40,7 +40,6 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 
 #pragma mark Life-cycle
 - (instancetype)initWithHostname:(NSString *)hostname
-                        language:(NSString *)language
                          options:(NSDictionary *)options;
 
 #pragma mark Delegate
@@ -48,7 +47,6 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readonly) NSString *language;
 @property (nonatomic, readonly) NSDictionary *options;
 
 #pragma mark State

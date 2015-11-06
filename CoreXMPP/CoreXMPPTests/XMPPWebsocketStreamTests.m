@@ -32,7 +32,6 @@
     
     NSDictionary *options = @{ XMPPWebsocketStreamURLKey: [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
     XMPPWebsocketStream *stream = [[XMPPWebsocketStream alloc] initWithHostname:@"localhost"
-                                                                       language:@"en"
                                                                         options:options];
     XCTAssertNotNil(stream);
  
