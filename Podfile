@@ -12,8 +12,6 @@ end
 
 target :CoreXMPPiOSTests, :exclusive => true do
     platform :ios, :deployment_target => '8.0'
-    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.3'
-    pod 'SocketRocket', '~> 0.4'
     pod 'OCMockito', '~> 2.0.1'
 end
 
@@ -27,7 +25,5 @@ end
 
 target :CoreXMPPOSXTests, :exclusive => true do
     platform :osx, :deployment_target => '10.10'
-    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.3'
-    pod 'SocketRocket', '~> 0.4'
     pod 'OCMockito', '~> 2.0.1'
 end

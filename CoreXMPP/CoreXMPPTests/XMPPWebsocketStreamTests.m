@@ -76,7 +76,7 @@
     
     [stream close];
     
-    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
     
     //
     // Verify delegate calles
