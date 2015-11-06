@@ -1,21 +1,30 @@
 PODS:
-  - PureXML (1.0.beta.1)
+  - OCHamcrest (4.3.0)
+  - OCMockito (2.0.1):
+    - OCHamcrest (~> 4.0)
+  - PureXML (1.0.beta.3)
+  - SocketRocket (0.4.2)
 
 DEPENDENCIES:
+  - OCMockito (~> 2.0.1)
   - PureXML (from `https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git`, tag
-    `1.0.beta.2`)
+    `1.0.beta.3`)
+  - SocketRocket (~> 0.4)
 
 EXTERNAL SOURCES:
   PureXML:
     :git: https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git
-    :tag: 1.0.beta.2
+    :tag: 1.0.beta.3
 
 CHECKOUT OPTIONS:
   PureXML:
     :git: https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git
-    :tag: 1.0.beta.2
+    :tag: 1.0.beta.3
 
 SPEC CHECKSUMS:
-  PureXML: 86a36735ce8fdeb369f1e9b998f11501b21ed8af
+  OCHamcrest: cd63d27f48a266d4412c0b295b01b8f0940efa81
+  OCMockito: f92ad4c6fac2841a88558879cfe517c40aebf91e
+  PureXML: 423058ad9c753f409ad6f74b4db5ed8e4b2227ea
+  SocketRocket: ffe08119b00ef982f6c37052a4705a057c8494ad
 
 COCOAPODS: 0.39.0

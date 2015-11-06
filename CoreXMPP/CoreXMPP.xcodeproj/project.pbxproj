@@ -9,16 +9,22 @@
 /* Begin PBXBuildFile section */
 		3F81C2860648DF0E84791593 /* libPods-CoreXMPPOSXTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */; };
 		58682F1D7733FAE16C01537E /* libPods-CoreXMPPiOSTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */; };
+		B9E8A7426FC6F40D6F32F922 /* libPods-CoreXMPPOSX.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BECCC3F556728BE628C788D4 /* libPods-CoreXMPPOSX.a */; };
+		D7C68103E3F0C1CEFDCA2CA3 /* libPods-CoreXMPPiOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9750B47E616AB79BAC8FF06D /* libPods-CoreXMPPiOS.a */; };
 		F6476A881BE40E3100B0DF82 /* CoreXMPP.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476A871BE40E3100B0DF82 /* CoreXMPP.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6476A8F1BE40E3100B0DF82 /* CoreXMPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6476A841BE40E3100B0DF82 /* CoreXMPP.framework */; };
-		F6476A941BE40E3100B0DF82 /* CoreXMPPTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */; };
 		F6476AAD1BE40E8B00B0DF82 /* CoreXMPP.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6476AA31BE40E8B00B0DF82 /* CoreXMPP.framework */; };
 		F6476ABA1BE40EAF00B0DF82 /* CoreXMPP.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476A871BE40E3100B0DF82 /* CoreXMPP.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F6476ABB1BE40EB500B0DF82 /* CoreXMPPTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */; };
-		F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; };
-		F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; };
+		F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476ABF1BEA586000B0DF82 /* XMPPStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC01BEA586000B0DF82 /* XMPPStream.m */; };
 		F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC01BEA586000B0DF82 /* XMPPStream.m */; };
+		F6476AC71BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476AC51BEA61C700B0DF82 /* XMPPWebsocketStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6476AC81BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */ = {isa = PBXBuildFile; fileRef = F6476AC51BEA61C700B0DF82 /* XMPPWebsocketStream.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6476AC91BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC61BEA61C700B0DF82 /* XMPPWebsocketStream.m */; };
+		F6476ACA1BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476AC61BEA61C700B0DF82 /* XMPPWebsocketStream.m */; };
+		F6476ACC1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476ACB1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m */; };
+		F6476ACD1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6476ACB1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,22 +45,30 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0E7EB6191881E353039E26A3 /* Pods-CoreXMPPiOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOS.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOS/Pods-CoreXMPPiOS.release.xcconfig"; sourceTree = "<group>"; };
 		10917603C01564007ADF71EB /* Pods-CoreXMPPOSXTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSXTests.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests.debug.xcconfig"; sourceTree = "<group>"; };
 		21B7255A93768C9A671F3147 /* Pods-CoreXMPPiOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOSTests.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		442D961E1CD590A5E6B94177 /* Pods-CoreXMPPOSX.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSX.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSX/Pods-CoreXMPPOSX.debug.xcconfig"; sourceTree = "<group>"; };
 		60769E19B75D977C34AC6E91 /* Pods-CoreXMPPiOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOSTests.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOSTests/Pods-CoreXMPPiOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPiOSTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		94B49B5D2231168E94AC0660 /* Pods-CoreXMPPiOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPiOS.debug.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPiOS/Pods-CoreXMPPiOS.debug.xcconfig"; sourceTree = "<group>"; };
+		9750B47E616AB79BAC8FF06D /* libPods-CoreXMPPiOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPiOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9AB86DAF75A8DA8B53317941 /* Pods-CoreXMPPOSX.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSX.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSX/Pods-CoreXMPPOSX.release.xcconfig"; sourceTree = "<group>"; };
+		BECCC3F556728BE628C788D4 /* libPods-CoreXMPPOSX.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPOSX.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CoreXMPPOSXTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD727AEFA125323B7192892B /* Pods-CoreXMPPOSXTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CoreXMPPOSXTests.release.xcconfig"; path = "../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests.release.xcconfig"; sourceTree = "<group>"; };
 		F6476A841BE40E3100B0DF82 /* CoreXMPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CoreXMPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6476A871BE40E3100B0DF82 /* CoreXMPP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CoreXMPP.h; sourceTree = "<group>"; };
 		F6476A891BE40E3100B0DF82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F6476A8E1BE40E3100B0DF82 /* CoreXMPPiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreXMPPiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CoreXMPPTests.m; sourceTree = "<group>"; };
 		F6476A951BE40E3100B0DF82 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F6476AA31BE40E8B00B0DF82 /* CoreXMPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CoreXMPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6476AAC1BE40E8B00B0DF82 /* CoreXMPPOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreXMPPOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6476ABF1BEA586000B0DF82 /* XMPPStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStream.h; sourceTree = "<group>"; };
 		F6476AC01BEA586000B0DF82 /* XMPPStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStream.m; sourceTree = "<group>"; };
+		F6476AC51BEA61C700B0DF82 /* XMPPWebsocketStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPWebsocketStream.h; sourceTree = "<group>"; };
+		F6476AC61BEA61C700B0DF82 /* XMPPWebsocketStream.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPWebsocketStream.m; sourceTree = "<group>"; };
+		F6476ACB1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPWebsocketStreamTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +76,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D7C68103E3F0C1CEFDCA2CA3 /* libPods-CoreXMPPiOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +93,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9E8A7426FC6F40D6F32F922 /* libPods-CoreXMPPOSX.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +116,10 @@
 				DD727AEFA125323B7192892B /* Pods-CoreXMPPOSXTests.release.xcconfig */,
 				60769E19B75D977C34AC6E91 /* Pods-CoreXMPPiOSTests.debug.xcconfig */,
 				21B7255A93768C9A671F3147 /* Pods-CoreXMPPiOSTests.release.xcconfig */,
+				442D961E1CD590A5E6B94177 /* Pods-CoreXMPPOSX.debug.xcconfig */,
+				9AB86DAF75A8DA8B53317941 /* Pods-CoreXMPPOSX.release.xcconfig */,
+				94B49B5D2231168E94AC0660 /* Pods-CoreXMPPiOS.debug.xcconfig */,
+				0E7EB6191881E353039E26A3 /* Pods-CoreXMPPiOS.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -109,6 +129,8 @@
 			children = (
 				C2E48D3FE117E686C2FF4C41 /* libPods-CoreXMPPOSXTests.a */,
 				6D798B61A2B22348CE0F8CF1 /* libPods-CoreXMPPiOSTests.a */,
+				BECCC3F556728BE628C788D4 /* libPods-CoreXMPPOSX.a */,
+				9750B47E616AB79BAC8FF06D /* libPods-CoreXMPPiOS.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -148,7 +170,7 @@
 		F6476A921BE40E3100B0DF82 /* CoreXMPPTests */ = {
 			isa = PBXGroup;
 			children = (
-				F6476A931BE40E3100B0DF82 /* CoreXMPPTests.m */,
+				F6476ACB1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m */,
 				F6476ABD1BE411C100B0DF82 /* Supporting Files */,
 			);
 			path = CoreXMPPTests;
@@ -175,6 +197,8 @@
 			children = (
 				F6476ABF1BEA586000B0DF82 /* XMPPStream.h */,
 				F6476AC01BEA586000B0DF82 /* XMPPStream.m */,
+				F6476AC51BEA61C700B0DF82 /* XMPPWebsocketStream.h */,
+				F6476AC61BEA61C700B0DF82 /* XMPPWebsocketStream.m */,
 			);
 			name = "XMPP Stream";
 			sourceTree = "<group>";
@@ -188,6 +212,7 @@
 			files = (
 				F6476A881BE40E3100B0DF82 /* CoreXMPP.h in Headers */,
 				F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */,
+				F6476AC71BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +222,7 @@
 			files = (
 				F6476ABA1BE40EAF00B0DF82 /* CoreXMPP.h in Headers */,
 				F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */,
+				F6476AC81BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,10 +233,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F6476A981BE40E3100B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPiOS" */;
 			buildPhases = (
+				FE538A46B529BFE83237B7CB /* Check Pods Manifest.lock */,
 				F6476A7F1BE40E3100B0DF82 /* Sources */,
 				F6476A801BE40E3100B0DF82 /* Frameworks */,
 				F6476A811BE40E3100B0DF82 /* Headers */,
 				F6476A821BE40E3100B0DF82 /* Resources */,
+				71539826ABB5B37648D8B6FC /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -246,10 +274,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = F6476AB41BE40E8B00B0DF82 /* Build configuration list for PBXNativeTarget "CoreXMPPOSX" */;
 			buildPhases = (
+				8BDA24B228B4899862932D91 /* Check Pods Manifest.lock */,
 				F6476A9E1BE40E8B00B0DF82 /* Sources */,
 				F6476A9F1BE40E8B00B0DF82 /* Frameworks */,
 				F6476AA01BE40E8B00B0DF82 /* Headers */,
 				F6476AA11BE40E8B00B0DF82 /* Resources */,
+				F1EE9931B1BFB5DB3AF8B516 /* Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -386,6 +416,36 @@
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
+		71539826ABB5B37648D8B6FC /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPiOS/Pods-CoreXMPPiOS-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8BDA24B228B4899862932D91 /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		8DE16552B0524CF2AAA76D03 /* Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -446,6 +506,36 @@
 			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPOSXTests/Pods-CoreXMPPOSXTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		F1EE9931B1BFB5DB3AF8B516 /* Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/../Pods/Target Support Files/Pods-CoreXMPPOSX/Pods-CoreXMPPOSX-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FE538A46B529BFE83237B7CB /* Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -453,6 +543,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6476AC91BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -461,7 +552,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6476A941BE40E3100B0DF82 /* CoreXMPPTests.m in Sources */,
+				F6476ACC1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -469,6 +560,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F6476ACA1BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -477,7 +569,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6476ABB1BE40EB500B0DF82 /* CoreXMPPTests.m in Sources */,
+				F6476ACD1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -591,8 +683,8 @@
 		};
 		F6476A991BE40E3100B0DF82 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 94B49B5D2231168E94AC0660 /* Pods-CoreXMPPiOS.debug.xcconfig */;
 			buildSettings = {
-				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -607,8 +699,8 @@
 		};
 		F6476A9A1BE40E3100B0DF82 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0E7EB6191881E353039E26A3 /* Pods-CoreXMPPiOS.release.xcconfig */;
 			buildSettings = {
-				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -645,10 +737,10 @@
 		};
 		F6476AB51BE40E8B00B0DF82 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 442D961E1CD590A5E6B94177 /* Pods-CoreXMPPOSX.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -666,10 +758,10 @@
 		};
 		F6476AB61BE40E8B00B0DF82 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9AB86DAF75A8DA8B53317941 /* Pods-CoreXMPPOSX.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
