@@ -9,11 +9,20 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+typedef NS_ENUM(NSUInteger, XMPPStreamState) {
+    XMPPStreamStateClosed = 0,
+    XMPPStreamStateConnecting,
+    XMPPStreamStateOpening,
+    XMPPStreamStateOpen,
+    XMPPStreamStateClosing,
+    XMPPStreamStateDisconnecting
+};
+
 @class XMPPStream;
 
 @protocol XMPPStreamDelegate <NSObject>
 @optional
-- (void)stream:(XMPPStream *)stream didOpenWithStreamId:(NSString *)streamId;
+- (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId;
 - (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element;
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error;
 - (void)streamDidClose:(XMPPStream *)stream;
@@ -34,9 +43,15 @@
 @property (nonatomic, readonly) NSString *language;
 @property (nonatomic, readonly) NSDictionary *options;
 
+#pragma mark State
+@property (nonatomic, readonly) XMPPStreamState state;
+
 #pragma mark Managing Stream
 - (void)open;
+- (void)reopen;
 - (void)close;
+
+#pragma mark Sending Element
 - (void)sendElement:(PXElement *)element;
 
 @end

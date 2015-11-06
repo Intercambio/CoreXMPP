@@ -25,9 +25,20 @@
     return self;
 }
 
+#pragma mark State
+
+- (XMPPStreamState)state
+{
+    return XMPPStreamStateClosed;
+}
+
 #pragma mark Managing Stream
 
 - (void)open
+{
+}
+
+- (void)reopen
 {
 }
 
