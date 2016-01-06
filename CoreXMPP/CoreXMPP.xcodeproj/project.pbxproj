@@ -35,6 +35,10 @@
 		F6867C681C3C1114009617B5 /* SASLMechanismPLAIN.m in Sources */ = {isa = PBXBuildFile; fileRef = F6867C641C3C1113009617B5 /* SASLMechanismPLAIN.m */; };
 		F6867C6A1C3C17F5009617B5 /* SASLMechanismPLAINTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6867C691C3C17F5009617B5 /* SASLMechanismPLAINTests.m */; };
 		F6867C6B1C3C17F5009617B5 /* SASLMechanismPLAINTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6867C691C3C17F5009617B5 /* SASLMechanismPLAINTests.m */; };
+		F6867C6F1C3C2DDD009617B5 /* XMPPStreamFeature.h in Headers */ = {isa = PBXBuildFile; fileRef = F6867C6D1C3C2DDD009617B5 /* XMPPStreamFeature.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6867C701C3C2DDD009617B5 /* XMPPStreamFeature.h in Headers */ = {isa = PBXBuildFile; fileRef = F6867C6D1C3C2DDD009617B5 /* XMPPStreamFeature.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6867C711C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */ = {isa = PBXBuildFile; fileRef = F6867C6E1C3C2DDD009617B5 /* XMPPStreamFeature.m */; };
+		F6867C721C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */ = {isa = PBXBuildFile; fileRef = F6867C6E1C3C2DDD009617B5 /* XMPPStreamFeature.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +88,8 @@
 		F6867C631C3C1113009617B5 /* SASLMechanismPLAIN.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SASLMechanismPLAIN.h; sourceTree = "<group>"; };
 		F6867C641C3C1113009617B5 /* SASLMechanismPLAIN.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SASLMechanismPLAIN.m; sourceTree = "<group>"; };
 		F6867C691C3C17F5009617B5 /* SASLMechanismPLAINTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SASLMechanismPLAINTests.m; sourceTree = "<group>"; };
+		F6867C6D1C3C2DDD009617B5 /* XMPPStreamFeature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStreamFeature.h; sourceTree = "<group>"; };
+		F6867C6E1C3C2DDD009617B5 /* XMPPStreamFeature.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamFeature.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,6 +183,7 @@
 			children = (
 				F6476A871BE40E3100B0DF82 /* CoreXMPP.h */,
 				F6476ABE1BEA584700B0DF82 /* XMPP Stream */,
+				F6867C6C1C3C2DB4009617B5 /* XMPP Stream Feature */,
 				F6867C5C1C3C08FF009617B5 /* SASL */,
 				F6476ABC1BE411B900B0DF82 /* Supporting Files */,
 			);
@@ -231,6 +238,15 @@
 			name = SASL;
 			sourceTree = "<group>";
 		};
+		F6867C6C1C3C2DB4009617B5 /* XMPP Stream Feature */ = {
+			isa = PBXGroup;
+			children = (
+				F6867C6D1C3C2DDD009617B5 /* XMPPStreamFeature.h */,
+				F6867C6E1C3C2DDD009617B5 /* XMPPStreamFeature.m */,
+			);
+			name = "XMPP Stream Feature";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -242,6 +258,7 @@
 				F6867C5F1C3C092C009617B5 /* SASLMechanism.h in Headers */,
 				F6867C651C3C1113009617B5 /* SASLMechanismPLAIN.h in Headers */,
 				F6476AC11BEA586000B0DF82 /* XMPPStream.h in Headers */,
+				F6867C6F1C3C2DDD009617B5 /* XMPPStreamFeature.h in Headers */,
 				F6476AC71BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -254,6 +271,7 @@
 				F6867C601C3C092C009617B5 /* SASLMechanism.h in Headers */,
 				F6867C661C3C1114009617B5 /* SASLMechanismPLAIN.h in Headers */,
 				F6476AC21BEA586000B0DF82 /* XMPPStream.h in Headers */,
+				F6867C701C3C2DDD009617B5 /* XMPPStreamFeature.h in Headers */,
 				F6476AC81BEA61C700B0DF82 /* XMPPWebsocketStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -577,6 +595,7 @@
 			files = (
 				F6476AC91BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */,
+				F6867C711C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */,
 				F6867C611C3C092C009617B5 /* SASLMechanism.m in Sources */,
 				F6867C671C3C1114009617B5 /* SASLMechanismPLAIN.m in Sources */,
 			);
@@ -597,6 +616,7 @@
 			files = (
 				F6476ACA1BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */,
+				F6867C721C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */,
 				F6867C621C3C092C009617B5 /* SASLMechanism.m in Sources */,
 				F6867C681C3C1114009617B5 /* SASLMechanismPLAIN.m in Sources */,
 			);
