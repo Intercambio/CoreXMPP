@@ -22,13 +22,14 @@
 
 #pragma mark Feature Name & Namespace
 + (NSString *)name;
-+ (NSString *)namespace;
++ (NSString *) namespace;
 
 #pragma mark Life-cycle
 - (id)initWithElement:(PXElement *)element;
 
-#pragma mark Delehgate
+#pragma mark Delegate
 @property (nonatomic, weak) id<XMPPStreamFeatureDelegate> delegate;
+@property (nonatomic, strong) dispatch_queue_t delegateQueue;
 
 #pragma mark Feature Properties
 @property (nonatomic, readonly, getter=isMandatory) BOOL mandatory;

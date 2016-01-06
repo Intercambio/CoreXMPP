@@ -17,7 +17,7 @@
     return nil;
 }
 
-+ (NSString *)namespace
++ (NSString *) namespace
 {
     return nil;
 }
