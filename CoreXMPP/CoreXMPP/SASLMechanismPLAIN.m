@@ -10,7 +10,7 @@
 
 @interface SASLMechanismPLAIN () {
     dispatch_queue_t _queue;
-    void(^_responseHandler)(NSData *response, BOOL abort);
+    void (^_responseHandler)(NSData *response, BOOL abort);
 }
 
 @end
@@ -48,17 +48,17 @@
     dispatch_async(_queue, ^{
         if (_responseHandler) {
             if (username && password) {
-                
-                unsigned short nul[] = { 0 };
-                
+
+                unsigned short nul[] = {0};
+
                 NSMutableData *response = [[NSMutableData alloc] init];
-                
+
                 [response appendBytes:nul length:1];
                 [response appendData:[username dataUsingEncoding:NSUTF8StringEncoding]];
-                
+
                 [response appendBytes:nul length:1];
                 [response appendData:[password dataUsingEncoding:NSUTF8StringEncoding]];
-                
+
                 _responseHandler(response, NO);
             } else {
                 _responseHandler(nil, YES);

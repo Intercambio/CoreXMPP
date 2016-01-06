@@ -20,8 +20,8 @@
 
 @property (nonatomic, weak) id<SASLMechanismDelegate> delegate;
 
-- (void)beginAuthenticationExchangeWithResponseHandler:(void(^)(NSData *initialResponse, BOOL abort))responseHandler;
+- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
 - (void)handleChallenge:(NSData *)challenge
-        responseHandler:(void(^)(NSData *response, BOOL abort))responseHandler;
+        responseHandler:(void (^)(NSData *response, BOOL abort))responseHandler;
 
 @end

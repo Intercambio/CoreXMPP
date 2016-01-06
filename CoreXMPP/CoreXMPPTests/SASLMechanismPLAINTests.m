@@ -27,7 +27,7 @@
 - (void)setUp
 {
     [super setUp];
-    
+
     self.abortAuthentication = NO;
     self.username = nil;
     self.password = nil;
@@ -42,66 +42,66 @@
 {
     self.username = @"romeo";
     self.password = @"123";
-    
+
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
     mechanism.delegate = self;
-    
+
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
-    
+
     [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
-        
+
         assertThatBool(abort, isFalse());
-        
-        unsigned short nul[] = { 0 };
+
+        unsigned short nul[] = {0};
         NSData *terminator = [NSData dataWithBytes:nul length:1];
-        
+
         NSString *initialResponseString = [[NSString alloc] initWithData:initialResponse encoding:NSUTF8StringEncoding];
         NSString *terminatorString = [[NSString alloc] initWithData:terminator encoding:NSUTF8StringEncoding];
-        
+
         NSArray *components = [initialResponseString componentsSeparatedByString:terminatorString];
-        
+
         assertThat(components, hasCountOf(3));
         assertThat(components, contains(@"", @"romeo", @"123", nil));
-        
+
         [expectResponse fulfill];
     }];
-    
+
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 - (void)testMissingCredentials
 {
     self.username = @"romeo";
-    
+
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
     mechanism.delegate = self;
-    
+
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
-    
+
     [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
         assertThatBool(abort, isTrue());
-        
+
         [expectResponse fulfill];
     }];
-    
+
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 - (void)testAbort
 {
     self.abortAuthentication = YES;
-    
+
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
     mechanism.delegate = self;
-    
+
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
-    
+
     [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
         assertThatBool(abort, isTrue());
-        
+
         [expectResponse fulfill];
     }];
-    
+
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 

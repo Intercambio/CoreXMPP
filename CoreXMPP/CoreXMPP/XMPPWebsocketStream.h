@@ -10,7 +10,7 @@
 
 #import "XMPPStream.h"
 
-extern NSString * const XMPPWebsocketStreamURLKey;
+extern NSString *const XMPPWebsocketStreamURLKey;
 
 @interface XMPPWebsocketStream : XMPPStream
 

@@ -8,7 +8,7 @@
 
 #import "XMPPStream.h"
 
-NSString * const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
+NSString *const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
 
 @implementation XMPPStream
 

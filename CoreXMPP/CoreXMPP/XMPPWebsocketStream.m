@@ -10,8 +10,8 @@
 
 #import "XMPPWebsocketStream.h"
 
-NSString * const XMPPWebsocketStreamURLKey = @"XMPPWebsocketStreamURLKey";
-NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
+NSString *const XMPPWebsocketStreamURLKey = @"XMPPWebsocketStreamURLKey";
+NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 @interface XMPPWebsocketStream () <SRWebSocketDelegate> {
     dispatch_queue_t _operationQueue;
@@ -65,10 +65,10 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPStreamStateClosed, @"Invalid State: Can only open a closed stream.");
-        
+
         [self setUpWebsocket];
         [_websocket open];
-        
+
         self.state = XMPPStreamStateConnecting;
     });
 }
@@ -77,7 +77,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only reopen a already opened stream.");
-        
+
         [self sendOpenFrame];
         self.state = XMPPStreamStateOpening;
     });
@@ -87,7 +87,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only close an open stream.");
-        
+
         [self sendCloseFrame];
         self.state = XMPPStreamStateClosing;
     });
@@ -137,7 +137,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
         [self handleReceivedFramingDocument:document];
     } else {
         if (_state != XMPPStreamStateOpen) {
-            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Can only handle elements other than framing elements if the stream is open.", nil) };
+            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Can only handle elements other than framing elements if the stream is open.", nil) };
             NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                                  code:XMPPStreamErrorCodeInvalidState
                                              userInfo:userInfo];
@@ -155,20 +155,20 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 - (void)handleReceivedFramingDocument:(PXDocument *)document
 {
     if ([[document.root name] isEqualToString:@"open"]) {
-        
+
         if (_state != XMPPStreamStateOpening) {
-            
-            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Received unexpected open frame.", nil) };
+
+            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Received unexpected open frame.", nil) };
             NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                                  code:XMPPStreamErrorCodeInvalidState
                                              userInfo:userInfo];
             [self handleFailureWithError:error];
-            
+
         } else {
-            
+
             NSString *hostname = [document.root valueForAttribute:@"from"];
             NSString *streamId = [document.root valueForAttribute:@"id"];
-            
+
             if ([self.delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [self.delegate stream:self didOpenToHost:hostname withStreamId:streamId];
@@ -176,30 +176,30 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
             }
             self.state = XMPPStreamStateOpen;
         }
-        
+
     } else if ([[document.root name] isEqualToString:@"close"]) {
-        
+
         if (_state != XMPPStreamStateOpen && _state != XMPPStreamStateClosing) {
-            
-            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Received unexpected close frame.", nil) };
+
+            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Received unexpected close frame.", nil) };
             NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                                  code:XMPPStreamErrorCodeInvalidState
                                              userInfo:userInfo];
             [self handleFailureWithError:error];
-            
+
         } else {
-            
+
             if (_state == XMPPStreamStateOpen) {
                 [self sendCloseFrame];
             }
-            
+
             self.state = XMPPStreamStateDisconnecting;
             [_websocket close];
         }
-        
+
     } else {
-        
-        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Recevied unsupported framing document.", nil) };
+
+        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Recevied unsupported framing document.", nil) };
         NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                              code:XMPPStreamErrorCodeInvalidState
                                          userInfo:userInfo];
@@ -216,7 +216,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
             [self.delegate stream:self didFailWithError:error];
         });
     }
-    
+
     [self tearDownWebsocket];
 }
 
@@ -226,10 +226,10 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 {
     _websocket.delegate = nil;
     [_websocket close];
-    
+
     // Create a websocket with the URL form the options (or create a
     // default RUL based on the hostname) and open the websocket.
-    
+
     NSURL *websocketURL = self.options[XMPPWebsocketStreamURLKey];
     if (websocketURL == nil) {
         // Try to guess the websocket URL
@@ -239,14 +239,14 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
         websocketURLComponents.path = @"/xmpp";
         websocketURL = [websocketURLComponents URL];
     }
-    
+
     SRWebSocket *websocket = [[SRWebSocket alloc] initWithURL:websocketURL
-                                                    protocols:@[@"xmpp"]
+                                                    protocols:@[ @"xmpp" ]
                                allowsUntrustedSSLCertificates:YES];
-    
+
     [websocket setDelegateDispatchQueue:_operationQueue];
     websocket.delegate = self;
-    
+
     _websocket = websocket;
 }
 
@@ -262,7 +262,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
 - (void)webSocketDidOpen:(SRWebSocket *)webSocket
 {
     if (_state != XMPPStreamStateConnecting) {
-        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Expecting stream to be in state 'connection' while the connection is established.", nil) };
+        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Expecting stream to be in state 'connection' while the connection is established.", nil) };
         NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                              code:XMPPStreamErrorCodeInvalidState
                                          userInfo:userInfo];
@@ -280,16 +280,16 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
         if (document) {
             [self handleReceivedDocument:document];
         } else {
-            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey: NSLocalizedString(@"Failed to parse received XML document.", nil) };
+            NSDictionary *userInfo = @{ NSLocalizedDescriptionKey : NSLocalizedString(@"Failed to parse received XML document.", nil) };
             NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                                  code:XMPPStreamErrorCodeParseError
                                              userInfo:userInfo];
             [self handleFailureWithError:error];
         }
     } else {
-        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey:
+        NSDictionary *userInfo = @{ NSLocalizedDescriptionKey :
                                         [NSString stringWithFormat:NSLocalizedString(@"Received websocket message of wrong format. Expected UTF8 encoded string. Got `%@`", nil),
-                                         NSStringFromClass([message class])] };
+                                                                   NSStringFromClass([message class])] };
         NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
                                              code:XMPPStreamErrorCodeMessageFormatError
                                          userInfo:userInfo];
@@ -340,7 +340,7 @@ NSString * const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing"
         documentString = [documentString substringFromIndex:NSMaxRange(range)];
         documentString = [documentString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     }
-    
+
     return documentString;
 }
 
