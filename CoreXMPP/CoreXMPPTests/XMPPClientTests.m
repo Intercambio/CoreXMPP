@@ -41,41 +41,41 @@
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{XMPPClientOptionsStreamKey : self.stream}];
-    
+
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
-    
+
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-    
+
         // Send an empty feature element from the receiving entity to
         // the initiating entity after the stream has been opend.
-        
+
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
         [stream receiveElement:doc.root];
     }];
-    
+
     XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect espablished Connection"];
-    
+
     [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
         [establishedConnectionExpectation fulfill];
         return nil;
     }];
-    
+
     [client connect];
-    
+
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
-    
+
     XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
-    
+
     [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
         [expectDisconnect fulfill];
         return nil;
     }];
-    
+
     [client disconnect];
-    
+
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }
 

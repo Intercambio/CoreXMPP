@@ -8,10 +8,10 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
-extern NSString * const XMPPStreamStubStreamDidOpenNotification;
-extern NSString * const XMPPStreamStubStreamDidCloseNotification;
-extern NSString * const XMPPStreamStubStreamDidSendElementNotification;
-extern NSString * const XMPPStreamStubStreamNotificationElementKey;
+extern NSString *const XMPPStreamStubStreamDidOpenNotification;
+extern NSString *const XMPPStreamStubStreamDidCloseNotification;
+extern NSString *const XMPPStreamStubStreamDidSendElementNotification;
+extern NSString *const XMPPStreamStubStreamNotificationElementKey;
 
 @interface XMPPStreamStub : XMPPStream
 
@@ -19,8 +19,8 @@ extern NSString * const XMPPStreamStubStreamNotificationElementKey;
 - (void)receiveElement:(PXElement *)element;
 
 #pragma mark Event Handler
-- (void)onDidOpen:(void(^)(XMPPStreamStub *stream))handler;
-- (void)onDidClose:(void(^)(XMPPStreamStub *stream))handler;
-- (void)onDidSendElement:(void(^)(XMPPStreamStub *stream, PXElement *element))handler;
+- (void)onDidOpen:(void (^)(XMPPStreamStub *stream))handler;
+- (void)onDidClose:(void (^)(XMPPStreamStub *stream))handler;
+- (void)onDidSendElement:(void (^)(XMPPStreamStub *stream, PXElement *element))handler;
 
 @end

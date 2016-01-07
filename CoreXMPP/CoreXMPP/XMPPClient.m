@@ -10,7 +10,7 @@
 
 #import "XMPPClient.h"
 
-NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
+NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
 @interface XMPPClient () <XMPPStreamDelegate> {
     dispatch_queue_t _operationQueue;
@@ -31,11 +31,10 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
     if (self) {
         _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
         _state = XMPPClientStateDisconnected;
-        
+
         _stream = options[XMPPClientOptionsStreamKey] ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
         _stream.delegateQueue = _operationQueue;
         _stream.delegate = self;
-
     }
     return self;
 }
@@ -77,8 +76,8 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)sendStanza:(PXElement *)stanza
 {
     dispatch_async(_operationQueue, ^{
-        
-    });
+
+                   });
 }
 
 #pragma mark Feature Negotiation
@@ -86,29 +85,29 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)beginNegotiationWithElement:(PXElement *)element
 {
     _state = XMPPClientStateNegotiating;
-    
+
     NSMutableArray *mandatoryFeatures = [[NSMutableArray alloc] init];
     NSMutableArray *voluntaryFeatures = [[NSMutableArray alloc] init];
-    
-    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
-        
+
+    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop){
+
     }];
-    
+
     if ([mandatoryFeatures count] > 0) {
-        
+
         // Mandatory features are left for negotiation
-        
-    } else if ([voluntaryFeatures count] > 0 ) {
-    
+
+    } else if ([voluntaryFeatures count] > 0) {
+
         // Only voluntary features are left for negotiation
-        
+
     } else {
-        
+
         // No features left to negotiate
         // The connection is established
-        
+
         _state = XMPPClientStateEstablished;
-        
+
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
@@ -129,26 +128,25 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element
 {
     if (_state == XMPPClientStateConnected) {
-        
+
         // Expecting a features element to start the negoatiation
-        
+
         if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
             [element.name isEqualToString:@"features"]) {
-            
+
             [self beginNegotiationWithElement:element];
-            
+
         } else {
             // Unexpected element
             _state = XMPPClientStateDisconnecting;
             [_stream close];
         }
-        
+
     } else if (_state == XMPPClientStateNegotiating) {
-        
+
     } else if (_state == XMPPClientStateEstablished) {
-        
+
     } else {
-        
     }
 }
 
@@ -160,7 +158,7 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)streamDidClose:(XMPPStream *)stream
 {
     _state = XMPPClientStateDisconnected;
-    
+
     id<XMPPClientDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
     dispatch_async(delegateQueue, ^{

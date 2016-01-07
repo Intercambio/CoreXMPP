@@ -143,7 +143,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
                                              userInfo:userInfo];
             [self handleFailureWithError:error];
         } else {
-            
+
             id<XMPPStreamDelegate> delegate = self.delegate;
             dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
             dispatch_async(delegateQueue, ^{
@@ -179,7 +179,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
                     [self.delegate stream:self didOpenToHost:hostname withStreamId:streamId];
                 }
             });
-            
+
             self.state = XMPPStreamStateOpen;
         }
 
@@ -308,7 +308,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)webSocket:(SRWebSocket *)webSocket didFailWithError:(NSError *)error
 {
     if (_state == XMPPStreamStateDisconnecting) {
-        
+
         id<XMPPStreamDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
@@ -316,7 +316,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
                 [self.delegate streamDidClose:self];
             }
         });
-        
+
         [self tearDownWebsocket];
         self.state = XMPPStreamStateClosed;
     } else {
@@ -333,7 +333,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             [self.delegate streamDidClose:self];
         }
     });
-    
+
     [self tearDownWebsocket];
     self.state = XMPPStreamStateClosed;
 }
