@@ -44,6 +44,7 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPStreamDelegate> delegate;
+@property (nonatomic, strong) dispatch_queue_t delegateQueue;
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;

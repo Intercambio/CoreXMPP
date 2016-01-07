@@ -143,11 +143,14 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
                                              userInfo:userInfo];
             [self handleFailureWithError:error];
         } else {
-            if ([self.delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-                dispatch_async(dispatch_get_main_queue(), ^{
+            
+            id<XMPPStreamDelegate> delegate = self.delegate;
+            dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+            dispatch_async(delegateQueue, ^{
+                if ([delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
                     [self.delegate stream:self didReceiveElement:document.root];
-                });
-            }
+                }
+            });
         }
     }
 }
@@ -169,11 +172,14 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             NSString *hostname = [document.root valueForAttribute:@"from"];
             NSString *streamId = [document.root valueForAttribute:@"id"];
 
-            if ([self.delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
-                dispatch_async(dispatch_get_main_queue(), ^{
+            id<XMPPStreamDelegate> delegate = self.delegate;
+            dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+            dispatch_async(delegateQueue, ^{
+                if ([delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
                     [self.delegate stream:self didOpenToHost:hostname withStreamId:streamId];
-                });
-            }
+                }
+            });
+            
             self.state = XMPPStreamStateOpen;
         }
 
@@ -211,11 +217,13 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)handleFailureWithError:(NSError *)error
 {
-    if ([self.delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
+    id<XMPPStreamDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
             [self.delegate stream:self didFailWithError:error];
-        });
-    }
+        }
+    });
 
     [self tearDownWebsocket];
 }
@@ -300,11 +308,15 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)webSocket:(SRWebSocket *)webSocket didFailWithError:(NSError *)error
 {
     if (_state == XMPPStreamStateDisconnecting) {
-        if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
+        
+        id<XMPPStreamDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(streamDidClose:)]) {
                 [self.delegate streamDidClose:self];
-            });
-        }
+            }
+        });
+        
         [self tearDownWebsocket];
         self.state = XMPPStreamStateClosed;
     } else {
@@ -314,11 +326,14 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean
 {
-    if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
-        dispatch_async(dispatch_get_main_queue(), ^{
+    id<XMPPStreamDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(streamDidClose:)]) {
             [self.delegate streamDidClose:self];
-        });
-    }
+        }
+    });
+    
     [self tearDownWebsocket];
     self.state = XMPPStreamStateClosed;
 }
