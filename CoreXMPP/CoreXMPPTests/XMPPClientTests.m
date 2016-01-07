@@ -58,12 +58,23 @@
     
     XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect espablished Connection"];
     
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invication) {
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
         [establishedConnectionExpectation fulfill];
         return nil;
     }];
     
     [client connect];
+    
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+    
+    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
+    
+    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
+        [expectDisconnect fulfill];
+        return nil;
+    }];
+    
+    [client disconnect];
     
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }

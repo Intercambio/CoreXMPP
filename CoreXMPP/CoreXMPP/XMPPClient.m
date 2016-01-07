@@ -57,14 +57,18 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)connect
 {
     dispatch_async(_operationQueue, ^{
-        
+        NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
+        _state = XMPPClientStateConnecting;
+        [_stream open];
     });
 }
 
 - (void)disconnect
 {
     dispatch_async(_operationQueue, ^{
-        
+        NSAssert(_state == XMPPClientStateEstablished, @"Invalid State: Can only disconnect a client with an established connection.");
+        _state = XMPPClientStateDisconnecting;
+        [_stream close];
     });
 }
 
@@ -77,22 +81,93 @@ NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
     });
 }
 
+#pragma mark Feature Negotiation
+
+- (void)beginNegotiationWithElement:(PXElement *)element
+{
+    _state = XMPPClientStateNegotiating;
+    
+    NSMutableArray *mandatoryFeatures = [[NSMutableArray alloc] init];
+    NSMutableArray *voluntaryFeatures = [[NSMutableArray alloc] init];
+    
+    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+        
+    }];
+    
+    if ([mandatoryFeatures count] > 0) {
+        
+        // Mandatory features are left for negotiation
+        
+    } else if ([voluntaryFeatures count] > 0 ) {
+    
+        // Only voluntary features are left for negotiation
+        
+    } else {
+        
+        // No features left to negotiate
+        // The connection is established
+        
+        _state = XMPPClientStateEstablished;
+        
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(clientDidConnect:)]) {
+                [delegate clientDidConnect:self];
+            }
+        });
+    }
+}
+
 #pragma mark XMPPStreamDelegate
 
 - (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId
 {
+    _state = XMPPClientStateConnected;
 }
 
 - (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element
 {
+    if (_state == XMPPClientStateConnected) {
+        
+        // Expecting a features element to start the negoatiation
+        
+        if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+            [element.name isEqualToString:@"features"]) {
+            
+            [self beginNegotiationWithElement:element];
+            
+        } else {
+            // Unexpected element
+            _state = XMPPClientStateDisconnecting;
+            [_stream close];
+        }
+        
+    } else if (_state == XMPPClientStateNegotiating) {
+        
+    } else if (_state == XMPPClientStateEstablished) {
+        
+    } else {
+        
+    }
 }
 
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error
 {
+    _state = XMPPClientStateDisconnected;
 }
 
 - (void)streamDidClose:(XMPPStream *)stream
 {
+    _state = XMPPClientStateDisconnected;
+    
+    id<XMPPClientDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(clientDidDisconnect:)]) {
+            [delegate clientDidDisconnect:self];
+        }
+    });
 }
 
 @end
