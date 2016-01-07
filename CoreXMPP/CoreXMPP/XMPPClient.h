@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+extern NSString * const XMPPClientOptionsStreamKey;
+
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,
     XMPPClientStateConnecting,

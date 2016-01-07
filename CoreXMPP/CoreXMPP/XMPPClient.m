@@ -10,6 +10,8 @@
 
 #import "XMPPClient.h"
 
+NSString * const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
+
 @interface XMPPClient () <XMPPStreamDelegate> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
@@ -28,10 +30,12 @@
     self = [super init];
     if (self) {
         _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
-        _stream = [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
+        _state = XMPPClientStateDisconnected;
+        
+        _stream = options[XMPPClientOptionsStreamKey] ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
         _stream.delegateQueue = _operationQueue;
         _stream.delegate = self;
-        _state = XMPPClientStateDisconnected;
+
     }
     return self;
 }
