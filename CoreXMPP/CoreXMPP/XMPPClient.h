@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+#import "SASLMechanism.h"
+
 extern NSString *const XMPPClientOptionsStreamKey;
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
@@ -32,17 +34,25 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 @interface XMPPClient : NSObject
 
+#pragma mark Registered Stream Features
++ (NSDictionary *)registeredStreamFeatures;
++ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
+
 #pragma mark Life-cycle
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;
+@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 @property (nonatomic, strong) dispatch_queue_t delegateQueue;
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
 @property (nonatomic, readonly) NSDictionary *options;
+
+#pragma mark Stream Features
+@property (nonatomic, readonly) NSArray *negotiatedFeatures;
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;

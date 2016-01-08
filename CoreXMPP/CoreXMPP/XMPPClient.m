@@ -7,20 +7,51 @@
 //
 
 #import "XMPPWebsocketStream.h"
+#import "XMPPStreamFeature.h"
+#import "XMPPStreamFeatureSASL.h"
+
+#import "SASLMechanismPLAIN.h"
 
 #import "XMPPClient.h"
 
 NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
-@interface XMPPClient () <XMPPStreamDelegate> {
+@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
     XMPPWebsocketStream *_stream;
+    XMPPStreamFeature *_currentFeature;
 }
 
 @end
 
 @implementation XMPPClient
+
+#pragma mark Registered Stream Features
+
++ (NSMutableDictionary *)xmpp_registeredStreamFeatures
+{
+    static NSMutableDictionary *registeredStreamFeatures;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        registeredStreamFeatures = [[NSMutableDictionary alloc] init];
+    });
+    return registeredStreamFeatures;
+}
+
++ (NSDictionary *)registeredStreamFeatures
+{
+    return [self xmpp_registeredStreamFeatures];
+}
+
++ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName
+{
+    NSParameterAssert(featureClass);
+    NSParameterAssert(streamFeatureQName);
+    
+    NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
+    [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
+}
 
 #pragma mark Life-cycle
 
@@ -58,6 +89,7 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
         _state = XMPPClientStateConnecting;
+        _negotiatedFeatures = @[];
         [_stream open];
     });
 }
@@ -85,22 +117,43 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)beginNegotiationWithElement:(PXElement *)element
 {
     _state = XMPPClientStateNegotiating;
-
+    
     NSMutableArray *mandatoryFeatures = [[NSMutableArray alloc] init];
     NSMutableArray *voluntaryFeatures = [[NSMutableArray alloc] init];
 
     [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop){
-
+        
+        PXQName *featureQName = [[PXQName alloc] initWithName:element.name namespace:element.namespace];
+        
+        Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:featureQName];
+        if (featureClass) {
+            
+            XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithElement:element];
+            
+            if (feature.mandatory) {
+                [mandatoryFeatures addObject:feature];
+            } else {
+                [voluntaryFeatures addObject:feature];
+            }
+        }
+        
     }];
-
+    
     if ([mandatoryFeatures count] > 0) {
 
         // Mandatory features are left for negotiation
-
+        
+        _currentFeature = [mandatoryFeatures firstObject];
+        
+        _currentFeature.delegate = self;
+        _currentFeature.delegateQueue = _operationQueue;
+        
+        [_currentFeature beginNegotiation];
+        
     } else if ([voluntaryFeatures count] > 0) {
 
         // Only voluntary features are left for negotiation
-
+        
     } else {
 
         // No features left to negotiate
@@ -144,9 +197,12 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
     } else if (_state == XMPPClientStateNegotiating) {
 
+        [_currentFeature handleElement:element];
+        
     } else if (_state == XMPPClientStateEstablished) {
 
     } else {
+        
     }
 }
 
@@ -166,6 +222,55 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
             [delegate clientDidDisconnect:self];
         }
     });
+}
+
+#pragma mark XMPPStreamFeatureDelegate
+
+- (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature
+{
+    if (streamFeature == _currentFeature) {
+        
+        PXQName *featureQName = [[PXQName alloc] initWithName:[[streamFeature class] name]
+                                                    namespace:[[streamFeature class] namespace]];
+        
+        _negotiatedFeatures = [_negotiatedFeatures arrayByAddingObject:featureQName];
+        
+        _currentFeature.delegate = nil;
+        _currentFeature = nil;
+        
+        if (streamFeature.needsRestart) {
+            _state = XMPPClientStateConnecting;
+            [_stream reopen];
+        } else {
+            _state = XMPPClientStateConnected;
+        }
+    }
+}
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error
+{
+    if (streamFeature == _currentFeature) {
+        
+        _currentFeature.delegate = nil;
+        _currentFeature = nil;
+    }
+}
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature handleElement:(PXElement *)element
+{
+    if (streamFeature == _currentFeature) {
+        [_stream sendElement:element];
+    }
+}
+
+#pragma mark XMPPStreamFeatureDelegateSASL
+
+- (SASLMechanism *)SASLMechanismForStreamFeature:(XMPPStreamFeature *)streamFeature
+                             supportedMechanisms:(NSArray *)mechanisms
+{
+    SASLMechanism *mechanism = [[SASLMechanismPLAIN alloc] init];
+    mechanism.delegate = self.SASLDelegate;
+    return mechanism;
 }
 
 @end
