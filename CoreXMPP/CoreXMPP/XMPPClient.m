@@ -48,7 +48,7 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 {
     NSParameterAssert(featureClass);
     NSParameterAssert(streamFeatureQName);
-    
+
     NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
     [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
 }
@@ -114,46 +114,46 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
 #pragma mark Feature Negotiation
 
-- (void)beginNegotiationWithElement:(PXElement *)element
+- (void)xmpp_beginNegotiationWithElement:(PXElement *)element
 {
     _state = XMPPClientStateNegotiating;
-    
+
     NSMutableArray *mandatoryFeatures = [[NSMutableArray alloc] init];
     NSMutableArray *voluntaryFeatures = [[NSMutableArray alloc] init];
 
-    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop){
-        
+    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+
         PXQName *featureQName = [[PXQName alloc] initWithName:element.name namespace:element.namespace];
-        
+
         Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:featureQName];
         if (featureClass) {
-            
+
             XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithElement:element];
-            
+
             if (feature.mandatory) {
                 [mandatoryFeatures addObject:feature];
             } else {
                 [voluntaryFeatures addObject:feature];
             }
         }
-        
+
     }];
-    
+
     if ([mandatoryFeatures count] > 0) {
 
         // Mandatory features are left for negotiation
-        
+
         _currentFeature = [mandatoryFeatures firstObject];
-        
+
         _currentFeature.delegate = self;
         _currentFeature.delegateQueue = _operationQueue;
-        
+
         [_currentFeature beginNegotiation];
-        
+
     } else if ([voluntaryFeatures count] > 0) {
 
         // Only voluntary features are left for negotiation
-        
+
     } else {
 
         // No features left to negotiate
@@ -187,7 +187,7 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
         if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
             [element.name isEqualToString:@"features"]) {
 
-            [self beginNegotiationWithElement:element];
+            [self xmpp_beginNegotiationWithElement:element];
 
         } else {
             // Unexpected element
@@ -198,11 +198,10 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
     } else if (_state == XMPPClientStateNegotiating) {
 
         [_currentFeature handleElement:element];
-        
+
     } else if (_state == XMPPClientStateEstablished) {
 
     } else {
-        
     }
 }
 
@@ -229,30 +228,49 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature
 {
     if (streamFeature == _currentFeature) {
-        
+
         PXQName *featureQName = [[PXQName alloc] initWithName:[[streamFeature class] name]
                                                     namespace:[[streamFeature class] namespace]];
-        
+
         _negotiatedFeatures = [_negotiatedFeatures arrayByAddingObject:featureQName];
-        
+
         _currentFeature.delegate = nil;
         _currentFeature = nil;
-        
+
         if (streamFeature.needsRestart) {
             _state = XMPPClientStateConnecting;
             [_stream reopen];
         } else {
             _state = XMPPClientStateConnected;
         }
+
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(client:didNegotiateFeature:)]) {
+                [delegate client:self didNegotiateFeature:featureQName];
+            }
+        });
     }
 }
 
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error
 {
     if (streamFeature == _currentFeature) {
-        
+
         _currentFeature.delegate = nil;
         _currentFeature = nil;
+
+        PXQName *featureQName = [[PXQName alloc] initWithName:[[streamFeature class] name]
+                                                    namespace:[[streamFeature class] namespace]];
+
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(client:didFailToNegotiateFeature:withError:)]) {
+                [delegate client:self didFailToNegotiateFeature:featureQName withError:error];
+            }
+        });
     }
 }
 

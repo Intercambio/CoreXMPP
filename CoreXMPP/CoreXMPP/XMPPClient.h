@@ -28,6 +28,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @optional
 - (void)clientDidConnect:(XMPPClient *)client;
 - (void)clientDidDisconnect:(XMPPClient *)client;
+- (void)client:(XMPPClient *)client didNegotiateFeature:(PXQName *)feature;
+- (void)client:(XMPPClient *)client didFailToNegotiateFeature:(PXQName *)feature withError:(NSError *)error;
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error;
 - (void)client:(XMPPClient *)client didReceiveStanza:(PXElement *)stanza;
 @end
