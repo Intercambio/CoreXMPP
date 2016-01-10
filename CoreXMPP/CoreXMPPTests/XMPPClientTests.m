@@ -147,4 +147,62 @@
     assertThat(client.negotiatedFeatures, contains(SASLFeatureQName, nil));
 }
 
+- (void)testFeatureNegotiationFailure
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+    
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+    
+    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    client.SASLDelegate = SASLDelegate;
+    
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        return nil;
+    }];
+    
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+        
+        PXElement *SASLFeature = [doc.root addElementWithName:[XMPPStreamFeatureSASL name]
+                                                    namespace:[XMPPStreamFeatureSASL namespace]
+                                                      content:nil];
+        
+        [SASLFeature addElementWithName:@"mechanism"
+                              namespace:[XMPPStreamFeatureSASL namespace]
+                                content:@"PLAIN"];
+        
+        [stream receiveElement:doc.root];
+    }];
+    
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+        
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
+                                                             namespace:XMPPStreamFeatureSASLNamespace
+                                                                prefix:nil];
+        
+        [response.root addElementWithName:@"account-disabled"
+                                namespace:XMPPStreamFeatureSASLNamespace
+                                  content:nil];
+        
+        [stream receiveElement:response.root];
+    }];
+    
+    [client connect];
+    
+    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
+    
+    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+        [expectDisconnect fulfill];
+    }];
+    
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+}
+
 @end

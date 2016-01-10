@@ -271,6 +271,9 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
                 [delegate client:self didFailToNegotiateFeature:featureQName withError:error];
             }
         });
+        
+        _state = XMPPClientStateDisconnecting;
+        [_stream close];
     }
 }
 
