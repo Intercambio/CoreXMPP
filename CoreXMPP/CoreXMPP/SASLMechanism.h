@@ -27,7 +27,8 @@
 @property (nonatomic, weak) id<SASLMechanismDelegate> delegate;
 
 #pragma mark Authentication Exchange
-- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname
+                                responseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
 - (void)handleChallenge:(NSData *)challenge
         responseHandler:(void (^)(NSData *response, BOOL abort))responseHandler;
 

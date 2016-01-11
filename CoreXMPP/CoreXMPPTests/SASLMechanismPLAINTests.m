@@ -43,7 +43,7 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
 
         assertThatBool(abort, isFalse());
 
@@ -73,7 +73,7 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
         assertThatBool(abort, isTrue());
 
         [expectResponse fulfill];
@@ -91,7 +91,7 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
         assertThatBool(abort, isTrue());
 
         [expectResponse fulfill];

@@ -41,7 +41,7 @@
 
 #pragma mark Authentication Exchange
 
-- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *, BOOL))responseHandler
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler
 {
     if (responseHandler) {
         responseHandler(nil, YES);

@@ -224,7 +224,8 @@ NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptions
         _currentFeature.queue = _operationQueue;
         _currentFeature.delegate = self;
 
-        [_currentFeature beginNegotiation];
+        [_currentFeature beginNegotiationWithHostname:self.hostname
+                                              options:nil];
 
     } else {
 

@@ -10,6 +10,7 @@
 
 @interface SASLMechanismPLAIN () {
     dispatch_queue_t _queue;
+    NSString *_hostname;
     void (^_responseHandler)(NSData *response, BOOL abort);
 }
 
@@ -43,9 +44,10 @@
 
 #pragma mark Authentication Exchange
 
-- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *, BOOL))responseHandler
 {
     dispatch_async(_queue, ^{
+        _hostname = hostname;
         _responseHandler = responseHandler;
         if ([self.delegate conformsToProtocol:@protocol(SASLMechanismDelegatePLAIN)]) {
             id<SASLMechanismDelegatePLAIN> delegate = (id<SASLMechanismDelegatePLAIN>)self.delegate;

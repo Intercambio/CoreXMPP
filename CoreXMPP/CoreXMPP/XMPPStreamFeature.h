@@ -41,7 +41,7 @@
 @property (nonatomic, readonly) BOOL needsRestart;
 
 #pragma mark Negotiate Feature
-- (void)beginNegotiation;
+- (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options;
 - (void)handleElement:(PXElement *)element;
 
 @end
