@@ -181,52 +181,55 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
 - (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element
 {
-    if (_state == XMPPClientStateConnected) {
-
-        // Expecting a features element to start the negoatiation
-
-        if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
-            [element.name isEqualToString:@"features"]) {
-
-            [self xmpp_beginNegotiationWithElement:element];
-
-        } else {
-            // Unexpected element
-            _state = XMPPClientStateDisconnecting;
-            [_stream close];
-        }
-
-    } else if (_state == XMPPClientStateNegotiating) {
-
-        [_currentFeature handleElement:element];
-
-    } else if (_state == XMPPClientStateEstablished) {
-
-        id<XMPPClientDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-        
-        if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
-                                                             [element.name isEqual:@"presence"] ||
-                                                             [element.name isEqual:@"iq"])) {
-
+    switch (_state) {
+        case XMPPClientStateConnected:
+            // Expecting a features element to start the negoatiation
+            if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+                [element.name isEqualToString:@"features"]) {
+                [self xmpp_beginNegotiationWithElement:element];
+            } else {
+                // Unexpected element
+                _state = XMPPClientStateDisconnecting;
+                [_stream close];
+            }
+            break;
+            
+        case XMPPClientStateNegotiating:
+            [_currentFeature handleElement:element];
+            break;
+            
+        case XMPPClientStateEstablished:
+        {
+            id<XMPPClientDelegate> delegate = self.delegate;
+            dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+            
+            if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
+                                                                 [element.name isEqual:@"presence"] ||
+                                                                 [element.name isEqual:@"iq"])) {
+                
                 dispatch_async(delegateQueue, ^{
                     if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
                         [delegate client:self didReceiveStanza:element];
                     }
                 });
-            
-        } else {
-
-            // Unsupported element
-            
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
-                    [delegate client:self didReceiveUnsupportedElement:element];
-                }
-            });
+                
+            } else {
+                
+                // Unsupported element
+                
+                dispatch_async(delegateQueue, ^{
+                    if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
+                        [delegate client:self didReceiveUnsupportedElement:element];
+                    }
+                });
+            }
+            break;
         }
-    
-    } else {
+        
+        case XMPPClientStateConnecting:
+        case XMPPClientStateDisconnected:
+        case XMPPClientStateDisconnecting:
+            break;
     }
 }
 
