@@ -6,6 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPClient.h"
+
 #import "XMPPStreamFeatureSASL.h"
 
 NSString *const XMPPStreamFeatureSASLErrorDomain = @"XMPPStreamFeatureSASLErrorDomain";
@@ -13,13 +15,18 @@ NSString *const XMPPStreamFeatureSASLErrorDomain = @"XMPPStreamFeatureSASLErrorD
 NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-sasl";
 
 @interface XMPPStreamFeatureSASL () {
-    dispatch_queue_t _queue;
     SASLMechanism *_mechanism;
 }
 
 @end
 
 @implementation XMPPStreamFeatureSASL
+
++ (void)load
+{
+    PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSASL name] namespace:[XMPPStreamFeatureSASL namespace]];
+    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureSASL class] forStreamFeatureQName:QName];
+}
 
 #pragma mark SASL Errors
 
@@ -86,14 +93,14 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
 #pragma mark Life-cycle
 
-- (id)initWithElement:(PXElement *)element
+- (id)initWithConfiguration:(PXDocument *)configuration
 {
-    self = [super initWithElement:element];
+    self = [super initWithConfiguration:configuration];
     if (self) {
 
         NSMutableArray *mechanisms = [[NSMutableArray alloc] init];
 
-        [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+        [configuration.root enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
 
             if ([element.namespace isEqualToString:XMPPStreamFeatureSASLNamespace] &&
                 [element.name isEqualToString:@"mechanism"]) {
@@ -105,7 +112,6 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
         }];
 
         _mechanisms = mechanisms;
-        _queue = dispatch_queue_create("XMPPStreamFeatureSASL", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
@@ -126,140 +132,119 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
 - (void)beginNegotiation
 {
-    dispatch_async(_queue, ^{
+    if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateSASL)]) {
+        id<XMPPStreamFeatureDelegateSASL> delegate = (id<XMPPStreamFeatureDelegateSASL>)self.delegate;
 
-        if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateSASL)]) {
-            id<XMPPStreamFeatureDelegateSASL> delegate = (id<XMPPStreamFeatureDelegateSASL>)self.delegate;
+        dispatch_queue_t queue = self.queue ?: dispatch_get_main_queue();
 
-            dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        // Get the SASL Mechanism
+        SASLMechanism *mechanism = nil;
+        if ([delegate respondsToSelector:@selector(SASLMechanismForStreamFeature:supportedMechanisms:)]) {
+            mechanism = [delegate SASLMechanismForStreamFeature:self supportedMechanisms:self.mechanisms];
+        }
+        _mechanism = mechanism;
 
-            // Get the SASL Mechanism
+        if (_mechanism) {
 
-            __block SASLMechanism *mechanism = nil;
-            dispatch_sync(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(SASLMechanismForStreamFeature:supportedMechanisms:)]) {
-                    mechanism = [delegate SASLMechanismForStreamFeature:self supportedMechanisms:self.mechanisms];
-                }
-            });
+            [_mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
+                dispatch_async(queue, ^{
 
-            _mechanism = mechanism;
+                    PXDocument *request = nil;
 
-            if (_mechanism) {
+                    if (abort) {
+                        if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+                            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                                                 code:XMPPStreamFeatureSASLErrorCodeAborted
+                                                             userInfo:nil];
+                            [delegate streamFeature:self didFailNegotiationWithError:error];
+                        }
+                    } else {
+                        request = [[PXDocument alloc] initWithElementName:@"auth"
+                                                                namespace:XMPPStreamFeatureSASLNamespace
+                                                                   prefix:nil];
 
-                [_mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
-                    dispatch_async(_queue, ^{
+                        [request.root setValue:[[mechanism class] name] forAttribute:@"mechanism"];
 
-                        PXDocument *request = nil;
-
-                        if (abort) {
-                            dispatch_async(delegateQueue, ^{
-                                if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
-                                    NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
-                                                                         code:XMPPStreamFeatureSASLErrorCodeAborted
-                                                                     userInfo:nil];
-                                    [delegate streamFeature:self didFailNegotiationWithError:error];
-                                }
-                            });
-                        } else {
-                            request = [[PXDocument alloc] initWithElementName:@"auth"
-                                                                    namespace:XMPPStreamFeatureSASLNamespace
-                                                                       prefix:nil];
-
-                            [request.root setValue:[[mechanism class] name] forAttribute:@"mechanism"];
-
-                            if (initialResponse) {
-                                NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
-                                [request.root setStringValue:initialResponseString];
-                            }
-
-                            dispatch_async(delegateQueue, ^{
-                                if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                                    [delegate streamFeature:self handleElement:request.root];
-                                }
-                            });
+                        if (initialResponse) {
+                            NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
+                            [request.root setStringValue:initialResponseString];
                         }
 
-                    });
-                }];
-            }
+                        if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
+                            [delegate streamFeature:self handleElement:request.root];
+                        }
+                    }
+
+                });
+            }];
         }
-    });
+    }
 }
 
 - (void)handleElement:(PXElement *)element
 {
-    dispatch_async(_queue, ^{
+    if ([element.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
 
-        if ([element.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
+        if ([element.name isEqualToString:@"success"]) {
 
-            if ([element.name isEqualToString:@"success"]) {
+            [self xmpp_handleSuccess];
 
-                [self xmpp_handleSuccess];
+        } else if ([element.name isEqualToString:@"failure"]) {
 
-            } else if ([element.name isEqualToString:@"failure"]) {
+            NSError *error = [[self class] errorFromElement:element];
+            [self xmpp_handleFailureWithError:error];
 
-                NSError *error = [[self class] errorFromElement:element];
-                [self xmpp_handleFailureWithError:error];
+        } else if ([element.name isEqualToString:@"challenge"]) {
 
-            } else if ([element.name isEqualToString:@"challenge"]) {
+            NSString *challengeString = element.stringValue;
+            NSData *challengeData = [challengeString length] > 0 ? [[NSData alloc] initWithBase64EncodedString:challengeString options:0] : nil;
 
-                NSString *challengeString = element.stringValue;
-                NSData *challengeData = [challengeString length] > 0 ? [[NSData alloc] initWithBase64EncodedString:challengeString options:0] : nil;
+            dispatch_queue_t queue = self.queue ?: dispatch_get_main_queue();
 
-                [_mechanism handleChallenge:challengeData
-                            responseHandler:^(NSData *responseData, BOOL abort) {
-                                dispatch_async(_queue, ^{
+            [_mechanism handleChallenge:challengeData
+                        responseHandler:^(NSData *responseData, BOOL abort) {
+                            dispatch_async(queue, ^{
 
-                                    PXDocument *response = nil;
+                                PXDocument *response = nil;
 
-                                    if (abort) {
-                                        response = [[PXDocument alloc] initWithElementName:@"abort"
-                                                                                 namespace:XMPPStreamFeatureSASLNamespace
-                                                                                    prefix:nil];
-                                    } else {
-                                        response = [[PXDocument alloc] initWithElementName:@"response"
-                                                                                 namespace:XMPPStreamFeatureSASLNamespace
-                                                                                    prefix:nil];
+                                if (abort) {
+                                    response = [[PXDocument alloc] initWithElementName:@"abort"
+                                                                             namespace:XMPPStreamFeatureSASLNamespace
+                                                                                prefix:nil];
+                                } else {
+                                    response = [[PXDocument alloc] initWithElementName:@"response"
+                                                                             namespace:XMPPStreamFeatureSASLNamespace
+                                                                                prefix:nil];
 
-                                        if (responseData) {
-                                            NSString *responseString = [responseData base64EncodedStringWithOptions:0];
-                                            [response.root setStringValue:responseString];
-                                        }
+                                    if (responseData) {
+                                        NSString *responseString = [responseData base64EncodedStringWithOptions:0];
+                                        [response.root setStringValue:responseString];
                                     }
+                                }
 
-                                    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-                                    dispatch_async(delegateQueue, ^{
-                                        if ([self.delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                                            [self.delegate streamFeature:self handleElement:response.root];
-                                        }
-                                    });
-                                });
-                            }];
-            }
+                                if ([self.delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
+                                    [self.delegate streamFeature:self handleElement:response.root];
+                                }
+                            });
+                        }];
         }
-    });
+    }
 }
 
 #pragma mark -
 
 - (void)xmpp_handleSuccess
 {
-    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-    dispatch_async(delegateQueue, ^{
-        if ([self.delegate respondsToSelector:@selector(streamFeatureDidSucceedNegotiation:)]) {
-            [self.delegate streamFeatureDidSucceedNegotiation:self];
-        }
-    });
+    if ([self.delegate respondsToSelector:@selector(streamFeatureDidSucceedNegotiation:)]) {
+        [self.delegate streamFeatureDidSucceedNegotiation:self];
+    }
 }
 
 - (void)xmpp_handleFailureWithError:(NSError *)error
 {
-    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-    dispatch_async(delegateQueue, ^{
-        if ([self.delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
-            [self.delegate streamFeature:self didFailNegotiationWithError:error];
-        }
-    });
+    if ([self.delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+        [self.delegate streamFeature:self didFailNegotiationWithError:error];
+    }
 }
 
 @end

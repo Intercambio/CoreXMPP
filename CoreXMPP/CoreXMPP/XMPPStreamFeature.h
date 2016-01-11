@@ -25,11 +25,16 @@
 + (NSString *) namespace;
 
 #pragma mark Life-cycle
-- (id)initWithElement:(PXElement *)element;
+- (id)initWithConfiguration:(PXDocument *)configuration;
+
+#pragma mark Feature Configuration
+@property (nonatomic, readonly) PXDocument *configuration;
+
+#pragma mark Operation Queue
+@property (nonatomic, strong) dispatch_queue_t queue;
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPStreamFeatureDelegate> delegate;
-@property (nonatomic, strong) dispatch_queue_t delegateQueue;
 
 #pragma mark Feature Properties
 @property (nonatomic, readonly, getter=isMandatory) BOOL mandatory;
