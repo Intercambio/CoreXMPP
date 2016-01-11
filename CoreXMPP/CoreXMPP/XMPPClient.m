@@ -414,11 +414,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
                              supportedMechanisms:(NSArray *)mechanisms
 {
     NSArray *preferredMechanisms = [self.options objectForKey:XMPPClientOptionsPreferedSASLMechanismsKey] ?: mechanisms;
-    
+
     SASLMechanism *mechanism = nil;
-    
+
     NSDictionary *registeredMechanisms = [SASLMechanism registeredMechanisms];
-    
+
     for (NSString *mechanismName in preferredMechanisms) {
         if ([mechanisms containsObject:mechanismName]) {
             Class mechanismClass = [registeredMechanisms objectForKey:mechanismName];
@@ -428,7 +428,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             }
         }
     }
-    
+
     mechanism.delegate = self.SASLDelegate;
     return mechanism;
 }

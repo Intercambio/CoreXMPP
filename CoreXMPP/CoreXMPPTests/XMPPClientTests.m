@@ -749,51 +749,51 @@
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{XMPPClientOptionsStreamKey : self.stream}];
-    
+
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
-    
+
     id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
     client.SASLDelegate = SASLDelegate;
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
         return nil;
     }];
-    
+
     //
     // Send Features (after stream did open)
     //
-    
+
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-        
+
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        
+
         PXElement *SASLFeature = [doc.root addElementWithName:[XMPPStreamFeatureSASL name]
                                                     namespace:[XMPPStreamFeatureSASL namespace]
                                                       content:nil];
-        
+
         [SASLFeature addElementWithName:@"mechanism"
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"X-TEST-AUTH"];
-        
+
         [stream receiveElement:doc.root];
     }];
-    
+
     //
     // Connect (failure; stream will close)
     //
-    
+
     XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
     [self.stream onDidClose:^(XMPPStreamStub *stream) {
         [waitForStreamClose fulfill];
     }];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
-    
+
     [verify(delegate) client:client didFailToNegotiateFeature:anything() withError:anything()];
 }
 
@@ -801,46 +801,46 @@
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{ XMPPClientOptionsStreamKey : self.stream,
-                                                                 XMPPClientOptionsPreferedSASLMechanismsKey: @[@"SCRAM-SHA-1"] }];
-    
+                                                                 XMPPClientOptionsPreferedSASLMechanismsKey : @[ @"SCRAM-SHA-1" ] }];
+
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
-    
+
     id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
     client.SASLDelegate = SASLDelegate;
-    
+
     //
     // Send Features (after stream did open)
     //
-    
+
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-        
+
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        
+
         PXElement *SASLFeature = [doc.root addElementWithName:[XMPPStreamFeatureSASL name]
                                                     namespace:[XMPPStreamFeatureSASL namespace]
                                                       content:nil];
-        
+
         [SASLFeature addElementWithName:@"mechanism"
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"PLAIN"];
-        
+
         [stream receiveElement:doc.root];
     }];
-    
+
     //
     // Connect (failure; stream will close)
     //
-    
+
     XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
     [self.stream onDidClose:^(XMPPStreamStub *stream) {
         [waitForStreamClose fulfill];
     }];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
-    
+
     [verify(delegate) client:client didFailToNegotiateFeature:anything() withError:anything()];
 }
 

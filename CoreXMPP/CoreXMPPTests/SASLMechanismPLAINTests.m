@@ -43,23 +43,24 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost"
+                                       responseHandler:^(NSData *initialResponse, BOOL abort) {
 
-        assertThatBool(abort, isFalse());
+                                           assertThatBool(abort, isFalse());
 
-        unsigned short nul[] = {0};
-        NSData *terminator = [NSData dataWithBytes:nul length:1];
+                                           unsigned short nul[] = {0};
+                                           NSData *terminator = [NSData dataWithBytes:nul length:1];
 
-        NSString *initialResponseString = [[NSString alloc] initWithData:initialResponse encoding:NSUTF8StringEncoding];
-        NSString *terminatorString = [[NSString alloc] initWithData:terminator encoding:NSUTF8StringEncoding];
+                                           NSString *initialResponseString = [[NSString alloc] initWithData:initialResponse encoding:NSUTF8StringEncoding];
+                                           NSString *terminatorString = [[NSString alloc] initWithData:terminator encoding:NSUTF8StringEncoding];
 
-        NSArray *components = [initialResponseString componentsSeparatedByString:terminatorString];
+                                           NSArray *components = [initialResponseString componentsSeparatedByString:terminatorString];
 
-        assertThat(components, hasCountOf(3));
-        assertThat(components, contains(@"", @"romeo", @"123", nil));
+                                           assertThat(components, hasCountOf(3));
+                                           assertThat(components, contains(@"", @"romeo", @"123", nil));
 
-        [expectResponse fulfill];
-    }];
+                                           [expectResponse fulfill];
+                                       }];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -73,11 +74,12 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
-        assertThatBool(abort, isTrue());
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost"
+                                       responseHandler:^(NSData *initialResponse, BOOL abort) {
+                                           assertThatBool(abort, isTrue());
 
-        [expectResponse fulfill];
-    }];
+                                           [expectResponse fulfill];
+                                       }];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -91,11 +93,12 @@
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
 
-    [mechanism beginAuthenticationExchangeWithHostname:@"localhost" responseHandler:^(NSData *initialResponse, BOOL abort) {
-        assertThatBool(abort, isTrue());
+    [mechanism beginAuthenticationExchangeWithHostname:@"localhost"
+                                       responseHandler:^(NSData *initialResponse, BOOL abort) {
+                                           assertThatBool(abort, isTrue());
 
-        [expectResponse fulfill];
-    }];
+                                           [expectResponse fulfill];
+                                       }];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }

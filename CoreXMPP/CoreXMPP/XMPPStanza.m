@@ -8,8 +8,8 @@
 
 #import "XMPPStanza.h"
 
-NSString * const XMPPStanzaErrorDomain = @"XMPPStanzaErrorDomain";
-NSString * const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey";
+NSString *const XMPPStanzaErrorDomain = @"XMPPStanzaErrorDomain";
+NSString *const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey";
 
 @implementation XMPPStanza
 
@@ -23,50 +23,50 @@ NSString * const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey
             *stop = YES;
         }
     }];
-    
+
     if (errorElement) {
-        
+
         NSMutableArray *children = [[NSMutableArray alloc] init];
         [errorElement enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
             [children addObject:element];
         }];
-        
+
         NSString *errorDomain = XMPPStanzaErrorDomain;
         __block NSInteger errorCode = XMPPStanzaErrorCodeUndefinedCondition;
         NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
-        
+
         PXDocument *errorDocument = [[PXDocument alloc] initWithElement:element];
         [userInfo setObject:errorDocument forKey:XMPPStanzaErrorXMLDocumentKey];
-        
+
         PXElement *definedCondition = [children firstObject];
         if ([definedCondition.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-stanzas"]) {
-            
-            NSDictionary *errorCodes = @{ @"bad-request": @(XMPPStanzaErrorCodeBadRequest),
-                                          @"conflict": @(XMPPStanzaErrorCodeConflict),
-                                          @"feature-not-implemented": @(XMPPStanzaErrorCodeFeatureNotImplemented),
-                                          @"forbidden": @(XMPPStanzaErrorCodeForbidden),
-                                          @"gone": @(XMPPStanzaErrorCodeGone),
-                                          @"internal-server-error": @(XMPPStanzaErrorCodeInternalServerError),
-                                          @"item-not-found": @(XMPPStanzaErrorCodeItemNotFound),
-                                          @"jid-malformed": @(XMPPStanzaErrorCodeJIDMalformed),
-                                          @"not-acceptable": @(XMPPStanzaErrorCodeNotAcceptable),
-                                          @"not-allowed": @(XMPPStanzaErrorCodeNotAllowed),
-                                          @"not-authorized": @(XMPPStanzaErrorCodeNotAuthorithed),
-                                          @"policy-violation": @(XMPPStanzaErrorCodePolicyViolation),
-                                          @"recipient-unavailable": @(XMPPStanzaErrorCodeRecipientUnavailable),
-                                          @"redirect": @(XMPPStanzaErrorCodeRedirect),
-                                          @"registration-required": @(XMPPStanzaErrorCodeRegistrationRequired),
-                                          @"remote-server-not-found": @(XMPPStanzaErrorCodeRemoteServerNotFound),
-                                          @"remote-server-timeout": @(XMPPStanzaErrorCodeRemoteServerTimeout),
-                                          @"resource-constraint": @(XMPPStanzaErrorCodeResourceConstraint),
-                                          @"service-unavailable": @(XMPPStanzaErrorCodeServiceUnavailable),
-                                          @"subscription-required": @(XMPPStanzaErrorCodeSubscriptionRequired),
-                                          @"undefined-condition": @(XMPPStanzaErrorCodeUndefinedCondition),
-                                          @"unexpected-request": @(XMPPStanzaErrorCodeUnexpectedRequest) };
-            
+
+            NSDictionary *errorCodes = @{ @"bad-request" : @(XMPPStanzaErrorCodeBadRequest),
+                                          @"conflict" : @(XMPPStanzaErrorCodeConflict),
+                                          @"feature-not-implemented" : @(XMPPStanzaErrorCodeFeatureNotImplemented),
+                                          @"forbidden" : @(XMPPStanzaErrorCodeForbidden),
+                                          @"gone" : @(XMPPStanzaErrorCodeGone),
+                                          @"internal-server-error" : @(XMPPStanzaErrorCodeInternalServerError),
+                                          @"item-not-found" : @(XMPPStanzaErrorCodeItemNotFound),
+                                          @"jid-malformed" : @(XMPPStanzaErrorCodeJIDMalformed),
+                                          @"not-acceptable" : @(XMPPStanzaErrorCodeNotAcceptable),
+                                          @"not-allowed" : @(XMPPStanzaErrorCodeNotAllowed),
+                                          @"not-authorized" : @(XMPPStanzaErrorCodeNotAuthorithed),
+                                          @"policy-violation" : @(XMPPStanzaErrorCodePolicyViolation),
+                                          @"recipient-unavailable" : @(XMPPStanzaErrorCodeRecipientUnavailable),
+                                          @"redirect" : @(XMPPStanzaErrorCodeRedirect),
+                                          @"registration-required" : @(XMPPStanzaErrorCodeRegistrationRequired),
+                                          @"remote-server-not-found" : @(XMPPStanzaErrorCodeRemoteServerNotFound),
+                                          @"remote-server-timeout" : @(XMPPStanzaErrorCodeRemoteServerTimeout),
+                                          @"resource-constraint" : @(XMPPStanzaErrorCodeResourceConstraint),
+                                          @"service-unavailable" : @(XMPPStanzaErrorCodeServiceUnavailable),
+                                          @"subscription-required" : @(XMPPStanzaErrorCodeSubscriptionRequired),
+                                          @"undefined-condition" : @(XMPPStanzaErrorCodeUndefinedCondition),
+                                          @"unexpected-request" : @(XMPPStanzaErrorCodeUnexpectedRequest) };
+
             errorCode = [errorCodes[definedCondition.name] integerValue] ?: XMPPStanzaErrorCodeUndefinedCondition;
         }
-        
+
         if ([children count] >= 2) {
             PXElement *errorText = [children objectAtIndex:1];
             if ([errorText.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-stanzas"] &&
@@ -74,11 +74,11 @@ NSString * const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey
                 [userInfo setObject:errorText.stringValue forKey:NSLocalizedDescriptionKey];
             }
         }
-        
+
         return [NSError errorWithDomain:errorDomain
                                    code:errorCode
                                userInfo:userInfo];
-        
+
     } else {
         return nil;
     }
