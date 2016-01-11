@@ -16,6 +16,7 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 #import "XMPPStreamStub.h"
+#import "XMPPStreamFeatureStub.h"
 
 @interface XMPPClientTests : XCTestCase
 @property (nonatomic, strong) XMPPStreamStub *stream;
@@ -37,7 +38,9 @@
 
 #pragma mark Tests
 
-- (void)testConnectClientWithoutFeatureNegotiation
+#pragma mark Connection
+
+- (void)testConnectClient
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{XMPPClientOptionsStreamKey : self.stream}];
@@ -79,7 +82,439 @@
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }
 
-- (void)testFeatureNegotiation
+#pragma mark General Feature Negotiation
+
+- (void)testVoluntaryFeatureWithoutRestart
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"no" forAttribute:@"mandatory"];
+        [feature setValue:@"no" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (success)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send success response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+
+        // Send new (empty) features
+
+        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
+                                                             namespace:@"http://etherx.jabber.org/streams"
+                                                                prefix:@"stream"];
+        [stream receiveElement:features.root];
+    }];
+
+    //
+    // Connect
+    //
+
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Negotiation
+    //
+
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+
+    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
+    assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
+}
+
+- (void)testVoluntaryFeatureWithRestart
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"no" forAttribute:@"mandatory"];
+        [feature setValue:@"yes" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (success)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send success response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+    }];
+
+    //
+    // Send Features (after stream reset)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Connect
+    //
+
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Negotiation
+    //
+
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+
+    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
+    assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
+}
+
+- (void)testVoluntaryFeatureWithFailure
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"no" forAttribute:@"mandatory"];
+        [feature setValue:@"no" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (failure)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send failure response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+    }];
+
+    //
+    // Connect (failure; stream will close)
+    //
+
+    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
+    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+        [waitForStreamClose fulfill];
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    PXQName *featureQName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
+
+    [verifyCount(delegate, times(1)) client:client didFailToNegotiateFeature:anything() withError:anything()];
+    [verifyCount(delegate, never()) client:client didNegotiateFeature:equalTo(featureQName)];
+}
+
+- (void)testMandatoryFeatureWithoutRestart
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"yes" forAttribute:@"mandatory"];
+        [feature setValue:@"no" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (success)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send success response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+
+        // Send new (empty) features
+
+        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
+                                                             namespace:@"http://etherx.jabber.org/streams"
+                                                                prefix:@"stream"];
+        [stream receiveElement:features.root];
+    }];
+
+    //
+    // Connect
+    //
+
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Negotiation
+    //
+
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+
+    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
+    assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
+}
+
+- (void)testMandatoryFeatureWithRestart
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"yes" forAttribute:@"mandatory"];
+        [feature setValue:@"yes" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (success)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send success response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+    }];
+
+    //
+    // Send Features (after stream reset)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Connect
+    //
+
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Negotiation
+    //
+
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+
+    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
+    assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
+}
+
+- (void)testMandatoryFeatureWithFailure
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
+
+        [feature setValue:@"yes" forAttribute:@"mandatory"];
+        [feature setValue:@"no" forAttribute:@"needsRestart"];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Negotiate Feature (failure)
+    //
+
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send failure response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
+                                                             namespace:@"http://example.com/"
+                                                                prefix:nil];
+        [stream receiveElement:response.root];
+    }];
+
+    //
+    // Connect (failure; stream will close)
+    //
+
+    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
+    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+        [waitForStreamClose fulfill];
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    PXQName *featureQName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
+
+    [verifyCount(delegate, times(1)) client:client didFailToNegotiateFeature:anything() withError:anything()];
+    [verifyCount(delegate, never()) client:client didNegotiateFeature:equalTo(featureQName)];
+}
+
+#pragma mark SASL Ferature
+
+- (void)testSASLFeature
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{XMPPClientOptionsStreamKey : self.stream}];
@@ -95,6 +530,10 @@
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
         return nil;
     }];
+
+    //
+    // Send Features (after stream did open)
+    //
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
@@ -113,7 +552,14 @@
         [stream receiveElement:doc.root];
     }];
 
+    //
+    // Negotiate SASL
+    //
+
     [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+
+        assertThat(element.name, equalTo(@"auth"));
+        assertThat(element.namespace, equalTo(@"urn:ietf:params:xml:ns:xmpp-sasl"));
 
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"urn:ietf:params:xml:ns:xmpp-sasl"
@@ -121,89 +567,77 @@
         [stream receiveElement:response.root];
     }];
 
-    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [stream receiveElement:doc.root];
-    }];
-
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
-
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
-
-    [client connect];
-
-    [self waitForExpectationsWithTimeout:2.0 handler:nil];
-
-    PXQName *SASLFeatureQName = [[PXQName alloc] initWithName:@"mechanisms" namespace:@"urn:ietf:params:xml:ns:xmpp-sasl"];
-
-    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:equalTo(SASLFeatureQName)];
-
-    assertThat(client.negotiatedFeatures, contains(SASLFeatureQName, nil));
-}
-
-- (void)testFeatureNegotiationFailure
-{
-    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
-
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
-
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
-    client.SASLDelegate = SASLDelegate;
-
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
-        return nil;
-    }];
+    //
+    // Send Features (after stream reset)
+    //
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
 
-        PXElement *SASLFeature = [doc.root addElementWithName:[XMPPStreamFeatureSASL name]
-                                                    namespace:[XMPPStreamFeatureSASL namespace]
-                                                      content:nil];
+        PXElement *feature = [doc.root addElementWithName:[XMPPStreamFeatureStub name]
+                                                namespace:[XMPPStreamFeatureStub namespace]
+                                                  content:nil];
 
-        [SASLFeature addElementWithName:@"mechanism"
-                              namespace:[XMPPStreamFeatureSASL namespace]
-                                content:@"PLAIN"];
+        [feature setValue:@"yes" forAttribute:@"mandatory"];
+        [feature setValue:@"no" forAttribute:@"needsRestart"];
 
         [stream receiveElement:doc.root];
     }];
+
+    //
+    // Negotiate Test Feature (success)
+    //
 
     [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
 
-        PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
-                                                             namespace:XMPPStreamFeatureSASLNamespace
+        assertThat(element.name, equalTo(@"begin"));
+        assertThat(element.namespace, equalTo(@"http://example.com/"));
+
+        // Send success response
+
+        PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
+                                                             namespace:@"http://example.com/"
                                                                 prefix:nil];
-
-        [response.root addElementWithName:@"account-disabled"
-                                namespace:XMPPStreamFeatureSASLNamespace
-                                  content:nil];
-
         [stream receiveElement:response.root];
+
+        // Send new (empty) features
+
+        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
+                                                             namespace:@"http://etherx.jabber.org/streams"
+                                                                prefix:@"stream"];
+        [stream receiveElement:features.root];
     }];
 
+    //
+    // Connect
+    //
+
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
     [client connect];
-
-    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
-
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [expectDisconnect fulfill];
-    }];
-
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Negotiated Features
+    //
+
+    [verifyCount(delegate, times(2)) client:client didNegotiateFeature:anything()];
+
+    XMPPStreamFeature *SASLFeature = [client.negotiatedFeatures firstObject];
+    assertThat([[SASLFeature class] name], equalTo([XMPPStreamFeatureSASL name]));
+    assertThat([[SASLFeature class] namespace], equalTo([XMPPStreamFeatureSASL namespace]));
+
+    XMPPStreamFeature *TESTFeature = [client.negotiatedFeatures lastObject];
+    assertThat([[TESTFeature class] name], equalTo([XMPPStreamFeatureStub name]));
+    assertThat([[TESTFeature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
+
+#pragma mark Sending & Receiving
 
 - (void)testRecevieStanzas
 {
@@ -251,15 +685,15 @@
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [IQDocument.root setStringValue:@"3"];
     [self.stream receiveElement:IQDocument.root];
-    
+
     //
     // Receive Unsupported Element
     //
-    
+
     PXDocument *document = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"http://example.com/bar" prefix:nil];
     [document.root setStringValue:@"x"];
     [self.stream receiveElement:document.root];
-    
+
     //
     // Disconnect Client
     //
@@ -300,17 +734,17 @@
         assertThat(stanza.namespace, equalTo(@"jabber:client"));
         assertThat(stanza.stringValue, equalTo(@"3"));
     }
-    
+
     //
     // Verify Unsupported Elements
     //
-    
+
     HCArgumentCaptor *captoredElements = [[HCArgumentCaptor alloc] init];
     [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedElement:(id)captoredElements];
-    
+
     NSArray *elements = [captoredElements allValues];
     assertThat(elements, hasCountOf(1));
-    
+
     PXElement *element = [elements firstObject];
     assertThat(element.name, equalTo(@"foo"));
     assertThat(element.namespace, equalTo(@"http://example.com/bar"));

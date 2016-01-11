@@ -32,7 +32,7 @@
 {
     PXDocument *document = [self featureDocument];
 
-    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithElement:document.root];
+    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithConfiguration:document];
 
     assertThat(feature.mechanisms, contains(@"PLAIN", @"EXTERNAL", @"SCRAM-SHA-1", @"SCRAM-SHA-1-PLUS", nil));
 
@@ -101,7 +101,7 @@
     // Create a feature with a list of mechanisms
 
     PXDocument *document = [self featureDocument];
-    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithElement:document.root];
+    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithConfiguration:document];
 
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
@@ -181,7 +181,7 @@
     // Create a feature with a list of mechanisms
 
     PXDocument *document = [self featureDocument];
-    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithElement:document.root];
+    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithConfiguration:document];
 
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
@@ -259,7 +259,7 @@
     // Create a feature with a list of mechanisms
 
     PXDocument *document = [self featureDocument];
-    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithElement:document.root];
+    XMPPStreamFeatureSASL *feature = [[XMPPStreamFeatureSASL alloc] initWithConfiguration:document];
 
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;

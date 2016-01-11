@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
-#import "SASLMechanism.h"
+@class XMPPStreamFeature;
+@protocol SASLMechanismDelegate;
 
 extern NSString *const XMPPClientOptionsStreamKey;
 
@@ -28,8 +29,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @optional
 - (void)clientDidConnect:(XMPPClient *)client;
 - (void)clientDidDisconnect:(XMPPClient *)client;
-- (void)client:(XMPPClient *)client didNegotiateFeature:(PXQName *)feature;
-- (void)client:(XMPPClient *)client didFailToNegotiateFeature:(PXQName *)feature withError:(NSError *)error;
+- (void)client:(XMPPClient *)client didNegotiateFeature:(XMPPStreamFeature *)feature;
+- (void)client:(XMPPClient *)client didFailToNegotiateFeature:(XMPPStreamFeature *)feature withError:(NSError *)error;
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error;
 - (void)client:(XMPPClient *)client didReceiveStanza:(PXElement *)stanza;
 - (void)client:(XMPPClient *)client didReceiveUnsupportedElement:(PXElement *)element;

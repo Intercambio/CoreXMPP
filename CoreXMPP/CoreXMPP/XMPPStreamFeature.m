@@ -24,9 +24,13 @@
 
 #pragma mark Life-cycle
 
-- (id)initWithElement:(PXElement *)element
+- (id)initWithConfiguration:(PXDocument *)configuration
 {
-    return [super init];
+    self = [super init];
+    if (self) {
+        _configuration = configuration;
+    }
+    return self;
 }
 
 #pragma mark Feature Properties
