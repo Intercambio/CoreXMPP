@@ -251,7 +251,15 @@
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [IQDocument.root setStringValue:@"3"];
     [self.stream receiveElement:IQDocument.root];
-
+    
+    //
+    // Receive Unsupported Element
+    //
+    
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"http://example.com/bar" prefix:nil];
+    [document.root setStringValue:@"x"];
+    [self.stream receiveElement:document.root];
+    
     //
     // Disconnect Client
     //
@@ -292,6 +300,21 @@
         assertThat(stanza.namespace, equalTo(@"jabber:client"));
         assertThat(stanza.stringValue, equalTo(@"3"));
     }
+    
+    //
+    // Verify Unsupported Elements
+    //
+    
+    HCArgumentCaptor *captoredElements = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedElement:(id)captoredElements];
+    
+    NSArray *elements = [captoredElements allValues];
+    assertThat(elements, hasCountOf(1));
+    
+    PXElement *element = [elements firstObject];
+    assertThat(element.name, equalTo(@"foo"));
+    assertThat(element.namespace, equalTo(@"http://example.com/bar"));
+    assertThat(element.stringValue, equalTo(@"x"));
 }
 
 - (void)testSendStanzas

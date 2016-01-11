@@ -202,27 +202,30 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
     } else if (_state == XMPPClientStateEstablished) {
 
-        if ([element.namespace isEqual:@"jabber:client"]) {
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        
+        if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
+                                                             [element.name isEqual:@"presence"] ||
+                                                             [element.name isEqual:@"iq"])) {
 
-            if ([element.name isEqual:@"message"] ||
-                [element.name isEqual:@"presence"] ||
-                [element.name isEqual:@"iq"]) {
-
-                id<XMPPClientDelegate> delegate = self.delegate;
-                dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
                 dispatch_async(delegateQueue, ^{
                     if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
                         [delegate client:self didReceiveStanza:element];
                     }
                 });
-
-            } else {
-                // Unsupported type
-            }
+            
         } else {
-            // Unsupported type
-        }
 
+            // Unsupported element
+            
+            dispatch_async(delegateQueue, ^{
+                if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
+                    [delegate client:self didReceiveUnsupportedElement:element];
+                }
+            });
+        }
+    
     } else {
     }
 }
