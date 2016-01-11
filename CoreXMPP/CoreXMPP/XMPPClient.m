@@ -201,6 +201,27 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
     } else if (_state == XMPPClientStateEstablished) {
 
+        if ([element.namespace isEqual:@"jabber:client"]) {
+
+            if ([element.name isEqual:@"message"] ||
+                [element.name isEqual:@"presence"] ||
+                [element.name isEqual:@"iq"]) {
+
+                id<XMPPClientDelegate> delegate = self.delegate;
+                dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+                dispatch_async(delegateQueue, ^{
+                    if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
+                        [delegate client:self didReceiveStanza:element];
+                    }
+                });
+
+            } else {
+                // Unsupported type
+            }
+        } else {
+            // Unsupported type
+        }
+
     } else {
     }
 }
@@ -271,7 +292,7 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
                 [delegate client:self didFailToNegotiateFeature:featureQName withError:error];
             }
         });
-        
+
         _state = XMPPClientStateDisconnecting;
         [_stream close];
     }
