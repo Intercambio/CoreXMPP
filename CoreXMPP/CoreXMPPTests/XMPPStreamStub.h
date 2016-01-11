@@ -18,6 +18,9 @@ extern NSString *const XMPPStreamStubStreamNotificationElementKey;
 #pragma mark Receiving Element
 - (void)receiveElement:(PXElement *)element;
 
+#pragma mark Fail with Error
+- (void)failWithError:(NSError *)error;
+
 #pragma mark Event Handler
 - (void)onDidOpen:(void (^)(XMPPStreamStub *stream))handler;
 - (void)onDidClose:(void (^)(XMPPStreamStub *stream))handler;

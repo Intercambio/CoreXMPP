@@ -12,6 +12,38 @@
 @class XMPPStreamFeature;
 @protocol SASLMechanismDelegate;
 
+extern NSString *const XMPPClientStreamErrorDomain;
+
+typedef NS_ENUM(NSInteger, XMPPClientStreamErrorCode) {
+    XMPPClientStreamErrorCodeBadFormat,
+    XMPPClientStreamErrorCodeBadNamespacePrefix,
+    XMPPClientStreamErrorCodeConflict,
+    XMPPClientStreamErrorCodeConnectionTimeout,
+    XMPPClientStreamErrorCodeHostGone,
+    XMPPClientStreamErrorCodeHostUnknown,
+    XMPPClientStreamErrorCodeImproperAddressing,
+    XMPPClientStreamErrorCodeInternalServerError,
+    XMPPClientStreamErrorCodeInvalidFrom,
+    XMPPClientStreamErrorCodeInvalidNamespace,
+    XMPPClientStreamErrorCodeInvalidXML,
+    XMPPClientStreamErrorCodeNotAuthorized,
+    XMPPClientStreamErrorCodeNotWellFormed,
+    XMPPClientStreamErrorCodePolicyViolation,
+    XMPPClientStreamErrorCodeRemoteConnectionFailed,
+    XMPPClientStreamErrorCodeReset,
+    XMPPClientStreamErrorCodeResourceConstraint,
+    XMPPClientStreamErrorCodeRestrictedXML,
+    XMPPClientStreamErrorCodeSeeOtherHost,
+    XMPPClientStreamErrorCodeSystemShutdown,
+    XMPPClientStreamErrorCodeUndefinedCondition,
+    XMPPClientStreamErrorCodeUnsupportedEncoding,
+    XMPPClientStreamErrorCodeUnsupportedFeature,
+    XMPPClientStreamErrorCodeUnsupportedStanzaType,
+    XMPPClientStreamErrorCodeUnsupportedVersion
+};
+
+extern NSString *const XMPPClientStreamErrorXMLDocumentKey;
+
 extern NSString *const XMPPClientOptionsStreamKey;
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
@@ -41,6 +73,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 #pragma mark Registered Stream Features
 + (NSDictionary *)registeredStreamFeatures;
 + (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
+
+#pragma mark Stream Errors
++ (NSError *)streamErrorFromElement:(PXElement *)element;
 
 #pragma mark Life-cycle
 - (instancetype)initWithHostname:(NSString *)hostname

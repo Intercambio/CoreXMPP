@@ -82,6 +82,114 @@
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }
 
+#pragma mark Stream Errors
+
+- (void)testStreamErrorParsing
+{
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"error"
+                                                    namespace:@"http://etherx.jabber.org/streams"
+                                                       prefix:@"stream"];
+
+    [doc.root addElementWithName:@"system-shutdown"
+                       namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
+                         content:nil];
+
+    [doc.root addElementWithName:@"text"
+                       namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
+                         content:@"Giving up!"];
+
+    [doc.root addElementWithName:@"test"
+                       namespace:@"http://example.com"
+                         content:@"… some data …"];
+
+    NSError *error = [XMPPClient streamErrorFromElement:doc.root];
+
+    assertThat(error, notNilValue());
+    assertThat(error.domain, equalTo(XMPPClientStreamErrorDomain));
+    assertThatInteger(error.code, equalToInteger(XMPPClientStreamErrorCodeSystemShutdown));
+    assertThat([error localizedDescription], equalTo(@"Giving up!"));
+    assertThat([error.userInfo objectForKey:XMPPClientStreamErrorXMLDocumentKey], notNilValue());
+}
+
+- (void)testXMLStreamErrors
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"error"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+
+        [doc.root addElementWithName:@"system-shutdown"
+                           namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
+                             content:nil];
+
+        [stream receiveElement:doc.root];
+    }];
+
+    XCTestExpectation *waitForClose = [self expectationWithDescription:@"Expecting stream to close"];
+    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+        [waitForClose fulfill];
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    //
+    // Verify Error
+    //
+
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verify(delegate) client:client didFailWithError:(id)captor];
+
+    NSError *error = [captor value];
+
+    assertThat(error.domain, equalTo(XMPPClientStreamErrorDomain));
+}
+
+- (void)testUnderlyingStreamErrors
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        NSError *error = [NSError errorWithDomain:@"testUnderlyingStreamErrors" code:123 userInfo:nil];
+        [stream failWithError:error];
+    }];
+
+    XCTestExpectation *waitForClose = [self expectationWithDescription:@"Expecting stream to close"];
+    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+        [waitForClose fulfill];
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    //
+    // Verify Error
+    //
+
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verify(delegate) client:client didFailWithError:(id)captor];
+
+    NSError *error = [captor value];
+
+    assertThat(error.domain, equalTo(@"testUnderlyingStreamErrors"));
+}
+
 #pragma mark General Feature Negotiation
 
 - (void)testVoluntaryFeatureWithoutRestart

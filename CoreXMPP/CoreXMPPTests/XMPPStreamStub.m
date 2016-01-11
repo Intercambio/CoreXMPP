@@ -194,6 +194,25 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     });
 }
 
+#pragma mark Fail with Error
+
+- (void)failWithError:(NSError *)error
+{
+    dispatch_async(_operationQueue, ^{
+
+        id<XMPPStreamDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
+                [delegate stream:self didFailWithError:error];
+            }
+        });
+
+        [self close];
+    });
+}
+
 #pragma mark Event Handler
 
 - (void)onDidOpen:(void (^)(XMPPStreamStub *stream))handler

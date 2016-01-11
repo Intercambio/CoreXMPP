@@ -14,6 +14,8 @@
 
 #import "XMPPClient.h"
 
+NSString *const XMPPClientStreamErrorDomain = @"XMPPClientStreamErrorDomain";
+NSString *const XMPPClientStreamErrorXMLDocumentKey = @"XMPPClientStreamErrorXMLDocument";
 NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
 @interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL> {
@@ -51,6 +53,73 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
     NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
     [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
+}
+
+#pragma mark Stream Errors
+
++ (NSError *)streamErrorFromElement:(PXElement *)element
+{
+    if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+        [element.name isEqualToString:@"error"]) {
+
+        NSMutableArray *children = [[NSMutableArray alloc] init];
+        [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+            [children addObject:element];
+        }];
+
+        NSString *errorDomain = XMPPClientStreamErrorDomain;
+        __block NSInteger errorCode = XMPPClientStreamErrorCodeUndefinedCondition;
+        NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+
+        PXDocument *errorDocument = [[PXDocument alloc] initWithElement:element];
+        [userInfo setObject:errorDocument forKey:XMPPClientStreamErrorXMLDocumentKey];
+
+        PXElement *errorElement = [children firstObject];
+        if ([errorElement.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-streams"]) {
+
+            NSDictionary *errorCodes = @{ @"bad-format" : @(XMPPClientStreamErrorCodeBadFormat),
+                                          @"bad-namespace-prefix" : @(XMPPClientStreamErrorCodeBadNamespacePrefix),
+                                          @"conflict" : @(XMPPClientStreamErrorCodeConflict),
+                                          @"connection-timeout" : @(XMPPClientStreamErrorCodeConnectionTimeout),
+                                          @"host-gone" : @(XMPPClientStreamErrorCodeHostGone),
+                                          @"host-unknown" : @(XMPPClientStreamErrorCodeHostUnknown),
+                                          @"improper-addressing" : @(XMPPClientStreamErrorCodeImproperAddressing),
+                                          @"internal-server-error" : @(XMPPClientStreamErrorCodeInternalServerError),
+                                          @"invalid-from" : @(XMPPClientStreamErrorCodeInvalidFrom),
+                                          @"invalid-namespace" : @(XMPPClientStreamErrorCodeInvalidNamespace),
+                                          @"invalid-xml" : @(XMPPClientStreamErrorCodeInvalidXML),
+                                          @"not-authorized" : @(XMPPClientStreamErrorCodeNotAuthorized),
+                                          @"not-well-formed" : @(XMPPClientStreamErrorCodeNotWellFormed),
+                                          @"policy-violation" : @(XMPPClientStreamErrorCodePolicyViolation),
+                                          @"remote-connection-failed" : @(XMPPClientStreamErrorCodeRemoteConnectionFailed),
+                                          @"reset" : @(XMPPClientStreamErrorCodeReset),
+                                          @"resource-constraint" : @(XMPPClientStreamErrorCodeResourceConstraint),
+                                          @"restricted-xml" : @(XMPPClientStreamErrorCodeRestrictedXML),
+                                          @"see-other-host" : @(XMPPClientStreamErrorCodeSeeOtherHost),
+                                          @"system-shutdown" : @(XMPPClientStreamErrorCodeSystemShutdown),
+                                          @"undefined-condition" : @(XMPPClientStreamErrorCodeUndefinedCondition),
+                                          @"unsupported-encoding" : @(XMPPClientStreamErrorCodeUnsupportedEncoding),
+                                          @"unsupported-feature" : @(XMPPClientStreamErrorCodeUnsupportedFeature),
+                                          @"unsupported-stanza-type" : @(XMPPClientStreamErrorCodeUnsupportedStanzaType),
+                                          @"unsupported-version" : @(XMPPClientStreamErrorCodeUnsupportedVersion) };
+
+            errorCode = [errorCodes[errorElement.name] integerValue] ?: XMPPClientStreamErrorCodeUndefinedCondition;
+        }
+
+        if ([children count] >= 2) {
+            PXElement *errorText = [children objectAtIndex:1];
+            if ([errorText.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-streams"] &&
+                [errorText.name isEqualToString:@"text"]) {
+                [userInfo setObject:errorText.stringValue forKey:NSLocalizedDescriptionKey];
+            }
+        }
+
+        return [NSError errorWithDomain:errorDomain
+                                   code:errorCode
+                               userInfo:userInfo];
+    }
+
+    return nil;
 }
 
 #pragma mark Life-cycle
@@ -187,59 +256,88 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
 - (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element
 {
-    switch (_state) {
-    case XMPPClientStateConnected:
-        // Expecting a features element to start the negoatiation
-        if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
-            [element.name isEqualToString:@"features"]) {
-            [self xmpp_beginNegotiationWithElement:element];
-        } else {
-            // Unexpected element
-            _state = XMPPClientStateDisconnecting;
-            [_stream close];
+    id<XMPPClientDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+
+    if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+        [element.name isEqualToString:@"error"]) {
+
+        // Handle Stream Errors
+
+        NSError *error = [[self class] streamErrorFromElement:element];
+
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
+                [delegate client:self didFailWithError:error];
+            }
+        });
+
+        _state = XMPPClientStateDisconnecting;
+        [_stream close];
+
+    } else {
+
+        switch (_state) {
+        case XMPPClientStateConnected:
+            // Expecting a features element to start the negoatiation
+            if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+                [element.name isEqualToString:@"features"]) {
+                [self xmpp_beginNegotiationWithElement:element];
+            } else {
+                // Unexpected element
+                _state = XMPPClientStateDisconnecting;
+                [_stream close];
+            }
+            break;
+
+        case XMPPClientStateNegotiating:
+            [_currentFeature handleElement:element];
+            break;
+
+        case XMPPClientStateEstablished: {
+
+            if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
+                                                                 [element.name isEqual:@"presence"] ||
+                                                                 [element.name isEqual:@"iq"])) {
+
+                dispatch_async(delegateQueue, ^{
+                    if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
+                        [delegate client:self didReceiveStanza:element];
+                    }
+                });
+
+            } else {
+
+                // Unsupported element
+
+                dispatch_async(delegateQueue, ^{
+                    if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
+                        [delegate client:self didReceiveUnsupportedElement:element];
+                    }
+                });
+            }
+            break;
         }
-        break;
 
-    case XMPPClientStateNegotiating:
-        [_currentFeature handleElement:element];
-        break;
-
-    case XMPPClientStateEstablished: {
-        id<XMPPClientDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-
-        if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
-                                                             [element.name isEqual:@"presence"] ||
-                                                             [element.name isEqual:@"iq"])) {
-
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
-                    [delegate client:self didReceiveStanza:element];
-                }
-            });
-
-        } else {
-
-            // Unsupported element
-
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
-                    [delegate client:self didReceiveUnsupportedElement:element];
-                }
-            });
+        case XMPPClientStateConnecting:
+        case XMPPClientStateDisconnected:
+        case XMPPClientStateDisconnecting:
+            break;
         }
-        break;
-    }
-
-    case XMPPClientStateConnecting:
-    case XMPPClientStateDisconnected:
-    case XMPPClientStateDisconnecting:
-        break;
     }
 }
 
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error
 {
+    id<XMPPClientDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
+            [delegate client:self didFailWithError:error];
+        }
+    });
+
     _state = XMPPClientStateDisconnected;
 }
 
