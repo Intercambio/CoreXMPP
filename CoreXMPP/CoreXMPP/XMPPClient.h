@@ -9,9 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
-@class XMPPStreamFeature;
-@protocol SASLMechanismDelegate;
-
 extern NSString *const XMPPClientStreamErrorDomain;
 
 typedef NS_ENUM(NSInteger, XMPPClientStreamErrorCode) {
@@ -56,6 +53,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 };
 
 @class XMPPClient;
+@class XMPPStreamFeature;
+@protocol SASLMechanismDelegate;
 
 @protocol XMPPClientDelegate <NSObject>
 @optional

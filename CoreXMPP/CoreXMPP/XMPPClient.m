@@ -279,7 +279,7 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 
         switch (_state) {
         case XMPPClientStateConnected:
-            // Expecting a features element to start the negoatiation
+            // Expecting a features element to start the negotiation
             if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
                 [element.name isEqualToString:@"features"]) {
                 [self xmpp_beginNegotiationWithElement:element];
