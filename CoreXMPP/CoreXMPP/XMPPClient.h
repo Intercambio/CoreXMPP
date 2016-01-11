@@ -43,6 +43,7 @@ extern NSString *const XMPPClientStreamErrorXMLDocumentKey;
 
 extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
+extern NSString *const XMPPClientOptionsResourceKey;
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,

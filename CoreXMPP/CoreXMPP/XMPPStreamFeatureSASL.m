@@ -147,40 +147,40 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
         if (_mechanism) {
 
             [_mechanism beginAuthenticationExchangeWithHostname:hostname
-                                        responseHandler:^(NSData *initialResponse, BOOL abort) {
-                dispatch_async(queue, ^{
+                                                responseHandler:^(NSData *initialResponse, BOOL abort) {
+                                                    dispatch_async(queue, ^{
 
-                    PXDocument *request = nil;
+                                                        PXDocument *request = nil;
 
-                    if (abort) {
-                        if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
-                            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
-                                                                 code:XMPPStreamFeatureSASLErrorCodeAborted
-                                                             userInfo:nil];
-                            [delegate streamFeature:self didFailNegotiationWithError:error];
-                        }
-                    } else {
-                        request = [[PXDocument alloc] initWithElementName:@"auth"
-                                                                namespace:XMPPStreamFeatureSASLNamespace
-                                                                   prefix:nil];
+                                                        if (abort) {
+                                                            if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+                                                                NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                                                                                     code:XMPPStreamFeatureSASLErrorCodeAborted
+                                                                                                 userInfo:nil];
+                                                                [delegate streamFeature:self didFailNegotiationWithError:error];
+                                                            }
+                                                        } else {
+                                                            request = [[PXDocument alloc] initWithElementName:@"auth"
+                                                                                                    namespace:XMPPStreamFeatureSASLNamespace
+                                                                                                       prefix:nil];
 
-                        [request.root setValue:[[mechanism class] name] forAttribute:@"mechanism"];
+                                                            [request.root setValue:[[mechanism class] name] forAttribute:@"mechanism"];
 
-                        if (initialResponse) {
-                            NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
-                            [request.root setStringValue:initialResponseString];
-                        }
+                                                            if (initialResponse) {
+                                                                NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
+                                                                [request.root setStringValue:initialResponseString];
+                                                            }
 
-                        if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                            [delegate streamFeature:self handleElement:request.root];
-                        }
-                    }
+                                                            if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
+                                                                [delegate streamFeature:self handleElement:request.root];
+                                                            }
+                                                        }
 
-                });
-            }];
-        
+                                                    });
+                                                }];
+
         } else {
-            
+
             NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
                                                  code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
                                              userInfo:nil];

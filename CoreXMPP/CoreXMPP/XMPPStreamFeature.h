@@ -12,7 +12,6 @@
 @class XMPPStreamFeature;
 
 @protocol XMPPStreamFeatureDelegate <NSObject>
-@optional
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature;
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error;
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature handleElement:(PXElement *)element;
