@@ -294,4 +294,73 @@
     }
 }
 
+- (void)testSendStanzas
+{
+    //
+    // Prepare Client and Delegate
+    //
+
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+        [stream receiveElement:doc.root];
+    }];
+
+    //
+    // Connect Client
+    //
+
+    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [establishedConnectionExpectation fulfill];
+        return nil;
+    }];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Receive Stanzas
+    //
+
+    PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+        assertThat(element.name, equalTo(@"message"));
+        assertThat(element.namespace, equalTo(@"jabber:client"));
+    }];
+    [client sendStanza:messageDocument.root];
+
+    PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+        assertThat(element.name, equalTo(@"presence"));
+        assertThat(element.namespace, equalTo(@"jabber:client"));
+    }];
+    [client sendStanza:presenceDocument.root];
+
+    PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+        assertThat(element.name, equalTo(@"iq"));
+        assertThat(element.namespace, equalTo(@"jabber:client"));
+    }];
+    [client sendStanza:IQDocument.root];
+
+    //
+    // Disconnect Client
+    //
+
+    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
+    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
+        [expectDisconnect fulfill];
+        return nil;
+    }];
+    [client disconnect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+}
+
 @end

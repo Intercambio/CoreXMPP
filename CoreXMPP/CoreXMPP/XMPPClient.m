@@ -108,8 +108,9 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (void)sendStanza:(PXElement *)stanza
 {
     dispatch_async(_operationQueue, ^{
-
-                   });
+        NSAssert(_state == XMPPClientStateEstablished, @"Invalid State: Can only send stanza with a client with an established connection.");
+        [_stream sendElement:stanza];
+    });
 }
 
 #pragma mark Feature Negotiation
