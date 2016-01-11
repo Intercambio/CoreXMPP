@@ -9,6 +9,7 @@
 #import "XMPPWebsocketStream.h"
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
+#import "XMPPStreamFeatureBind.h"
 
 #import "SASLMechanism.h"
 
@@ -18,8 +19,9 @@ NSString *const XMPPClientStreamErrorDomain = @"XMPPClientStreamErrorDomain";
 NSString *const XMPPClientStreamErrorXMLDocumentKey = @"XMPPClientStreamErrorXMLDocument";
 NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
+NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
-@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL> {
+@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
     XMPPWebsocketStream *_stream;
@@ -429,6 +431,13 @@ NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptions
     
     mechanism.delegate = self.SASLDelegate;
     return mechanism;
+}
+
+#pragma mark XMPPStreamFeatureDelegateBind
+
+- (NSString *)resourceNameForStreamFeature:(XMPPStreamFeature *)streamFeature
+{
+    return self.options[XMPPClientOptionsResourceKey];
 }
 
 @end

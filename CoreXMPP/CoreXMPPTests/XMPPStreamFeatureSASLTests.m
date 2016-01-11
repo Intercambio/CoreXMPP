@@ -16,7 +16,7 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
-@interface XMPPStreamFeatureSASLTests : XCTestCase <XMPPStreamFeatureDelegateSASL>
+@interface XMPPStreamFeatureSASLTests : XCTestCase
 
 @end
 
