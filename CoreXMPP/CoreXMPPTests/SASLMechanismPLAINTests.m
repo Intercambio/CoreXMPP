@@ -33,11 +33,6 @@
     self.password = nil;
 }
 
-- (void)testMechanismName
-{
-    assertThat([SASLMechanismPLAIN name], equalTo(@"PLAIN"));
-}
-
 - (void)testWithCredentials
 {
     self.username = @"romeo";

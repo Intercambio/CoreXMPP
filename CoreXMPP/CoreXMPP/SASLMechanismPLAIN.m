@@ -17,10 +17,20 @@
 
 @implementation SASLMechanismPLAIN
 
++ (void)load
+{
+    [SASLMechanism registerMechanismClass:self
+                         forMechanismName:[self name]];
+}
+
+#pragma mark Mechanism Name
+
 + (NSString *)name
 {
     return @"PLAIN";
 }
+
+#pragma mark Life-cycle
 
 - (instancetype)init
 {
@@ -30,6 +40,8 @@
     }
     return self;
 }
+
+#pragma mark Authentication Exchange
 
 - (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler
 {

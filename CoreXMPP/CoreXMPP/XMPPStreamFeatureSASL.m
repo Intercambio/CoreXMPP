@@ -177,6 +177,15 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
                 });
             }];
+        
+        } else {
+            
+            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                                 code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
+                                             userInfo:nil];
+            if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+                [delegate streamFeature:self didFailNegotiationWithError:error];
+            }
         }
     }
 }

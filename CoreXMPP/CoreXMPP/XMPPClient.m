@@ -10,7 +10,7 @@
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
 
-#import "SASLMechanismPLAIN.h"
+#import "SASLMechanism.h"
 
 #import "XMPPClient.h"
 
@@ -414,7 +414,18 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (SASLMechanism *)SASLMechanismForStreamFeature:(XMPPStreamFeature *)streamFeature
                              supportedMechanisms:(NSArray *)mechanisms
 {
-    SASLMechanism *mechanism = [[SASLMechanismPLAIN alloc] init];
+    SASLMechanism *mechanism = nil;
+    
+    NSDictionary *registeredMechanisms = [SASLMechanism registeredMechanisms];
+    
+    for (NSString *mechanismName in mechanisms) {
+        Class mechanismClass = [registeredMechanisms objectForKey:mechanismName];
+        if (mechanismClass) {
+            mechanism = [[mechanismClass alloc] init];
+            break;
+        }
+    }
+    
     mechanism.delegate = self.SASLDelegate;
     return mechanism;
 }
