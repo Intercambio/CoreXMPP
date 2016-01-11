@@ -10,13 +10,14 @@
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
 
-#import "SASLMechanismPLAIN.h"
+#import "SASLMechanism.h"
 
 #import "XMPPClient.h"
 
 NSString *const XMPPClientStreamErrorDomain = @"XMPPClientStreamErrorDomain";
 NSString *const XMPPClientStreamErrorXMLDocumentKey = @"XMPPClientStreamErrorXMLDocument";
 NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
+NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 
 @interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL> {
     dispatch_queue_t _operationQueue;
@@ -129,9 +130,9 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 {
     self = [super init];
     if (self) {
-        _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
+        _options = options;
         _state = XMPPClientStateDisconnected;
-
+        _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
         _stream = options[XMPPClientOptionsStreamKey] ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
         _stream.delegateQueue = _operationQueue;
         _stream.delegate = self;
@@ -144,11 +145,6 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (NSString *)hostname
 {
     return _stream.hostname;
-}
-
-- (NSDictionary *)options
-{
-    return _stream.options;
 }
 
 #pragma mark Manage Client
@@ -228,7 +224,8 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
         _currentFeature.queue = _operationQueue;
         _currentFeature.delegate = self;
 
-        [_currentFeature beginNegotiation];
+        [_currentFeature beginNegotiationWithHostname:self.hostname
+                                              options:nil];
 
     } else {
 
@@ -414,7 +411,22 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 - (SASLMechanism *)SASLMechanismForStreamFeature:(XMPPStreamFeature *)streamFeature
                              supportedMechanisms:(NSArray *)mechanisms
 {
-    SASLMechanism *mechanism = [[SASLMechanismPLAIN alloc] init];
+    NSArray *preferredMechanisms = [self.options objectForKey:XMPPClientOptionsPreferedSASLMechanismsKey] ?: mechanisms;
+    
+    SASLMechanism *mechanism = nil;
+    
+    NSDictionary *registeredMechanisms = [SASLMechanism registeredMechanisms];
+    
+    for (NSString *mechanismName in preferredMechanisms) {
+        if ([mechanisms containsObject:mechanismName]) {
+            Class mechanismClass = [registeredMechanisms objectForKey:mechanismName];
+            if (mechanismClass) {
+                mechanism = [[mechanismClass alloc] init];
+                break;
+            }
+        }
+    }
+    
     mechanism.delegate = self.SASLDelegate;
     return mechanism;
 }

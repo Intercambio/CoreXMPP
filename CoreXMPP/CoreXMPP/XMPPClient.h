@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, XMPPClientStreamErrorCode) {
 extern NSString *const XMPPClientStreamErrorXMLDocumentKey;
 
 extern NSString *const XMPPClientOptionsStreamKey;
+extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,

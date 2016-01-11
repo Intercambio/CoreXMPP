@@ -154,7 +154,7 @@
         return nil;
     }];
 
-    [feature beginNegotiation];
+    [feature beginNegotiationWithHostname:@"localhost" options:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
@@ -232,7 +232,7 @@
         return nil;
     }];
 
-    [feature beginNegotiation];
+    [feature beginNegotiationWithHostname:@"localhost" options:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
@@ -284,7 +284,7 @@
         return nil;
     }];
 
-    [feature beginNegotiation];
+    [feature beginNegotiationWithHostname:@"localhost" options:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 

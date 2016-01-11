@@ -14,6 +14,8 @@
 
 @interface SASLMechanismPLAIN : SASLMechanism
 
+@property (nonatomic, readonly) NSString *hostname;
+
 - (void)authenticateWithUsername:(NSString *)username
                         password:(NSString *)password;
 

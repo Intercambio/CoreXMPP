@@ -130,7 +130,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
 #pragma mark Negotiate Feature
 
-- (void)beginNegotiation
+- (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
     if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateSASL)]) {
         id<XMPPStreamFeatureDelegateSASL> delegate = (id<XMPPStreamFeatureDelegateSASL>)self.delegate;
@@ -146,7 +146,8 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
         if (_mechanism) {
 
-            [_mechanism beginAuthenticationExchangeWithResponseHandler:^(NSData *initialResponse, BOOL abort) {
+            [_mechanism beginAuthenticationExchangeWithHostname:hostname
+                                        responseHandler:^(NSData *initialResponse, BOOL abort) {
                 dispatch_async(queue, ^{
 
                     PXDocument *request = nil;
@@ -177,6 +178,15 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
                 });
             }];
+        
+        } else {
+            
+            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                                 code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
+                                             userInfo:nil];
+            if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+                [delegate streamFeature:self didFailNegotiationWithError:error];
+            }
         }
     }
 }

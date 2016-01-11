@@ -16,11 +16,19 @@
 
 @interface SASLMechanism : NSObject
 
+#pragma mark Registered Mechanisms
++ (NSDictionary *)registeredMechanisms;
++ (void)registerMechanismClass:(Class)mechanismClass forMechanismName:(NSString *)mechanismName;
+
+#pragma mark Mechanism Name
 + (NSString *)name;
 
+#pragma mark Delegate
 @property (nonatomic, weak) id<SASLMechanismDelegate> delegate;
 
-- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
+#pragma mark Authentication Exchange
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname
+                                responseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
 - (void)handleChallenge:(NSData *)challenge
         responseHandler:(void (^)(NSData *response, BOOL abort))responseHandler;
 

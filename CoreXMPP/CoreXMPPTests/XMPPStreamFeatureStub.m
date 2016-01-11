@@ -48,7 +48,7 @@
 
 #pragma mark Negotiate Feature
 
-- (void)beginNegotiation
+- (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
     id<XMPPStreamFeatureDelegate> delegate = (id<XMPPStreamFeatureDelegate>)self.delegate;
 

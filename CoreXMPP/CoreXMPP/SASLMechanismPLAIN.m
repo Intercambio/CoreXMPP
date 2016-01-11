@@ -10,6 +10,7 @@
 
 @interface SASLMechanismPLAIN () {
     dispatch_queue_t _queue;
+    NSString *_hostname;
     void (^_responseHandler)(NSData *response, BOOL abort);
 }
 
@@ -17,10 +18,20 @@
 
 @implementation SASLMechanismPLAIN
 
++ (void)load
+{
+    [SASLMechanism registerMechanismClass:self
+                         forMechanismName:[self name]];
+}
+
+#pragma mark Mechanism Name
+
 + (NSString *)name
 {
     return @"PLAIN";
 }
+
+#pragma mark Life-cycle
 
 - (instancetype)init
 {
@@ -31,9 +42,12 @@
     return self;
 }
 
-- (void)beginAuthenticationExchangeWithResponseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler
+#pragma mark Authentication Exchange
+
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *, BOOL))responseHandler
 {
     dispatch_async(_queue, ^{
+        _hostname = hostname;
         _responseHandler = responseHandler;
         if ([self.delegate conformsToProtocol:@protocol(SASLMechanismDelegatePLAIN)]) {
             id<SASLMechanismDelegatePLAIN> delegate = (id<SASLMechanismDelegatePLAIN>)self.delegate;
