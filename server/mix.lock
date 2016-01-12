@@ -1,6 +1,6 @@
 %{"bbmustache": {:hex, :bbmustache, "1.0.3"},
   "conform": {:hex, :conform, "0.17.0"},
-  "ejabberd": {:git, "https://github.com/processone/ejabberd.git", "a497cdff5ee0bf41749d076a445ba7371ddbd69e", [tag: "15.10"]},
+  "ejabberd": {:git, "https://github.com/processone/ejabberd.git", "a497cdff5ee0bf41749d076a445ba7371ddbd69e", [tag: "15.11"]},
   "eredis": {:git, "https://github.com/wooga/eredis", "bf12ecb30253c84a2331f4f0d93fd68856fcb9f4", []},
   "erlware_commons": {:hex, :erlware_commons, "0.15.0"},
   "esip": {:git, "https://github.com/processone/p1_sip", "d662d3fe7f6288b444ea321d854de0bd6d40e022", []},

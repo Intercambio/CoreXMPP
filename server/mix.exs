@@ -15,6 +15,6 @@ defmodule Ejabberd.Server.Mixfile do
   end
   
   defp deps do
-    [{:ejabberd, github: "processone/ejabberd", tag: "15.10"}]
+    [{:ejabberd, github: "processone/ejabberd", tag: "15.11"}]
   end
 end
