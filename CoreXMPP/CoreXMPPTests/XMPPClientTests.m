@@ -41,27 +41,27 @@
 - (void)testEstablishConnection
 {
     NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"],
-                               XMPPClientOptionsResourceKey: @"bar"};
-    
+                               XMPPClientOptionsResourceKey : @"bar" };
+
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:options];
-    
+
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
     id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
     client.SASLDelegate = SASLDelegate;
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
         return nil;
     }];
-    
+
     //
     // Connect
     //
-    
+
     XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Connect"];
     [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
         [waitForConnection fulfill];
@@ -69,37 +69,37 @@
     }];
     [client connect];
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
-    
+
     //
     // Ping .o0o. Pong
     //
-    
+
     NSString *pingIQId = [[NSUUID UUID] UUIDString];
-    
+
     PXDocument *ping = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [ping.root setValue:pingIQId forAttribute:@"id"];
     [ping.root setValue:@"get" forAttribute:@"type"];
     [ping.root setValue:@"localhost" forAttribute:@"to"];
     [ping.root addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
     [client sendStanza:ping.root];
-    
+
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
     [givenVoid([delegate client:client didReceiveStanza:anything()]) willDo:^id(NSInvocation *invocation) {
-        
+
         PXElement *pong = [[invocation mkt_arguments] lastObject];
         if ([pong isKindOfClass:[PXElement class]] &&
             [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
             [waitForPong fulfill];
         }
-        
+
         return nil;
     }];
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
-    
+
     //
     // Disconnect
     //
-    
+
     XCTestExpectation *waitForDisconnect = [self expectationWithDescription:@"Disconnect"];
     [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
         [waitForDisconnect fulfill];

@@ -158,11 +158,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
-        
+
 #ifdef DEBUG
         NSLog(@"Supported Features: %@", [[self class] registeredStreamFeatures]);
 #endif
-        
+
         [_stream open];
     });
 }
@@ -201,42 +201,42 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (void)xmpp_negotiateNextFeature
 {
     _state = XMPPClientStateNegotiating;
-    
+
     PXDocument *configuration = [_featureConfigurations firstObject];
     if (configuration) {
         [_featureConfigurations removeObjectAtIndex:0];
-        
+
         Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:configuration.root.qualifiedName];
         if (featureClass) {
             XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithConfiguration:configuration];
-            
+
             // Begin the negotiation of the feature
-            
+
             _currentFeature = feature;
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
-            
+
 #ifdef DEBUG
             NSLog(@"Begin negotiation of feature: (%@, %@)", configuration.root.namespace, configuration.root.name);
 #endif
-            
+
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
-            
+
         } else {
 #ifdef DEBUG
             NSLog(@"Feature not supported: (%@, %@)", configuration.root.namespace, configuration.root.name);
 #endif
             [self xmpp_negotiateNextFeature];
         }
-        
+
     } else {
-        
+
         // No features left to negotiate
         // The connection is established
-        
+
         _state = XMPPClientStateEstablished;
-        
+
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
@@ -373,7 +373,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
                 [delegate client:self didNegotiateFeature:streamFeature];
             }
         });
-        
+
         if (streamFeature.needsRestart) {
             _state = XMPPClientStateConnecting;
             [_stream reopen];

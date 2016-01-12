@@ -25,7 +25,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     return @"session";
 }
 
-+ (NSString *)namespace
++ (NSString *) namespace
 {
     return XMPPStreamFeatureSessionNamespace;
 }
@@ -53,25 +53,25 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
     NSString *preferredResourceName = nil;
-    
+
     // Try to get the preferred resource name via the delegate
-    
+
     if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateBind)]) {
         id<XMPPStreamFeatureDelegateBind> delegate = (id<XMPPStreamFeatureDelegateBind>)self.delegate;
         if ([delegate respondsToSelector:@selector(resourceNameForStreamFeature:)]) {
             preferredResourceName = [delegate resourceNameForStreamFeature:self];
         }
     }
-    
+
     _requestId = [[NSUUID UUID] UUIDString];
-    
+
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-    
+
     PXElement *iq = request.root;
     [iq setValue:@"set" forAttribute:@"type"];
     [iq setValue:_requestId forAttribute:@"id"];
     [iq addElementWithName:@"session" namespace:XMPPStreamFeatureSessionNamespace content:nil];
-    
+
     [self.delegate streamFeature:self handleElement:iq];
 }
 
@@ -79,9 +79,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 {
     if ([element.namespace isEqualToString:@"jabber:client"] &&
         [element.name isEqualToString:@"iq"]) {
-        
+
         NSString *type = [element valueForAttribute:@"type"];
-        
+
         if ([type isEqualToString:@"result"]) {
             [self handleIQResult:element];
         } else if ([type isEqualToString:@"error"]) {
@@ -95,7 +95,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 - (void)handleIQResult:(PXElement *)iq
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
-    
+
     if (responseId && [responseId isEqualToString:_requestId]) {
         [self.delegate streamFeatureDidSucceedNegotiation:self];
         _requestId = nil;
@@ -105,7 +105,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 - (void)handleIQError:(PXElement *)iq
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
-    
+
     if (responseId && [responseId isEqualToString:_requestId]) {
         NSError *error = [XMPPStanza errorFromStanza:iq];
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
