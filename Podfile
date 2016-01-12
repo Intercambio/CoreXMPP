@@ -6,7 +6,7 @@ xcodeproj 'CoreXMPP/CoreXMPP.xcodeproj'
 
 target :CoreXMPPiOS, :exclusive => true do
     platform :ios, :deployment_target => '8.0'
-    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.4'
+    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.5'
     pod 'SocketRocket', '~> 0.4'
 end
 
@@ -19,7 +19,7 @@ end
 
 target :CoreXMPPOSX, :exclusive => true do
     platform :osx, :deployment_target => '10.10'
-    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.4'
+    pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.5'
     pod 'SocketRocket', '~> 0.4'
 end
 

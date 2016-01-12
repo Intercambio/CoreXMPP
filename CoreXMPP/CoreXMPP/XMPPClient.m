@@ -26,6 +26,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     XMPPClientState _state;
     XMPPWebsocketStream *_stream;
     XMPPStreamFeature *_currentFeature;
+    NSMutableArray *_featureConfigurations;
 }
 
 @end
@@ -157,6 +158,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
+
+#ifdef DEBUG
+        NSLog(@"Supported Features: %@", [[self class] registeredStreamFeatures]);
+#endif
+
         [_stream open];
     });
 }
@@ -182,52 +188,47 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 #pragma mark Feature Negotiation
 
-- (void)xmpp_beginNegotiationWithElement:(PXElement *)element
+- (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
+{
+    NSMutableArray *featureConfigurations = [[NSMutableArray alloc] init];
+    [features enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+        PXDocument *configuration = [[PXDocument alloc] initWithElement:element];
+        [featureConfigurations addObject:configuration];
+    }];
+    _featureConfigurations = featureConfigurations;
+}
+
+- (void)xmpp_negotiateNextFeature
 {
     _state = XMPPClientStateNegotiating;
 
-    NSMutableArray *mandatoryFeatures = [[NSMutableArray alloc] init];
-    NSMutableArray *voluntaryFeatures = [[NSMutableArray alloc] init];
+    PXDocument *configuration = [_featureConfigurations firstObject];
+    if (configuration) {
+        [_featureConfigurations removeObjectAtIndex:0];
 
-    [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
-
-        PXQName *featureQName = [[PXQName alloc] initWithName:element.name namespace:element.namespace];
-
-        Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:featureQName];
+        Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:configuration.root.qualifiedName];
         if (featureClass) {
-
-            PXDocument *configuration = [[PXDocument alloc] initWithElement:element];
             XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithConfiguration:configuration];
 
-            if (feature.mandatory) {
-                [mandatoryFeatures addObject:feature];
-            } else {
-                [voluntaryFeatures addObject:feature];
-            }
+            // Begin the negotiation of the feature
+
+            _currentFeature = feature;
+            _currentFeature.queue = _operationQueue;
+            _currentFeature.delegate = self;
+
+#ifdef DEBUG
+            NSLog(@"Begin negotiation of feature: (%@, %@)", configuration.root.namespace, configuration.root.name);
+#endif
+
+            [_currentFeature beginNegotiationWithHostname:self.hostname
+                                                  options:nil];
+
+        } else {
+#ifdef DEBUG
+            NSLog(@"Feature not supported: (%@, %@)", configuration.root.namespace, configuration.root.name);
+#endif
+            [self xmpp_negotiateNextFeature];
         }
-
-    }];
-
-    XMPPStreamFeature *nextFeature = nil;
-
-    if ([mandatoryFeatures count] > 0) {
-        // Mandatory features are left for negotiation
-        nextFeature = [mandatoryFeatures firstObject];
-    } else if ([voluntaryFeatures count] > 0) {
-        // Only voluntary features are left for negotiation
-        nextFeature = [voluntaryFeatures firstObject];
-    }
-
-    if (nextFeature) {
-
-        // Begin the negotiation of the next feature
-
-        _currentFeature = nextFeature;
-        _currentFeature.queue = _operationQueue;
-        _currentFeature.delegate = self;
-
-        [_currentFeature beginNegotiationWithHostname:self.hostname
-                                              options:nil];
 
     } else {
 
@@ -281,7 +282,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             // Expecting a features element to start the negotiation
             if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
                 [element.name isEqualToString:@"features"]) {
-                [self xmpp_beginNegotiationWithElement:element];
+                [self xmpp_updateSupportedFeaturesWithElement:element];
+                [self xmpp_negotiateNextFeature];
             } else {
                 // Unexpected element
                 _state = XMPPClientStateDisconnecting;
@@ -364,13 +366,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _currentFeature.delegate = nil;
         _currentFeature = nil;
 
-        if (streamFeature.needsRestart) {
-            _state = XMPPClientStateConnecting;
-            [_stream reopen];
-        } else {
-            _state = XMPPClientStateConnected;
-        }
-
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
@@ -378,6 +373,13 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
                 [delegate client:self didNegotiateFeature:streamFeature];
             }
         });
+
+        if (streamFeature.needsRestart) {
+            _state = XMPPClientStateConnecting;
+            [_stream reopen];
+        } else {
+            [self xmpp_negotiateNextFeature];
+        }
     }
 }
 

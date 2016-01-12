@@ -30,6 +30,7 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPStreamFeature.h>
 #import <CoreXMPP/XMPPStreamFeatureSASL.h>
 #import <CoreXMPP/XMPPStreamFeatureBind.h>
+#import <CoreXMPP/XMPPStreamFeatureSession.h>
 
 // SASL Mechanism
 #import <CoreXMPP/SASLMechanism.h>

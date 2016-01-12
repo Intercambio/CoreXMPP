@@ -47,6 +47,13 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     }
 }
 
+#pragma mark Description
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<XMPPWebsocketStream %p (%@)>", self, [self websocketURL]];
+}
+
 #pragma mark State
 
 - (XMPPStreamState)state
@@ -102,6 +109,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
         PXDocument *document = [[PXDocument alloc] initWithElement:element];
         NSString *message = [[self class] stringFromDocument:document];
+#ifdef DEBUG
+        NSLog(@"%@ OUT >>> %@", self, message);
+#endif
         [_websocket send:message];
     });
 }
@@ -230,14 +240,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 #pragma Manage Websocket
 
-- (void)setUpWebsocket
+- (NSURL *)websocketURL
 {
-    _websocket.delegate = nil;
-    [_websocket close];
-
-    // Create a websocket with the URL form the options (or create a
-    // default RUL based on the hostname) and open the websocket.
-
     NSURL *websocketURL = self.options[XMPPWebsocketStreamURLKey];
     if (websocketURL == nil) {
         // Try to guess the websocket URL
@@ -247,7 +251,18 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         websocketURLComponents.path = @"/xmpp";
         websocketURL = [websocketURLComponents URL];
     }
+    return websocketURL;
+}
 
+- (void)setUpWebsocket
+{
+    _websocket.delegate = nil;
+    [_websocket close];
+
+    // Create a websocket with the URL form the options (or create a
+    // default RUL based on the hostname) and open the websocket.
+
+    NSURL *websocketURL = [self websocketURL];
     SRWebSocket *websocket = [[SRWebSocket alloc] initWithURL:websocketURL
                                                     protocols:@[ @"xmpp" ]
                                allowsUntrustedSSLCertificates:YES];
@@ -284,6 +299,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)webSocket:(SRWebSocket *)webSocket didReceiveMessage:(NSString *)message
 {
     if ([message isKindOfClass:[NSString class]]) {
+#ifdef DEBUG
+        NSLog(@"%@ IN  <<< %@", self, message);
+#endif
         PXDocument *document = [PXDocument documentWithData:[message dataUsingEncoding:NSUTF8StringEncoding]];
         if (document) {
             [self handleReceivedDocument:document];
