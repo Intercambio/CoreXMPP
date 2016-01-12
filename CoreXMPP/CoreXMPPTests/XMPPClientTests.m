@@ -234,13 +234,6 @@
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
         [stream receiveElement:response.root];
-
-        // Send new (empty) features
-
-        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
-                                                             namespace:@"http://etherx.jabber.org/streams"
-                                                                prefix:@"stream"];
-        [stream receiveElement:features.root];
     }];
 
     //
@@ -448,13 +441,6 @@
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
         [stream receiveElement:response.root];
-
-        // Send new (empty) features
-
-        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
-                                                             namespace:@"http://etherx.jabber.org/streams"
-                                                                prefix:@"stream"];
-        [stream receiveElement:features.root];
     }];
 
     //
@@ -709,13 +695,6 @@
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
         [stream receiveElement:response.root];
-
-        // Send new (empty) features
-
-        PXDocument *features = [[PXDocument alloc] initWithElementName:@"features"
-                                                             namespace:@"http://etherx.jabber.org/streams"
-                                                                prefix:@"stream"];
-        [stream receiveElement:features.root];
     }];
 
     //
