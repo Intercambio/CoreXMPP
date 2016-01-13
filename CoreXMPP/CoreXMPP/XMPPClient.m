@@ -330,6 +330,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error
 {
+    _state = XMPPClientStateDisconnected;
+    
     id<XMPPClientDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
 
@@ -338,8 +340,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             [delegate client:self didFailWithError:error];
         }
     });
-
-    _state = XMPPClientStateDisconnected;
 }
 
 - (void)streamDidClose:(XMPPStream *)stream
