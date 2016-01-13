@@ -47,12 +47,14 @@
 - (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *, BOOL))responseHandler
 {
     dispatch_async(_queue, ^{
-        _hostname = hostname;
         _responseHandler = responseHandler;
-        if ([self.delegate conformsToProtocol:@protocol(SASLMechanismDelegatePLAIN)]) {
-            id<SASLMechanismDelegatePLAIN> delegate = (id<SASLMechanismDelegatePLAIN>)self.delegate;
-            [delegate SASLMechanismNeedsCredentials:self];
-        }
+
+        dispatch_queue_t queue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(queue, ^{
+            if ([self.delegate respondsToSelector:@selector(SASLMechanismNeedsCredentials:)]) {
+                [self.delegate SASLMechanismNeedsCredentials:self];
+            }
+        });
     });
 }
 

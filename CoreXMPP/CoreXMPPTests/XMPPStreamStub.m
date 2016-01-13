@@ -20,6 +20,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
     NSMutableArray *_onDidOpenCallbacks;
     NSMutableArray *_onDidCloseCallbacks;
+    NSMutableArray *_onDidFailCallbacks;
     NSMutableArray *_onDidSendElementCallbacks;
 }
 
@@ -40,6 +41,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
         _onDidOpenCallbacks = [[NSMutableArray alloc] init];
         _onDidCloseCallbacks = [[NSMutableArray alloc] init];
+        _onDidFailCallbacks = [[NSMutableArray alloc] init];
         _onDidSendElementCallbacks = [[NSMutableArray alloc] init];
     }
     return self;
@@ -200,6 +202,8 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 {
     dispatch_async(_operationQueue, ^{
 
+        _state = XMPPStreamStateClosed;
+        
         id<XMPPStreamDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
 
@@ -207,9 +211,15 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
             if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
                 [delegate stream:self didFailWithError:error];
             }
+            
+            dispatch_async(_operationQueue, ^{
+                void (^_callback)(XMPPStreamStub *) = [_onDidFailCallbacks firstObject];
+                if (_callback) {
+                    [_onDidFailCallbacks removeObjectAtIndex:0];
+                    _callback(self);
+                }
+            });
         });
-
-        [self close];
     });
 }
 
@@ -238,6 +248,15 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     if (handler) {
         dispatch_async(_operationQueue, ^{
             [_onDidSendElementCallbacks addObject:handler];
+        });
+    }
+}
+
+- (void)onDidFail:(void (^)(XMPPStreamStub *))handler
+{
+    if (handler) {
+        dispatch_async(_operationQueue, ^{
+            [_onDidFailCallbacks addObject:handler];
         });
     }
 }

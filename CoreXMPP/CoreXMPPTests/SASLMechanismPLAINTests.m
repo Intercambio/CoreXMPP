@@ -16,7 +16,7 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
-@interface SASLMechanismPLAINTests : XCTestCase <SASLMechanismDelegatePLAIN>
+@interface SASLMechanismPLAINTests : XCTestCase <SASLMechanismDelegate>
 @property (nonatomic, assign) BOOL abortAuthentication;
 @property (nonatomic, strong) NSString *username;
 @property (nonatomic, strong) NSString *password;

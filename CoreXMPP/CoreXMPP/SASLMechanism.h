@@ -11,7 +11,8 @@
 @class SASLMechanism;
 
 @protocol SASLMechanismDelegate <NSObject>
-
+@optional
+- (void)SASLMechanismNeedsCredentials:(SASLMechanism *)mechanism;
 @end
 
 @interface SASLMechanism : NSObject
@@ -25,6 +26,10 @@
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<SASLMechanismDelegate> delegate;
+@property (nonatomic, strong) dispatch_queue_t delegateQueue;
+
+#pragma mark Context
+@property (nonatomic, strong) id context;
 
 #pragma mark Authentication Exchange
 - (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname
