@@ -432,6 +432,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     }
 
     mechanism.delegate = self.SASLDelegate;
+    mechanism.delegateQueue = self.SASLDelegateQueue;
+    mechanism.context = self.SASLContext;
     return mechanism;
 }
 

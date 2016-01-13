@@ -25,8 +25,8 @@
 - (void)testAccountManagement
 {
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
-    id<XMPPServiceManagerDelegate> delegate = mockProtocol(@protocol(XMPPServiceManagerDelegate));
-    serviceManager.delegate = delegate;
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    serviceManager.SASLDelegate = SASLDelegate;
 
     XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
     assertThat(account, notNilValue());
@@ -41,10 +41,13 @@
     // Prepare SASL Authentication
     //
 
-    [givenVoid([delegate serviceManager:serviceManager account:anything() needsCredentialsForSASLMechanism:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
+        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+            assertThat(mechanism.context, is(account));
+            [mechanism authenticateWithUsername:[mechanism.context JID]
+                                       password:@"123"];
         }
         return nil;
     }];

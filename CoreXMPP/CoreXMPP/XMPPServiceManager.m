@@ -6,7 +6,6 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "SASLMechanismPLAIN.h"
 #import "XMPPWebsocketStream.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
@@ -19,7 +18,7 @@ NSString *const XMPPServiceManagerDidDisconnectAccountNotification = @"XMPPServi
 
 NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
-@interface XMPPServiceManager () <XMPPClientDelegate, SASLMechanismDelegatePLAIN> {
+@interface XMPPServiceManager () <XMPPClientDelegate> {
     dispatch_queue_t _operationQueue;
     NSMapTable *_accounts;
 }
@@ -76,7 +75,9 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
                                                               options:options];
             client.delegateQueue = _operationQueue;
             client.delegate = self;
-            client.SASLDelegate = self;
+            client.SASLDelegate = self.SASLDelegate;
+            client.SASLDelegateQueue = dispatch_get_main_queue();
+            client.SASLContext = account;
 
             [_accounts setObject:client forKey:account];
         }
@@ -146,17 +147,6 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
 - (void)clientDidDisconnect:(XMPPClient *)client
 {
-}
-
-#pragma mark SASLMechanismDelegatePLAIN (called on operation queue)
-
-- (void)SASLMechanismNeedsCredentials:(SASLMechanism *)mechanism
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        if ([self.delegate respondsToSelector:@selector(serviceManager:account:needsCredentialsForSASLMechanism:)]) {
-            [self.delegate serviceManager:self account:nil needsCredentialsForSASLMechanism:mechanism];
-        }
-    });
 }
 
 @end

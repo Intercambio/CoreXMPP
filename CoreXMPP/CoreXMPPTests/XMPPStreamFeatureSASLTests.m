@@ -90,7 +90,7 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
         return nil;
@@ -170,7 +170,7 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
         return nil;
@@ -248,7 +248,7 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
         [mechanism authenticateWithUsername:nil password:@"123"]; // Missing credentials will abort the negotiation
         return nil;

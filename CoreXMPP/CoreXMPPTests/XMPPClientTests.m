@@ -49,7 +49,7 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
@@ -687,7 +687,7 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
@@ -803,7 +803,7 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
@@ -856,7 +856,7 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<SASLMechanismDelegatePLAIN> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegatePLAIN));
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
     //

@@ -15,13 +15,14 @@ extern NSString *const XMPPServiceManagerDidDisconnectAccountNotification;
 
 extern NSString *const XMPPServiceManagerAccountKey;
 
+@protocol SASLMechanismDelegate;
+
 @class SASLMechanism;
 @class XMPPAccount;
 @class XMPPServiceManager;
 
 @protocol XMPPServiceManagerDelegate <NSObject>
 @optional
-- (void)serviceManager:(XMPPServiceManager *)serviceManager account:(XMPPAccount *)account needsCredentialsForSASLMechanism:(SASLMechanism *)mechanism;
 - (void)serviceManager:(XMPPServiceManager *)serviceManager didFailWithError:(NSError *)error;
 @end
 
@@ -35,6 +36,7 @@ extern NSString *const XMPPServiceManagerAccountKey;
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
+@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;

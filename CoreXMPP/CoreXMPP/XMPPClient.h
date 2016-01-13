@@ -84,8 +84,11 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;
-@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 @property (nonatomic, strong) dispatch_queue_t delegateQueue;
+
+@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
+@property (nonatomic, strong) dispatch_queue_t SASLDelegateQueue;
+@property (nonatomic, strong) id SASLContext;
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
