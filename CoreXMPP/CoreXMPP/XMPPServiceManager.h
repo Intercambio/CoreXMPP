@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol SASLMechanismDelegate;
+@class SASLMechanism;
+@class XMPPAccount;
+@class XMPPClient;
+@class XMPPServiceManager;
+
 extern NSString *const XMPPServiceManagerDidResumeAccountNotification;
 extern NSString *const XMPPServiceManagerDidSuspendAccountNotification;
 extern NSString *const XMPPServiceManagerDidConnectAccountNotification;
@@ -15,11 +21,9 @@ extern NSString *const XMPPServiceManagerDidDisconnectAccountNotification;
 
 extern NSString *const XMPPServiceManagerAccountKey;
 
-@protocol SASLMechanismDelegate;
+extern NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey;
 
-@class SASLMechanism;
-@class XMPPAccount;
-@class XMPPServiceManager;
+typedef XMPPClient *(^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
 
 @protocol XMPPServiceManagerDelegate <NSObject>
 @optional
