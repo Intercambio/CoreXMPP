@@ -87,39 +87,87 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
 - (void)removeAccount:(XMPPAccount *)account
 {
+    dispatch_sync(_operationQueue, ^{
+        XMPPClient *client = [_accounts objectForKey:account];
+        if (client) {
+            [self xmpp_suspendAccounts:@[account]];
+            [_accounts removeObjectForKey:account];
+        }
+    });
 }
 
 - (void)suspendAccount:(XMPPAccount *)account
 {
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_suspendAccounts:@[account]];
+    });
 }
 
 - (void)resumeAccount:(XMPPAccount *)account
 {
     dispatch_async(_operationQueue, ^{
-        XMPPClient *client = [_accounts objectForKey:account];
-        if (client) {
-
-            account.suspended = NO;
-
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidResumeAccountNotification
-                                                                    object:self
-                                                                  userInfo:@{XMPPServiceManagerAccountKey : account}];
-            });
-
-            if (client.state == XMPPClientStateDisconnected) {
-                [client connect];
-            }
-        }
+        [self xmpp_resumeAccounts:@[account]];
     });
 }
 
 - (void)suspendAllAccounts
 {
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_suspendAccounts:[[_accounts keyEnumerator] allObjects]];
+    });
 }
 
 - (void)resumeAllAccounts
 {
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_resumeAccounts:[[_accounts keyEnumerator] allObjects]];
+    });
+}
+
+#pragma mark -
+
+- (void)xmpp_suspendAccounts:(NSArray *)accounts
+{
+    for (XMPPAccount *account in accounts) {
+        XMPPClient *client = [_accounts objectForKey:account];
+        if (client) {
+            if (account.suspended == NO) {
+                account.suspended = YES;
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidSuspendAccountNotification
+                                                                        object:self
+                                                                      userInfo:@{XMPPServiceManagerAccountKey : account}];
+                });
+                
+                if (client.state == XMPPClientStateEstablished) {
+                    [client disconnect];
+                }
+            }
+        }
+    }
+}
+
+- (void)xmpp_resumeAccounts:(NSArray *)accounts
+{
+    for (XMPPAccount *account in accounts) {
+        XMPPClient *client = [_accounts objectForKey:account];
+        if (client) {
+            if (account.suspended) {
+                account.suspended = NO;
+                
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidResumeAccountNotification
+                                                                        object:self
+                                                                      userInfo:@{XMPPServiceManagerAccountKey : account}];
+                });
+                
+                if (client.state == XMPPClientStateDisconnected) {
+                    [client connect];
+                }
+            }
+        }
+    }
 }
 
 #pragma mark XMPPClientDelegate (called on operation queue)
@@ -147,6 +195,23 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
 - (void)clientDidDisconnect:(XMPPClient *)client
 {
+    XMPPAccount *account = nil;
+    for (XMPPAccount *a in _accounts) {
+        if ([_accounts objectForKey:a] == client) {
+            account = a;
+            break;
+        }
+    }
+    
+    if (account) {
+        account.connected = NO;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
+                                                                object:self
+                                                              userInfo:@{XMPPServiceManagerAccountKey : account}];
+            
+        });
+    }
 }
 
 @end
