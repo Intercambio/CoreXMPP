@@ -243,7 +243,7 @@
     }];
 
     XCTestExpectation *waitForClose = [self expectationWithDescription:@"Expecting stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
+    [self.stream onDidFail:^(XMPPStreamStub *stream) {
         [waitForClose fulfill];
     }];
     [client connect];
