@@ -42,6 +42,11 @@ typedef XMPPClient *(^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acco
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
+#pragma mark Managing Service Manager
+@property (nonatomic, readonly, getter=isSuspended) BOOL suspended;
+- (void)suspend;
+- (void)resume;
+
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
 - (XMPPAccount *)accountWithJID:(NSString *)jid;

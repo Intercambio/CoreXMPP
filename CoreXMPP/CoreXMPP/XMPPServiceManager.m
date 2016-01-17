@@ -42,6 +42,21 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return self;
 }
 
+#pragma mark Managing Service Manager
+
+- (BOOL)isSuspended
+{
+    return NO;
+}
+
+- (void)suspend
+{
+}
+
+- (void)resume
+{
+}
+
 #pragma mark Managing Accounts
 
 - (NSArray *)accounts
