@@ -20,9 +20,9 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
     assertThat(account, notNilValue());
-    assertThat(account.JID, equalTo(@"romeo@localhost"));
+    assertThat(account.JID, equalTo(JID(@"romeo@localhost")));
     assertThat(serviceManager.accounts, contains(account, nil));
 
     // An account should initially be suspended (and therefore disconnected).
@@ -39,7 +39,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
 
     //
     // Prepare SASL Authentication
@@ -50,7 +50,7 @@
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[mechanism.context JID]
+            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
                                        password:@"123"];
         }
         return nil;
@@ -123,7 +123,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
 
     //
     // Prepare SASL Authentication
@@ -134,7 +134,7 @@
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[mechanism.context JID]
+            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
                                        password:@"123"];
         }
         return nil;
@@ -205,7 +205,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
 
     //
     // Prepare SASL Authentication
@@ -216,7 +216,7 @@
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[mechanism.context JID]
+            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
                                        password:@"123"];
         }
         return nil;
@@ -308,7 +308,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
 
     //
     // Resume Account

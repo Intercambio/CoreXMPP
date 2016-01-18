@@ -9,10 +9,11 @@
 #import <Foundation/Foundation.h>
 
 @class XMPPServiceManager;
+@class XMPPJID;
 
 @interface XMPPAccount : NSObject
 
-@property (nonatomic, readonly) NSString *JID;
+@property (nonatomic, readonly) XMPPJID *JID;
 @property (nonatomic, readonly, weak) XMPPServiceManager *serviceManger;
 
 @property (nonatomic, readonly) BOOL suspended;

@@ -11,7 +11,7 @@
 
 @interface XMPPAccount (Private)
 
-- (instancetype)initWithJID:(NSString *)JID
+- (instancetype)initWithJID:(XMPPJID *)JID
              serviceManager:(XMPPServiceManager *)serviceManager;
 
 @property (nonatomic, readwrite) BOOL suspended;

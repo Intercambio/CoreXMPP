@@ -14,6 +14,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
 static const DDLogLevel ddLogLevel = DDLogLevelWarn;
 #endif
 
+#import "XMPPJID.h"
 #import "XMPPWebsocketStream.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
@@ -90,16 +91,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return accounts;
 }
 
-- (XMPPAccount *)accountWithJID:(NSString *)jid
+- (XMPPAccount *)accountWithJID:(XMPPJID *)JID
 {
     __block XMPPAccount *account = nil;
     dispatch_sync(_operationQueue, ^{
 
         // TODO: Validate JID
 
-        account = [self xmpp_accountWithJID:jid];
+        account = [self xmpp_accountWithJID:JID];
         if (account == nil) {
-            account = [self xmpp_createAccountWithJID:jid];
+            account = [self xmpp_createAccountWithJID:JID];
         }
 
         if (_suspended == NO) {
@@ -160,17 +161,17 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return [_accounts copy];
 }
 
-- (XMPPAccount *)xmpp_accountWithJID:(NSString *)JID
+- (XMPPAccount *)xmpp_accountWithJID:(XMPPJID *)JID
 {
     for (XMPPAccount *account in _accounts) {
-        if ([account.JID isEqualToString:JID]) {
+        if ([account.JID isEqual:JID]) {
             return account;
         }
     }
     return nil;
 }
 
-- (XMPPAccount *)xmpp_createAccountWithJID:(NSString *)JID
+- (XMPPAccount *)xmpp_createAccountWithJID:(XMPPJID *)JID
 {
     XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self];
     account.suspended = YES;
@@ -220,7 +221,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     }
 
     if (client == nil) {
-        NSString *hostname = @"localhost";
+        NSString *hostname = account.JID.host;
         NSDictionary *options = @{};
         client = [[XMPPClient alloc] initWithHostname:hostname
                                               options:options];

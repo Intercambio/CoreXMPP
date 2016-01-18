@@ -117,13 +117,13 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
         PXElement *jidNode = [[iq nodesForXPath:@"./x:bind/x:jid"
                                 usingNamespaces:@{ @"x" : XMPPStreamFeatureBindNamespace }] firstObject];
 
-        NSString *jidString = [jidNode stringValue];
+        XMPPJID *JID = [XMPPJID JIDFromString:[jidNode stringValue]];
 
-        if (jidString) {
+        if (JID) {
             if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateBind)]) {
                 id<XMPPStreamFeatureDelegateBind> delegate = (id<XMPPStreamFeatureDelegateBind>)self.delegate;
                 if ([delegate respondsToSelector:@selector(streamFeature:didBindToJID:)]) {
-                    [delegate streamFeature:self didBindToJID:jidString];
+                    [delegate streamFeature:self didBindToJID:JID];
                 }
             }
             [self.delegate streamFeatureDidSucceedNegotiation:self];
