@@ -6,6 +6,14 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
+#ifdef DEBUG
+static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
+#else
+static const DDLogLevel ddLogLevel = DDLogLevelWarn;
+#endif
+
 #import "XMPPWebsocketStream.h"
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
@@ -143,6 +151,13 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     return self;
 }
 
+#pragma mark Description
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<XMPPClient: %p (%@)>", self, self.hostname];
+}
+
 #pragma mark Properties
 
 - (NSString *)hostname
@@ -159,9 +174,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
 
-#ifdef DEBUG
-        NSLog(@"Supported Features: %@", [[self class] registeredStreamFeatures]);
-#endif
+        DDLogDebug(@"Supported Features: %@", [[self class] registeredStreamFeatures]);
 
         [_stream open];
     });
@@ -215,18 +228,16 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             _currentFeature = feature;
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
-
-#ifdef DEBUG
-            NSLog(@"Begin negotiation of feature: (%@, %@)", configuration.root.namespace, configuration.root.name);
-#endif
+            
+            DDLogDebug(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
 
         } else {
-#ifdef DEBUG
-            NSLog(@"Feature not supported: (%@, %@)", configuration.root.namespace, configuration.root.name);
-#endif
+            
+            DDLogDebug(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
+            
             [self xmpp_negotiateNextFeature];
         }
 

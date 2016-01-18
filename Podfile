@@ -8,6 +8,7 @@ target :CoreXMPPiOS do
     platform :ios, :deployment_target => '8.0'
     pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.5'
     pod 'SocketRocket', '~> 0.4'
+    pod 'CocoaLumberjack', '~> 2.2.0'
 end
 
 target :CoreXMPPiOSTests do
@@ -21,6 +22,7 @@ target :CoreXMPPOSX do
     platform :osx, :deployment_target => '10.10'
     pod 'PureXML', :git => 'https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git', :tag => '1.0.beta.5'
     pod 'SocketRocket', '~> 0.4'
+    pod 'CocoaLumberjack', '~> 2.2.0'
 end
 
 target :CoreXMPPOSXTests do

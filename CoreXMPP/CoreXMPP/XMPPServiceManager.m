@@ -6,6 +6,14 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
+#ifdef DEBUG
+static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
+#else
+static const DDLogLevel ddLogLevel = DDLogLevelWarn;
+#endif
+
 #import "XMPPWebsocketStream.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
@@ -246,6 +254,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         [self xmpp_removeClientForAccount:account];
     }
     _suspended = YES;
+    
+    DDLogInfo(@"Did suspend service manager: %@", self);
 }
 
 - (void)xmpp_resume
@@ -260,6 +270,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         }
     }
     _suspended = NO;
+    
+    DDLogInfo(@"Did resume service manager: %@", self);
 }
 
 - (void)xmpp_suspendAccounts:(NSArray *)accounts
@@ -276,6 +288,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
 
+                DDLogInfo(@"Did suspend account: %@", account);
+                
                 if (client.state == XMPPClientStateEstablished) {
                     [client disconnect];
                 }
@@ -298,6 +312,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
 
+                DDLogInfo(@"Did resume account: %@", account);
+                
                 if (client.state == XMPPClientStateDisconnected) {
                     [client connect];
                 }
@@ -364,6 +380,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         });
 
         if (account.suspended == NO) {
+            DDLogInfo(@"Will reconnect client: %@", client);
             [client connect];
         }
     }

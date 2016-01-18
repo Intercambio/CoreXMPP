@@ -1,4 +1,12 @@
 PODS:
+  - CocoaLumberjack (2.2.0):
+    - CocoaLumberjack/Default (= 2.2.0)
+    - CocoaLumberjack/Extensions (= 2.2.0)
+  - CocoaLumberjack/Core (2.2.0)
+  - CocoaLumberjack/Default (2.2.0):
+    - CocoaLumberjack/Core
+  - CocoaLumberjack/Extensions (2.2.0):
+    - CocoaLumberjack/Default
   - OCHamcrest (5.1.0)
   - OCMockito (3.0.1):
     - OCHamcrest (~> 5.1)
@@ -6,6 +14,7 @@ PODS:
   - SocketRocket (0.4.2)
 
 DEPENDENCIES:
+  - CocoaLumberjack (~> 2.2.0)
   - OCMockito (~> 3.0.1)
   - PureXML (from `https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git`, tag `1.0.beta.5`)
   - SocketRocket (~> 0.4)
@@ -21,11 +30,12 @@ CHECKOUT OPTIONS:
     :tag: 1.0.beta.5
 
 SPEC CHECKSUMS:
+  CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   OCHamcrest: abcfbf4ebd75d5aadbcc729cff0cb648faf2d1b0
   OCMockito: 9eee3c61e42f7cb8aa015d66f8cc16849701d973
   PureXML: 820336471f755ad61ddb6e9e6b7fed6c64d3ccc6
   SocketRocket: ffe08119b00ef982f6c37052a4705a057c8494ad
 
-PODFILE CHECKSUM: ef82046ebbdb36e03743f469babe5e61876c2d86
+PODFILE CHECKSUM: f1637799bfefa6d77e5caae7745af0179d4ba4ba
 
 COCOAPODS: 1.0.0.beta.2

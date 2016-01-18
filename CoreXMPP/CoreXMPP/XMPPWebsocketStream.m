@@ -6,6 +6,14 @@
 //  Copyright © 2015 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
+#ifdef DEBUG
+static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
+#else
+static const DDLogLevel ddLogLevel = DDLogLevelWarn;
+#endif
+
 #import <SocketRocket/SRWebSocket.h>
 
 #import "XMPPWebsocketStream.h"
@@ -109,9 +117,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
         PXDocument *document = [[PXDocument alloc] initWithElement:element];
         NSString *message = [[self class] stringFromDocument:document];
-#ifdef DEBUG
-        NSLog(@"%@ OUT >>> %@", self, message);
-#endif
+        
+        DDLogVerbose(@"%@ OUT >>> %@", self, message);
+        
         [_websocket send:message];
     });
 }
@@ -299,9 +307,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)webSocket:(SRWebSocket *)webSocket didReceiveMessage:(NSString *)message
 {
     if ([message isKindOfClass:[NSString class]]) {
-#ifdef DEBUG
-        NSLog(@"%@ IN  <<< %@", self, message);
-#endif
+        
+        DDLogVerbose(@"%@ IN  <<< %@", self, message);
+        
         PXDocument *document = [PXDocument documentWithData:[message dataUsingEncoding:NSUTF8StringEncoding]];
         if (document) {
             [self handleReceivedDocument:document];
