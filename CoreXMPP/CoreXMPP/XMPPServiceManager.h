@@ -23,7 +23,7 @@ extern NSString *const XMPPServiceManagerAccountKey;
 
 extern NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey;
 
-typedef XMPPClient *(^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
+typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
 
 @protocol XMPPServiceManagerDelegate <NSObject>
 @optional
@@ -41,6 +41,11 @@ typedef XMPPClient *(^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acco
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
+
+#pragma mark Managing Service Manager
+@property (nonatomic, readonly, getter=isSuspended) BOOL suspended;
+- (void)suspend;
+- (void)resume;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
