@@ -7,17 +7,9 @@
 //
 
 #import "XMPPAccount.h"
+#import "XMPPAccount+Private.h"
 
 @implementation XMPPAccount
-
-- (instancetype)initWithJID:(NSString *)jid
-{
-    self = [super init];
-    if (self) {
-        _JID = [jid copy];
-    }
-    return self;
-}
 
 - (BOOL)isEqual:(id)object
 {
@@ -25,6 +17,31 @@
         return [self.JID isEqual:[(XMPPAccount *)object JID]];
     }
     return NO;
+}
+
+@end
+
+@implementation XMPPAccount (Private)
+
+- (instancetype)initWithJID:(NSString *)JID
+             serviceManager:(XMPPServiceManager *)serviceManager
+{
+    self = [super init];
+    if (self) {
+        _JID = [JID copy];
+        _serviceManger = serviceManager;
+    }
+    return self;
+}
+
+- (void)setSuspended:(BOOL)suspended
+{
+    _suspended = suspended;
+}
+
+- (void)setConnected:(BOOL)connected
+{
+    _connected = connected;
 }
 
 @end

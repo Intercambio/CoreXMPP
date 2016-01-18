@@ -9,6 +9,7 @@
 #import "XMPPWebsocketStream.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
+#import "XMPPAccount+Private.h"
 #import "XMPPServiceManager.h"
 
 NSString *const XMPPServiceManagerDidResumeAccountNotification = @"XMPPServiceManagerDidResumeAccountNotification";
@@ -163,7 +164,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 - (XMPPAccount *)xmpp_createAccountWithJID:(NSString *)JID
 {
-    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID];
+    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self];
     account.suspended = YES;
     account.connected = NO;
     [_accounts addObject:account];

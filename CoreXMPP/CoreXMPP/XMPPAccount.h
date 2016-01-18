@@ -8,13 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
+@class XMPPServiceManager;
+
 @interface XMPPAccount : NSObject
 
-- (instancetype)initWithJID:(NSString *)jid;
-
 @property (nonatomic, readonly) NSString *JID;
+@property (nonatomic, readonly, weak) XMPPServiceManager *serviceManger;
 
-@property (nonatomic, readwrite) BOOL suspended;
-@property (nonatomic, readwrite) BOOL connected;
+@property (nonatomic, readonly) BOOL suspended;
+@property (nonatomic, readonly) BOOL connected;
 
 @end
