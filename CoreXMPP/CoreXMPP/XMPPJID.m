@@ -23,7 +23,7 @@
                                                                  error:&error];
         NSAssert(expression, [error localizedDescription]);
     });
-    
+
     NSArray *matches = [expression matchesInString:string
                                            options:NSMatchingReportCompletion
                                              range:NSMakeRange(0, [string length])];

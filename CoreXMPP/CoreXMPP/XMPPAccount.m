@@ -6,6 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPJID.h"
+
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
 
@@ -28,12 +30,12 @@
 
 @implementation XMPPAccount (Private)
 
-- (instancetype)initWithJID:(NSString *)JID
+- (instancetype)initWithJID:(XMPPJID *)JID
              serviceManager:(XMPPServiceManager *)serviceManager
 {
     self = [super init];
     if (self) {
-        _JID = [JID copy];
+        _JID = JID;
         _serviceManger = serviceManager;
     }
     return self;

@@ -82,7 +82,7 @@
     [feature beginNegotiationWithHostname:@"localhost" options:nil];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
-    [verify(delegate) streamFeature:feature didBindToJID:equalTo(@"test@example.com/example")];
+    [verify(delegate) streamFeature:feature didBindToJID:equalTo(JID(@"test@example.com/example"))];
     [verify(delegate) resourceNameForStreamFeature:feature];
 }
 
@@ -155,7 +155,7 @@
     [feature beginNegotiationWithHostname:@"localhost" options:nil];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
-    [verify(delegate) streamFeature:feature didBindToJID:equalTo(@"test@example.com/example")];
+    [verify(delegate) streamFeature:feature didBindToJID:equalTo(JID(@"test@example.com/example"))];
     [verify(delegate) resourceNameForStreamFeature:feature];
 }
 

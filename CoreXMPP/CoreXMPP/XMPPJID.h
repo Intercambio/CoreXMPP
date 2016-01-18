@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#define JID(x) [XMPPJID JIDFromString:x]
+
 @interface XMPPJID : NSObject
 
 #pragma mark Life-cycle

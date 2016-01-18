@@ -8,12 +8,14 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
+@class XMPPJID;
+
 extern NSString *const XMPPStreamFeatureBindNamespace;
 
 @protocol XMPPStreamFeatureDelegateBind <XMPPStreamFeatureDelegate>
 @optional
 - (NSString *)resourceNameForStreamFeature:(XMPPStreamFeature *)streamFeature;
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didBindToJID:(NSString *)jid;
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didBindToJID:(XMPPJID *)JID;
 @end
 
 @interface XMPPStreamFeatureBind : XMPPStreamFeature

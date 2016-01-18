@@ -17,11 +17,11 @@
 - (void)testJIDFromString
 {
     XMPPJID *jid = [XMPPJID JIDFromString:@"foo@example.com/bar"];
-    
+
     XCTAssertEqualObjects(jid.host, @"example.com");
     XCTAssertEqualObjects(jid.user, @"foo");
     XCTAssertEqualObjects(jid.resource, @"bar");
-    
+
     XCTAssertEqualObjects([jid stringValue], @"foo@example.com/bar");
     XCTAssertEqualObjects([[jid bareJID] stringValue], @"foo@example.com");
 }

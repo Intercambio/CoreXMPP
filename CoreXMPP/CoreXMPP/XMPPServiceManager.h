@@ -49,7 +49,7 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
-- (XMPPAccount *)accountWithJID:(NSString *)jid;
+- (XMPPAccount *)accountWithJID:(XMPPJID *)JID;
 - (void)removeAccount:(XMPPAccount *)account;
 
 - (void)suspendAccount:(XMPPAccount *)account;
