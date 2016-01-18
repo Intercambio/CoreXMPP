@@ -19,4 +19,12 @@
     return self;
 }
 
+- (BOOL)isEqual:(id)object
+{
+    if ([object isKindOfClass:[XMPPAccount class]]) {
+        return [self.JID isEqual:[(XMPPAccount *)object JID]];
+    }
+    return NO;
+}
+
 @end

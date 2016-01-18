@@ -343,6 +343,8 @@
 
     [serviceManager suspend];
     
+    assertThatBool(serviceManager.suspended, isTrue());
+    
     assertThatBool(account.connected, isFalse());
     
     [serviceManager resume];
@@ -356,6 +358,8 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    
+    assertThatBool(account.connected, isTrue());
 }
 
 @end
