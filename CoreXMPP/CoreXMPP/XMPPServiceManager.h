@@ -23,7 +23,7 @@ extern NSString *const XMPPServiceManagerAccountKey;
 
 extern NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey;
 
-typedef XMPPClient *(^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
+typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
 
 @protocol XMPPServiceManagerDelegate <NSObject>
 @optional

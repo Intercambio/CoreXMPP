@@ -87,12 +87,12 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     dispatch_sync(_operationQueue, ^{
 
         // TODO: Validate JID
-        
+
         account = [self xmpp_accountWithJID:jid];
         if (account == nil) {
             account = [self xmpp_createAccountWithJID:jid];
         }
-        
+
         if (_suspended == NO) {
             XMPPClient *client = [self xmpp_clientForAccount:account];
             if (client == nil) {
@@ -108,7 +108,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     dispatch_sync(_operationQueue, ^{
         XMPPClient *client = [_clients objectForKey:account];
         if (client) {
-            [self xmpp_suspendAccounts:@[account]];
+            [self xmpp_suspendAccounts:@[ account ]];
             [self xmpp_removeAccount:account];
         }
     });
@@ -117,14 +117,14 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (void)suspendAccount:(XMPPAccount *)account
 {
     dispatch_async(_operationQueue, ^{
-        [self xmpp_suspendAccounts:@[account]];
+        [self xmpp_suspendAccounts:@[ account ]];
     });
 }
 
 - (void)resumeAccount:(XMPPAccount *)account
 {
     dispatch_async(_operationQueue, ^{
-        [self xmpp_resumeAccounts:@[account]];
+        [self xmpp_resumeAccounts:@[ account ]];
     });
 }
 
@@ -204,27 +204,27 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (XMPPClient *)xmpp_createClientForAccount:(XMPPAccount *)account
 {
     XMPPClient *client = nil;
-    
+
     XMPPServiceManagerClientFactoryCallback callback = self.options[XMPPServiceManagerOptionClientFactoryCallbackKey];
     if (callback) {
         client = callback(account, self.options);
     }
-    
+
     if (client == nil) {
         NSString *hostname = @"localhost";
         NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
         client = [[XMPPClient alloc] initWithHostname:hostname
                                               options:options];
     }
-    
+
     client.delegateQueue = _operationQueue;
     client.delegate = self;
     client.SASLDelegate = self.SASLDelegate;
     client.SASLDelegateQueue = dispatch_get_main_queue();
     client.SASLContext = account;
-    
+
     [_clients setObject:client forKey:account];
-    
+
     return client;
 }
 
@@ -268,13 +268,13 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if (client) {
             if (account.suspended == NO) {
                 account.suspended = YES;
-                
+
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidSuspendAccountNotification
                                                                         object:self
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
-                
+
                 if (client.state == XMPPClientStateEstablished) {
                     [client disconnect];
                 }
@@ -290,13 +290,13 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if (client) {
             if (account.suspended) {
                 account.suspended = NO;
-                
+
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidResumeAccountNotification
                                                                         object:self
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
-                
+
                 if (client.state == XMPPClientStateDisconnected) {
                     [client connect];
                 }
@@ -327,16 +327,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
     if (account) {
-        
+
         account.connected = NO;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
                                                                 object:self
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
-            
+
         });
-        
+
         if (account.suspended == NO) {
             [client connect];
         }
@@ -352,16 +352,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
     if (account) {
-        
+
         account.connected = NO;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
                                                                 object:self
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
-            
+
         });
-        
+
         if (account.suspended == NO) {
             [client connect];
         }

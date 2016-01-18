@@ -48,13 +48,13 @@
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
-    
+
     XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
-    
+
     //
     // Prepare SASL Authentication
     //
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
@@ -65,17 +65,17 @@
         }
         return nil;
     }];
-    
+
     //
     // Resume Account
     //
-    
+
     [serviceManager resumeAccount:account];
-    
+
     //
     // Wait for the Account to be resumed
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidResumeAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -83,11 +83,11 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Wait for the Account to be connected
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -95,17 +95,17 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Suspend Account
     //
-    
+
     [serviceManager suspendAccount:account];
-    
+
     //
     // Wait for the Account to be suspended
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidSuspendAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -113,11 +113,11 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Wait for the Account to be disconnected
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidDisconnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -132,13 +132,13 @@
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
-    
+
     XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
-    
+
     //
     // Prepare SASL Authentication
     //
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
@@ -149,17 +149,17 @@
         }
         return nil;
     }];
-    
+
     //
     // Resume Account
     //
-    
+
     [serviceManager resumeAccount:account];
-    
+
     //
     // Wait for the Account to be resumed
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidResumeAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -167,17 +167,17 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Remove Account
     //
-    
+
     [serviceManager removeAccount:account];
-    
+
     //
     // Wait for the Account to be suspended
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidSuspendAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -190,37 +190,37 @@
 - (void)testReconnectOnFailure
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-    
+
     [stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
         [stream receiveElement:doc.root];
     }];
-    
+
     [stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
         [stream receiveElement:doc.root];
     }];
-    
+
     XMPPServiceManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{ XMPPClientOptionsStreamKey: stream}];
+        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{XMPPClientOptionsStreamKey : stream}];
     };
-    
-    NSDictionary *options = @{ XMPPServiceManagerOptionClientFactoryCallbackKey :  callback};
-    
+
+    NSDictionary *options = @{XMPPServiceManagerOptionClientFactoryCallbackKey : callback};
+
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:options];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
-    
+
     XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
-    
+
     //
     // Prepare SASL Authentication
     //
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
         assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
@@ -235,13 +235,13 @@
     //
     // Resume Account
     //
-    
+
     [serviceManager resumeAccount:account];
-    
+
     //
     // Wait for the Account to be resumed
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidResumeAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -249,11 +249,11 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Wait for the Account to be connected
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -261,20 +261,20 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Let the stream fail
     //
-    
+
     NSError *error = [NSError errorWithDomain:XMPPClientStreamErrorDomain
                                          code:XMPPClientStreamErrorCodeInternalServerError
                                      userInfo:nil];
     [stream failWithError:error];
-    
+
     //
     // Wait for the Account to be disconnected
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidDisconnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -282,11 +282,11 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Wait for the Account to be connected
     //
-    
+
     [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -299,36 +299,35 @@
 - (void)testSuspendAndResumeServiceManager
 {
     XMPPServiceManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        
+
         XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-        
+
         [stream onDidOpen:^(XMPPStreamStub *stream) {
             PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                             namespace:@"http://etherx.jabber.org/streams"
                                                                prefix:@"stream"];
             [stream receiveElement:doc.root];
         }];
-        
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{ XMPPClientOptionsStreamKey: stream}];
+
+        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{XMPPClientOptionsStreamKey : stream}];
     };
-    
-    NSDictionary *options = @{ XMPPServiceManagerOptionClientFactoryCallbackKey :  callback};
-    
+
+    NSDictionary *options = @{XMPPServiceManagerOptionClientFactoryCallbackKey : callback};
+
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:options];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
-    
+
     XMPPAccount *account = [serviceManager accountWithJID:@"romeo@localhost"];
-    
-    
+
     //
     // Resume Account
     //
-    
+
     [serviceManager resumeAllAccounts];
 
     // Wait for the account to be connected
-    
+
     [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -336,21 +335,21 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     //
     // Suspend Service Manager
     //
 
     [serviceManager suspend];
-    
+
     assertThatBool(serviceManager.suspended, isTrue());
-    
+
     assertThatBool(account.connected, isFalse());
-    
+
     [serviceManager resume];
-    
+
     // Wait for the account to be connected
-    
+
     [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
@@ -358,7 +357,7 @@
                                  return notification.userInfo[XMPPServiceManagerAccountKey] == account;
                              }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
-    
+
     assertThatBool(account.connected, isTrue());
 }
 

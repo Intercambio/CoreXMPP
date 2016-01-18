@@ -203,7 +203,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     dispatch_async(_operationQueue, ^{
 
         _state = XMPPStreamStateClosed;
-        
+
         id<XMPPStreamDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
 
@@ -211,7 +211,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
             if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
                 [delegate stream:self didFailWithError:error];
             }
-            
+
             dispatch_async(_operationQueue, ^{
                 void (^_callback)(XMPPStreamStub *) = [_onDidFailCallbacks firstObject];
                 if (_callback) {
