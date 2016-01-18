@@ -19,6 +19,11 @@
     return NO;
 }
 
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<XMPPAccount: 0x100326e90 (JID: %@, service manager: %p)>", _JID, _serviceManger];
+}
+
 @end
 
 @implementation XMPPAccount (Private)

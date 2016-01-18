@@ -151,6 +151,13 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     return self;
 }
 
+#pragma mark Description
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"<XMPPClient: %p (%@)>", self, self.hostname];
+}
+
 #pragma mark Properties
 
 - (NSString *)hostname
@@ -222,14 +229,14 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
             
-            DDLogDebug(@"Begin negotiation of feature: (%@, %@)", configuration.root.namespace, configuration.root.name);
+            DDLogDebug(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
 
         } else {
             
-            DDLogDebug(@"Feature not supported: (%@, %@)", configuration.root.namespace, configuration.root.name);
+            DDLogDebug(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
             
             [self xmpp_negotiateNextFeature];
         }
