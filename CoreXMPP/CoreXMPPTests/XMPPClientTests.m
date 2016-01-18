@@ -6,19 +6,9 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <XCTest/XCTest.h>
+#import "XMPPTestCase.h"
 
-#define HC_SHORTHAND
-#import <OCHamcrest/OCHamcrest.h>
-
-#define MOCKITO_SHORTHAND
-#import <OCMockito/OCMockito.h>
-
-#import <CoreXMPP/CoreXMPP.h>
-#import "XMPPStreamStub.h"
-#import "XMPPStreamFeatureStub.h"
-
-@interface XMPPClientTests : XCTestCase
+@interface XMPPClientTests : XMPPTestCase
 @property (nonatomic, strong) XMPPStreamStub *stream;
 @end
 
@@ -40,8 +30,7 @@
 
 - (void)testEstablishConnection
 {
-    NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"],
-                               XMPPClientOptionsResourceKey : @"bar" };
+    NSDictionary *options = @{ XMPPClientOptionsResourceKey : @"bar" };
 
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:options];

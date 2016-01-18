@@ -25,6 +25,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     dispatch_queue_t _operationQueue;
     XMPPStreamState _state;
     SRWebSocket *_websocket;
+    NSURL *_discoveredWebsocketURL;
 }
 @property (nonatomic, readwrite) XMPPStreamState state;
 @end
@@ -81,10 +82,15 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPStreamStateClosed, @"Invalid State: Can only open a closed stream.");
 
-        [self setUpWebsocket];
-        [_websocket open];
-
-        self.state = XMPPStreamStateConnecting;
+        NSURL *URL = [self websocketURL];
+        if (URL) {
+            [self setUpWebsocketWithURL:URL];
+            [_websocket open];
+            self.state = XMPPStreamStateConnecting;
+        } else {
+            [self discoverWebsocketURL];
+            self.state = XMPPStreamStateDiscovering;
+        }
     });
 }
 
@@ -117,9 +123,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
         PXDocument *document = [[PXDocument alloc] initWithElement:element];
         NSString *message = [[self class] stringFromDocument:document];
-        
+
         DDLogVerbose(@"%@ OUT >>> %@", self, message);
-        
+
         [_websocket send:message];
     });
 }
@@ -166,7 +172,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
             dispatch_async(delegateQueue, ^{
                 if ([delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-                    [self.delegate stream:self didReceiveElement:document.root];
+                    [delegate stream:self didReceiveElement:document.root];
                 }
             });
         }
@@ -194,7 +200,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
             dispatch_async(delegateQueue, ^{
                 if ([delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
-                    [self.delegate stream:self didOpenToHost:hostname withStreamId:streamId];
+                    [delegate stream:self didOpenToHost:hostname withStreamId:streamId];
                 }
             });
 
@@ -239,30 +245,76 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
     dispatch_async(delegateQueue, ^{
         if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
-            [self.delegate stream:self didFailWithError:error];
+            [delegate stream:self didFailWithError:error];
         }
     });
 
     [self tearDownWebsocket];
 }
 
-#pragma Manage Websocket
+#pragma mark Discovery
+
+- (void)discoverWebsocketURL
+{
+    NSURLComponents *hostMetadataURLComponents = [[NSURLComponents alloc] init];
+    hostMetadataURLComponents.scheme = @"https";
+    hostMetadataURLComponents.host = self.hostname;
+    hostMetadataURLComponents.path = @"/.well-known/host-meta";
+
+    NSURL *hostMetadataURL = [hostMetadataURLComponents URL];
+
+    NSURLRequest *request = [[NSURLRequest alloc] initWithURL:hostMetadataURL];
+
+    NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request
+                                                                 completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                                                     if (error) {
+                                                                         [self handleFailureWithError:error];
+                                                                     } else {
+                                                                         __block NSURL *websocketURL = nil;
+
+                                                                         if (data) {
+                                                                             PXDocument *hostMetadata = [PXDocument documentWithData:data];
+                                                                             if ([hostMetadata.root isEqual:PXQN(@"http://docs.oasis-open.org/ns/xri/xrd-1.0", @"XRD")]) {
+                                                                                 [hostMetadata.root enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+                                                                                     if ([element isEqual:PXQN(@"http://docs.oasis-open.org/ns/xri/xrd-1.0", @"Link")] &&
+                                                                                         [[element valueForAttribute:@"rel"] isEqual:@"urn:xmpp:alt-connections:websocket"]) {
+                                                                                         NSString *websocketURLString = [element valueForAttribute:@"href"];
+                                                                                         websocketURL = websocketURLString ? [NSURL URLWithString:websocketURLString] : nil;
+                                                                                     }
+                                                                                 }];
+                                                                             }
+                                                                         }
+
+                                                                         if (websocketURL) {
+                                                                             _discoveredWebsocketURL = websocketURL;
+                                                                             _state = XMPPStreamStateConnecting;
+
+                                                                             [self setUpWebsocketWithURL:websocketURL];
+                                                                             [_websocket open];
+
+                                                                         } else {
+                                                                             NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
+                                                                                                                  code:XMPPStreamErrorCodeDiscoveryError
+                                                                                                              userInfo:nil];
+                                                                             [self handleFailureWithError:error];
+                                                                         }
+                                                                     }
+                                                                 }];
+    [task resume];
+}
+
+#pragma mark Manage Websocket
 
 - (NSURL *)websocketURL
 {
     NSURL *websocketURL = self.options[XMPPWebsocketStreamURLKey];
     if (websocketURL == nil) {
-        // Try to guess the websocket URL
-        NSURLComponents *websocketURLComponents = [[NSURLComponents alloc] init];
-        websocketURLComponents.scheme = @"ws";
-        websocketURLComponents.host = self.hostname;
-        websocketURLComponents.path = @"/xmpp";
-        websocketURL = [websocketURLComponents URL];
+        return _discoveredWebsocketURL;
     }
     return websocketURL;
 }
 
-- (void)setUpWebsocket
+- (void)setUpWebsocketWithURL:(NSURL *)URL
 {
     _websocket.delegate = nil;
     [_websocket close];
@@ -270,7 +322,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     // Create a websocket with the URL form the options (or create a
     // default RUL based on the hostname) and open the websocket.
 
-    NSURL *websocketURL = [self websocketURL];
+    NSURL *websocketURL = URL;
     SRWebSocket *websocket = [[SRWebSocket alloc] initWithURL:websocketURL
                                                     protocols:@[ @"xmpp" ]
                                allowsUntrustedSSLCertificates:YES];
@@ -307,9 +359,9 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)webSocket:(SRWebSocket *)webSocket didReceiveMessage:(NSString *)message
 {
     if ([message isKindOfClass:[NSString class]]) {
-        
+
         DDLogVerbose(@"%@ IN  <<< %@", self, message);
-        
+
         PXDocument *document = [PXDocument documentWithData:[message dataUsingEncoding:NSUTF8StringEncoding]];
         if (document) {
             [self handleReceivedDocument:document];
@@ -339,7 +391,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(streamDidClose:)]) {
-                [self.delegate streamDidClose:self];
+                [delegate streamDidClose:self];
             }
         });
 
@@ -356,7 +408,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
     dispatch_async(delegateQueue, ^{
         if ([delegate respondsToSelector:@selector(streamDidClose:)]) {
-            [self.delegate streamDidClose:self];
+            [delegate streamDidClose:self];
         }
     });
 

@@ -221,7 +221,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
     if (client == nil) {
         NSString *hostname = @"localhost";
-        NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
+        NSDictionary *options = @{};
         client = [[XMPPClient alloc] initWithHostname:hostname
                                               options:options];
     }
@@ -254,7 +254,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         [self xmpp_removeClientForAccount:account];
     }
     _suspended = YES;
-    
+
     DDLogInfo(@"Did suspend service manager: %@", self);
 }
 
@@ -270,7 +270,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         }
     }
     _suspended = NO;
-    
+
     DDLogInfo(@"Did resume service manager: %@", self);
 }
 
@@ -289,7 +289,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 });
 
                 DDLogInfo(@"Did suspend account: %@", account);
-                
+
                 if (client.state == XMPPClientStateEstablished) {
                     [client disconnect];
                 }
@@ -313,7 +313,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 });
 
                 DDLogInfo(@"Did resume account: %@", account);
-                
+
                 if (client.state == XMPPClientStateDisconnected) {
                     [client connect];
                 }

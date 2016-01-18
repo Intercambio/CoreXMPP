@@ -10,12 +10,26 @@ PODS:
   - OCHamcrest (5.1.0)
   - OCMockito (3.0.1):
     - OCHamcrest (~> 5.1)
+  - OHHTTPStubs (4.7.0):
+    - OHHTTPStubs/Default (= 4.7.0)
+  - OHHTTPStubs/Core (4.7.0)
+  - OHHTTPStubs/Default (4.7.0):
+    - OHHTTPStubs/Core
+    - OHHTTPStubs/JSON
+    - OHHTTPStubs/NSURLSession
+    - OHHTTPStubs/OHPathHelpers
+  - OHHTTPStubs/JSON (4.7.0):
+    - OHHTTPStubs/Core
+  - OHHTTPStubs/NSURLSession (4.7.0):
+    - OHHTTPStubs/Core
+  - OHHTTPStubs/OHPathHelpers (4.7.0)
   - PureXML (1.0.beta.5)
   - SocketRocket (0.4.2)
 
 DEPENDENCIES:
   - CocoaLumberjack (~> 2.2.0)
   - OCMockito (~> 3.0.1)
+  - OHHTTPStubs (~> 4.7.0)
   - PureXML (from `https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git`, tag `1.0.beta.5`)
   - SocketRocket (~> 0.4)
 
@@ -33,9 +47,10 @@ SPEC CHECKSUMS:
   CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   OCHamcrest: abcfbf4ebd75d5aadbcc729cff0cb648faf2d1b0
   OCMockito: 9eee3c61e42f7cb8aa015d66f8cc16849701d973
+  OHHTTPStubs: d2bf6a0f407620d67e75a1d3f12d86a2b1dd15c0
   PureXML: 820336471f755ad61ddb6e9e6b7fed6c64d3ccc6
   SocketRocket: ffe08119b00ef982f6c37052a4705a057c8494ad
 
-PODFILE CHECKSUM: f1637799bfefa6d77e5caae7745af0179d4ba4ba
+PODFILE CHECKSUM: fbe276a10588f7d44027f18e843f9d8149fc2b08
 
 COCOAPODS: 1.0.0.beta.2

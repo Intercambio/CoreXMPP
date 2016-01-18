@@ -6,17 +6,9 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <XCTest/XCTest.h>
+#import "XMPPTestCase.h"
 
-#define HC_SHORTHAND
-#import <OCHamcrest/OCHamcrest.h>
-
-#define MOCKITO_SHORTHAND
-#import <OCMockito/OCMockito.h>
-
-#import <CoreXMPP/CoreXMPP.h>
-
-@interface XMPPStreamFeatureSessionTests : XCTestCase
+@interface XMPPStreamFeatureSessionTests : XMPPTestCase
 
 @end
 

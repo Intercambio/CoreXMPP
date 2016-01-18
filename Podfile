@@ -14,6 +14,7 @@ end
 target :CoreXMPPiOSTests do
     platform :ios, :deployment_target => '8.0'
     pod 'OCMockito', '~> 3.0.1'
+    pod 'OHHTTPStubs', '~> 4.7.0'
 end
 
 ## OSX
@@ -28,4 +29,5 @@ end
 target :CoreXMPPOSXTests do
     platform :osx, :deployment_target => '10.10'
     pod 'OCMockito', '~> 3.0.1'
+    pod 'OHHTTPStubs', '~> 4.7.0'
 end

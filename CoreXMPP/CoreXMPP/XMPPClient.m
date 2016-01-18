@@ -228,16 +228,16 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             _currentFeature = feature;
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
-            
+
             DDLogDebug(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
 
         } else {
-            
+
             DDLogDebug(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
-            
+
             [self xmpp_negotiateNextFeature];
         }
 
