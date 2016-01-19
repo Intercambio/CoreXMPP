@@ -6,9 +6,13 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
 #import "XMPPClient.h"
 
 #import "XMPPStreamFeatureSASL.h"
+
+static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPStreamFeatureSASLErrorDomain = @"XMPPStreamFeatureSASLErrorDomain";
 
@@ -16,6 +20,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
 @interface XMPPStreamFeatureSASL () {
     SASLMechanism *_mechanism;
+    NSString *_hostname;
 }
 
 @end
@@ -26,6 +31,18 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSASL name] namespace:[XMPPStreamFeatureSASL namespace]];
     [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureSASL class] forStreamFeatureQName:QName];
+}
+
+#pragma mark Logging
+
++ (DDLogLevel)ddLogLevel
+{
+    return ddLogLevel;
+}
+
++ (void)ddSetLogLevel:(DDLogLevel)logLevel
+{
+    ddLogLevel = logLevel;
 }
 
 #pragma mark SASL Errors
@@ -132,61 +149,67 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
+    _hostname = hostname;
+
+    SASLMechanism *mechanism = nil;
+    dispatch_queue_t queue = self.queue ?: dispatch_get_main_queue();
+
     if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateSASL)]) {
         id<XMPPStreamFeatureDelegateSASL> delegate = (id<XMPPStreamFeatureDelegateSASL>)self.delegate;
 
-        dispatch_queue_t queue = self.queue ?: dispatch_get_main_queue();
-
         // Get the SASL Mechanism
-        SASLMechanism *mechanism = nil;
         if ([delegate respondsToSelector:@selector(SASLMechanismForStreamFeature:supportedMechanisms:)]) {
             mechanism = [delegate SASLMechanismForStreamFeature:self supportedMechanisms:self.mechanisms];
         }
         _mechanism = mechanism;
+    }
 
-        if (_mechanism) {
+    if (_mechanism) {
 
-            [_mechanism beginAuthenticationExchangeWithHostname:hostname
-                                                responseHandler:^(NSData *initialResponse, BOOL abort) {
-                                                    dispatch_async(queue, ^{
+        DDLogInfo(@"Begin SASL authentication exchange with host '%@' using mechanism '%@'.", _hostname, [[_mechanism class] name]);
 
-                                                        PXDocument *request = nil;
+        [_mechanism beginAuthenticationExchangeWithHostname:hostname
+                                            responseHandler:^(NSData *initialResponse, BOOL abort) {
+                                                dispatch_async(queue, ^{
 
-                                                        if (abort) {
-                                                            if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
-                                                                NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
-                                                                                                     code:XMPPStreamFeatureSASLErrorCodeAborted
-                                                                                                 userInfo:nil];
-                                                                [delegate streamFeature:self didFailNegotiationWithError:error];
-                                                            }
-                                                        } else {
-                                                            request = [[PXDocument alloc] initWithElementName:@"auth"
-                                                                                                    namespace:XMPPStreamFeatureSASLNamespace
-                                                                                                       prefix:nil];
+                                                    PXDocument *request = nil;
 
-                                                            [request.root setValue:[[mechanism class] name] forAttribute:@"mechanism"];
+                                                    if (abort) {
+                                                        if ([self.delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+                                                            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                                                                                 code:XMPPStreamFeatureSASLErrorCodeAborted
+                                                                                             userInfo:nil];
+                                                            [self.delegate streamFeature:self didFailNegotiationWithError:error];
+                                                        }
+                                                    } else {
+                                                        request = [[PXDocument alloc] initWithElementName:@"auth"
+                                                                                                namespace:XMPPStreamFeatureSASLNamespace
+                                                                                                   prefix:nil];
 
-                                                            if (initialResponse) {
-                                                                NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
-                                                                [request.root setStringValue:initialResponseString];
-                                                            }
+                                                        [request.root setValue:[[_mechanism class] name] forAttribute:@"mechanism"];
 
-                                                            if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                                                                [delegate streamFeature:self handleElement:request.root];
-                                                            }
+                                                        if (initialResponse) {
+                                                            NSString *initialResponseString = [initialResponse base64EncodedStringWithOptions:0];
+                                                            [request.root setStringValue:initialResponseString];
                                                         }
 
-                                                    });
-                                                }];
+                                                        if ([self.delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
+                                                            [self.delegate streamFeature:self handleElement:request.root];
+                                                        }
+                                                    }
 
-        } else {
+                                                });
+                                            }];
 
-            NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
-                                                 code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
-                                             userInfo:nil];
-            if ([delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
-                [delegate streamFeature:self didFailNegotiationWithError:error];
-            }
+    } else {
+
+        DDLogError(@"Delegate does not provide a SASL mechanism for the provided mechansims (%@).", [self.mechanisms componentsJoinedByString:@", "]);
+
+        NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                             code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
+                                         userInfo:nil];
+        if ([self.delegate respondsToSelector:@selector(streamFeature:didFailNegotiationWithError:)]) {
+            [self.delegate streamFeature:self didFailNegotiationWithError:error];
         }
     }
 }
@@ -197,11 +220,16 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
         if ([element.name isEqualToString:@"success"]) {
 
+            DDLogInfo(@"Did authenticated against host '%@'.", _hostname);
+
             [self xmpp_handleSuccess];
 
         } else if ([element.name isEqualToString:@"failure"]) {
 
             NSError *error = [[self class] errorFromElement:element];
+
+            DDLogWarn(@"Did fail to authenticated against host '%@' with error: %@", _hostname, [error localizedDescription]);
+
             [self xmpp_handleFailureWithError:error];
 
         } else if ([element.name isEqualToString:@"challenge"]) {
