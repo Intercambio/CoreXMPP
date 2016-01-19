@@ -8,18 +8,14 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-#ifdef DEBUG
-static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
-#else
-static const DDLogLevel ddLogLevel = DDLogLevelWarning;
-#endif
-
 #import "XMPPJID.h"
 #import "XMPPWebsocketStream.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
 #import "XMPPServiceManager.h"
+
+static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPServiceManagerDidResumeAccountNotification = @"XMPPServiceManagerDidResumeAccountNotification";
 NSString *const XMPPServiceManagerDidSuspendAccountNotification = @"XMPPServiceManagerDidSuspendAccountNotification";
@@ -40,6 +36,18 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 @end
 
 @implementation XMPPServiceManager
+
+#pragma mark Logging
+
++ (DDLogLevel)ddLogLevel
+{
+    return ddLogLevel;
+}
+
++ (void)ddSetLogLevel:(DDLogLevel)logLevel
+{
+    ddLogLevel = logLevel;
+}
 
 #pragma mark Life-cycle
 
@@ -177,6 +185,9 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     account.suspended = YES;
     account.connected = NO;
     [_accounts addObject:account];
+
+    DDLogDebug(@"Did add account: %@", account);
+
     return account;
 }
 
@@ -184,6 +195,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     [self xmpp_removeClientForAccount:account];
     [_accounts removeObject:account];
+
+    DDLogDebug(@"Did remove account: %@", account);
 }
 
 #pragma mark Clients
@@ -235,6 +248,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
     [_clients setObject:client forKey:account];
 
+    DDLogDebug(@"Did create client %@ for account %@", client, account);
+
     return client;
 }
 
@@ -245,6 +260,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.delegateQueue = nil;
     account.connected = NO;
     [_clients removeObjectForKey:account];
+
+    DDLogDebug(@"Did remove client %@ for account %@", client, account);
 }
 
 #pragma mark Suspend & Resume
@@ -330,6 +347,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
 
+    DDLogInfo(@"Client %@ for account %@ did connect.", client, account);
+
     if (account) {
         account.connected = YES;
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -344,6 +363,9 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (void)clientDidDisconnect:(XMPPClient *)client
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
+
+    DDLogInfo(@"Client %@ for account %@ did disconnect.", client, account);
+
     if (account) {
 
         account.connected = NO;
@@ -356,6 +378,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         });
 
         if (account.suspended == NO) {
+            DDLogInfo(@"Will reconnect client %@ for account %@.", client, account);
             [client connect];
         }
     }
@@ -364,11 +387,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (void)client:(XMPPClient *)client didFailToNegotiateFeature:(XMPPStreamFeature *)feature withError:(NSError *)error
 {
     __unused XMPPAccount *account = [self xmpp_accountForClient:client];
+
+    DDLogWarn(@"Client %@ for account %@ did fail to negotiate feature %@ with error: %@.", client, account, feature, [error localizedDescription]);
 }
 
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
+
+    DDLogError(@"Client %@ for account %@ did fail with error: %@", client, account, [error localizedDescription]);
+
     if (account) {
 
         account.connected = NO;
