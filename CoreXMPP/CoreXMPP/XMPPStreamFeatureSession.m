@@ -6,17 +6,34 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
 #import "XMPPStreamFeatureSession.h"
+
+static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmpp-session";
 
 @interface XMPPStreamFeatureSession () {
     NSString *_requestId;
+    NSString *_hostname;
 }
 
 @end
 
 @implementation XMPPStreamFeatureSession
+
+#pragma mark Logging
+
++ (DDLogLevel)ddLogLevel
+{
+    return ddLogLevel;
+}
+
++ (void)ddSetLogLevel:(DDLogLevel)logLevel
+{
+    ddLogLevel = logLevel;
+}
 
 #pragma mark Feature Name & Namespace
 
@@ -52,17 +69,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
-    NSString *preferredResourceName = nil;
+    DDLogInfo(@"Requesting new session for host '%@'.", hostname);
 
-    // Try to get the preferred resource name via the delegate
-
-    if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateBind)]) {
-        id<XMPPStreamFeatureDelegateBind> delegate = (id<XMPPStreamFeatureDelegateBind>)self.delegate;
-        if ([delegate respondsToSelector:@selector(resourceNameForStreamFeature:)]) {
-            preferredResourceName = [delegate resourceNameForStreamFeature:self];
-        }
-    }
-
+    _hostname = hostname;
     _requestId = [[NSUUID UUID] UUIDString];
 
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
@@ -97,6 +106,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     NSString *responseId = [iq valueForAttribute:@"id"];
 
     if (responseId && [responseId isEqualToString:_requestId]) {
+
+        DDLogInfo(@"Host '%@' did accept new session.", _hostname);
+
         [self.delegate streamFeatureDidSucceedNegotiation:self];
         _requestId = nil;
     }
@@ -108,6 +120,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
     if (responseId && [responseId isEqualToString:_requestId]) {
         NSError *error = [XMPPStanza errorFromStanza:iq];
+
+        DDLogInfo(@"Host '%@' did reject new session with error: %@", _hostname, [error localizedDescription]);
+
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;
     }
