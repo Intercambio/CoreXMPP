@@ -1,4 +1,3 @@
-
-git "https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git"
+git "https://garage.tobias-kraentzer.de/diffusion/PX/purexml.git" "develop"
 git "git@github.com:anagromataf/SocketRocket.git" "feature/support-carthage"
 git "https://github.com/CocoaLumberjack/CocoaLumberjack.git" ~> 2.2.0
