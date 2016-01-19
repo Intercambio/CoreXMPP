@@ -359,7 +359,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         } else {
 
             XMPPClient *client = [self xmpp_clientForAccount:account];
-            if (client) {
+            if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
             }
 
@@ -379,7 +379,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 } else {
 
                     XMPPClient *client = [self xmpp_clientForAccount:account];
-                    if (client) {
+                    if (client == nil) {
                         client = [self xmpp_createClientForAccount:account];
                     }
 
