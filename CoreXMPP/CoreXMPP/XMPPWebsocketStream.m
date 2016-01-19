@@ -241,6 +241,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)handleFailureWithError:(NSError *)error
 {
+    _state = XMPPStreamStateClosed;
+
     id<XMPPStreamDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
     dispatch_async(delegateQueue, ^{
