@@ -6,9 +6,24 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
 #import "XMPPTestCase.h"
 
 @implementation XMPPTestCase
+
++ (void)load
+{
+    [DDLog addLogger:[DDTTYLogger sharedInstance]]; // TTY = Xcode console
+    [DDLog addLogger:[DDASLLogger sharedInstance]]; // ASL = Apple System Logs
+}
+
++ (void)initialize
+{
+    for (NSString *name in [DDLog registeredClassNames]) {
+        [DDLog setLevel:DDLogLevelOff forClassWithName:name];
+    }
+}
 
 - (void)setUp
 {
