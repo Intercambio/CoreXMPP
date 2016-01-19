@@ -8,12 +8,6 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-#ifdef DEBUG
-static const DDLogLevel ddLogLevel = DDLogLevelVerbose;
-#else
-static const DDLogLevel ddLogLevel = DDLogLevelWarning;
-#endif
-
 #import "XMPPWebsocketStream.h"
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
@@ -22,6 +16,8 @@ static const DDLogLevel ddLogLevel = DDLogLevelWarning;
 #import "SASLMechanism.h"
 
 #import "XMPPClient.h"
+
+static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPClientStreamErrorDomain = @"XMPPClientStreamErrorDomain";
 NSString *const XMPPClientStreamErrorXMLDocumentKey = @"XMPPClientStreamErrorXMLDocument";
@@ -40,6 +36,18 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 @end
 
 @implementation XMPPClient
+
+#pragma mark Logging
+
++ (DDLogLevel)ddLogLevel
+{
+    return ddLogLevel;
+}
+
++ (void)ddSetLogLevel:(DDLogLevel)logLevel
+{
+    ddLogLevel = logLevel;
+}
 
 #pragma mark Registered Stream Features
 
@@ -171,11 +179,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
+
+        DDLogInfo(@"Connecting to '%@'.", self.hostname);
+
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
-
-        DDLogDebug(@"Supported Features: %@", [[self class] registeredStreamFeatures]);
-
         [_stream open];
     });
 }
@@ -184,6 +192,9 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPClientStateEstablished, @"Invalid State: Can only disconnect a client with an established connection.");
+
+        DDLogInfo(@"Connecting from '%@'.", self.hostname);
+
         _state = XMPPClientStateDisconnecting;
         [_stream close];
     });
@@ -229,14 +240,14 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
 
-            DDLogDebug(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
+            DDLogInfo(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
 
         } else {
 
-            DDLogDebug(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
+            DDLogInfo(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [self xmpp_negotiateNextFeature];
         }
@@ -372,6 +383,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 {
     if (streamFeature == _currentFeature) {
 
+        DDLogInfo(@"Client '%@' succeed negotiation of feature: (%@, %@)", self, [[streamFeature class] namespace], [[streamFeature class] name]);
+
         _negotiatedFeatures = [_negotiatedFeatures arrayByAddingObject:streamFeature];
 
         _currentFeature.delegate = nil;
@@ -397,6 +410,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error
 {
     if (streamFeature == _currentFeature) {
+
+        DDLogWarn(@"Client '%@' failed negotiation of feature: (%@, %@) error: %@", self, [[streamFeature class] namespace], [[streamFeature class] name], [error localizedDescription]);
 
         _currentFeature.delegate = nil;
         _currentFeature = nil;
