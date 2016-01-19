@@ -6,14 +6,19 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
 #import "XMPPStanza.h"
 
 #import "XMPPStreamFeatureBind.h"
+
+static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-bind";
 
 @interface XMPPStreamFeatureBind () {
     NSString *_requestId;
+    NSString *_hostname;
 }
 
 @end
@@ -24,6 +29,18 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureBind name] namespace:[XMPPStreamFeatureBind namespace]];
     [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureBind class] forStreamFeatureQName:QName];
+}
+
+#pragma mark Logging
+
++ (DDLogLevel)ddLogLevel
+{
+    return ddLogLevel;
+}
+
++ (void)ddSetLogLevel:(DDLogLevel)logLevel
+{
+    ddLogLevel = logLevel;
 }
 
 #pragma mark Feature Name & Namespace
@@ -64,6 +81,8 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
+    _hostname = hostname;
+
     NSString *preferredResourceName = nil;
 
     // Try to get the preferred resource name via the delegate
@@ -87,6 +106,8 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
     if (preferredResourceName) {
         [bind addElementWithName:@"resource" namespace:XMPPStreamFeatureBindNamespace content:preferredResourceName];
     }
+
+    DDLogInfo(@"Requesting '%@' to bind the client to the resource: %@", _hostname, preferredResourceName);
 
     [self.delegate streamFeature:self handleElement:iq];
 }
@@ -120,6 +141,9 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
         XMPPJID *JID = [XMPPJID JIDFromString:[jidNode stringValue]];
 
         if (JID) {
+
+            DDLogError(@"Did bind to '%@'.", [JID stringValue]);
+
             if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateBind)]) {
                 id<XMPPStreamFeatureDelegateBind> delegate = (id<XMPPStreamFeatureDelegateBind>)self.delegate;
                 if ([delegate respondsToSelector:@selector(streamFeature:didBindToJID:)]) {
@@ -128,6 +152,9 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
             }
             [self.delegate streamFeatureDidSucceedNegotiation:self];
         } else {
+
+            DDLogError(@"Missing JID in response: %@", iq);
+
             NSError *error = [NSError errorWithDomain:XMPPStanzaErrorDomain
                                                  code:XMPPStanzaErrorCodeUndefinedCondition
                                              userInfo:nil];
@@ -142,7 +169,11 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
     NSString *responseId = [iq valueForAttribute:@"id"];
 
     if (responseId && [responseId isEqualToString:_requestId]) {
+
         NSError *error = [XMPPStanza errorFromStanza:iq];
+
+        DDLogInfo(@"Host '%@' did reject to bind to resource with error: %@", _hostname, [error localizedDescription]);
+
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;
     }
