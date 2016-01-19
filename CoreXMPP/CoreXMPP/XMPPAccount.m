@@ -37,8 +37,14 @@
     if (self) {
         _JID = JID;
         _serviceManger = serviceManager;
+        _options = @{};
     }
     return self;
+}
+
+- (void)setOptions:(NSDictionary *)options
+{
+    _options = [options copy] ?: @{};
 }
 
 - (void)setSuspended:(BOOL)suspended

@@ -52,6 +52,8 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 - (XMPPAccount *)accountWithJID:(XMPPJID *)JID;
 - (void)removeAccount:(XMPPAccount *)account;
 
+- (void)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account;
+
 - (void)suspendAccount:(XMPPAccount *)account;
 - (void)resumeAccount:(XMPPAccount *)resume;
 - (void)suspendAllAccounts;

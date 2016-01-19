@@ -86,6 +86,7 @@ log_rate_limit: 100
 ##
 hosts:
   - "localhost"
+  - "example.com"
 
 ##
 ## route_subdomains: Delegate subdomains to other XMPP servers.

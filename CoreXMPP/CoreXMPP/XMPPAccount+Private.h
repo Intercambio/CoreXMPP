@@ -14,6 +14,7 @@
 - (instancetype)initWithJID:(XMPPJID *)JID
              serviceManager:(XMPPServiceManager *)serviceManager;
 
+@property (nonatomic, readwrite) NSDictionary *options;
 @property (nonatomic, readwrite) BOOL suspended;
 @property (nonatomic, readwrite) BOOL connected;
 

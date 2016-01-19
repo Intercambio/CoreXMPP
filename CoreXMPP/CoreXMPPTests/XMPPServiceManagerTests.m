@@ -29,8 +29,64 @@
     assertThatBool(account.suspended, isTrue());
     assertThatBool(account.connected, isFalse());
 
+    assertThat(account.options, equalTo(@{}));
+    
+    NSDictionary *options = @{@"foo": @"bar"};
+    [serviceManager setOptions:options forAccount:account];
+    
+    assertThat(account.options, equalTo(@{@"foo": @"bar"}));
+    
     [serviceManager removeAccount:account];
     assertThat(serviceManager.accounts, isNot(contains(account, nil)));
+}
+
+- (void)testAccountOptions
+{
+    XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    serviceManager.SASLDelegate = SASLDelegate;
+    
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@example.com")];
+    
+    //
+    // Prepare SASL Authentication
+    //
+
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
+        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
+        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
+            assertThat(mechanism.context, is(account));
+            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
+                                       password:@"123"];
+        }
+        return nil;
+    }];
+    
+    //
+    // Set Options
+    //
+
+    NSDictionary *options = @{XMPPWebsocketStreamURLKey: [NSURL URLWithString:@"ws://localhost:5280/xmpp"]};
+    [serviceManager setOptions:options forAccount:account];
+    
+    //
+    // Resume Account
+    //
+    
+    [serviceManager resumeAccount:account];
+    
+    //
+    // Wait for the Account to be connected
+    //
+    
+    [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
+                              object:serviceManager
+                             handler:^BOOL(NSNotification *_Nonnull notification) {
+                                 assertThatBool(account.connected, isTrue());
+                                 return notification.userInfo[XMPPServiceManagerAccountKey] == account;
+                             }];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
 - (void)testSuspendAndResumeAccounts

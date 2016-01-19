@@ -149,6 +149,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 {
     self = [super init];
     if (self) {
+        _hostname = hostname;
         _options = options;
         _state = XMPPClientStateDisconnected;
         _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
@@ -164,13 +165,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"<XMPPClient: %p (%@)>", self, self.hostname];
-}
-
-#pragma mark Properties
-
-- (NSString *)hostname
-{
-    return _stream.hostname;
 }
 
 #pragma mark Manage Client

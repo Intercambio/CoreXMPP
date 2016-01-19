@@ -16,6 +16,8 @@
 @property (nonatomic, readonly) XMPPJID *JID;
 @property (nonatomic, readonly, weak) XMPPServiceManager *serviceManger;
 
+@property (nonatomic, readonly) NSDictionary *options;
+
 @property (nonatomic, readonly) BOOL suspended;
 @property (nonatomic, readonly) BOOL connected;
 
