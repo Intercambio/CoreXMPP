@@ -21,4 +21,7 @@
 @property (nonatomic, readonly) BOOL suspended;
 @property (nonatomic, readonly) BOOL connected;
 
+@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
+@property (nonatomic, readonly) NSDate *nextConnectionAttempt;
+
 @end

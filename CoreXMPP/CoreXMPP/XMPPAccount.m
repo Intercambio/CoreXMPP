@@ -57,4 +57,14 @@
     _connected = connected;
 }
 
+- (void)setNumberOfConnectionAttempts:(NSUInteger)numberOfConnectionAttempts
+{
+    _numberOfConnectionAttempts = numberOfConnectionAttempts;
+}
+
+- (void)setNextConnectionAttempt:(NSDate *)nextConnectionAttempt
+{
+    _nextConnectionAttempt = nextConnectionAttempt;
+}
+
 @end

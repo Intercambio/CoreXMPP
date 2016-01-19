@@ -21,6 +21,7 @@ NSString *const XMPPServiceManagerDidResumeAccountNotification = @"XMPPServiceMa
 NSString *const XMPPServiceManagerDidSuspendAccountNotification = @"XMPPServiceManagerDidSuspendAccountNotification";
 NSString *const XMPPServiceManagerDidConnectAccountNotification = @"XMPPServiceManagerDidConnectAccountNotification";
 NSString *const XMPPServiceManagerDidDisconnectAccountNotification = @"XMPPServiceManagerDidDisconnectAccountNotification";
+NSString *const XMPPServiceManagerConnectionDidFailNotification = @"XMPPServiceManagerConnectionDidFailNotification";
 
 NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
@@ -298,7 +299,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if (client) {
             if (account.suspended == NO) {
                 account.suspended = YES;
-
+                account.numberOfConnectionAttempts = 0;
+                account.nextConnectionAttempt = nil;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidSuspendAccountNotification
                                                                         object:self
@@ -319,11 +321,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     for (XMPPAccount *account in accounts) {
         XMPPClient *client = [self xmpp_clientForAccount:account];
-        
+
         if (client == nil) {
             client = [self xmpp_createClientForAccount:account];
         }
-        
+
         if (client) {
             if (account.suspended) {
                 account.suspended = NO;
@@ -344,6 +346,54 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     }
 }
 
+#pragma mark Reconnect
+
+- (void)xmpp_reconnectClientForAccount:(XMPPAccount *)account
+{
+    if (account.suspended == NO) {
+
+        NSUInteger maxConnectionAttempts = 10;
+
+        if (account.numberOfConnectionAttempts >= maxConnectionAttempts) {
+            [self xmpp_suspendAccounts:@[ account ]];
+        } else {
+
+            XMPPClient *client = [self xmpp_clientForAccount:account];
+            if (client) {
+                client = [self xmpp_createClientForAccount:account];
+            }
+
+            account.numberOfConnectionAttempts += 1;
+
+            NSTimeInterval defaultAttemptTimeInterval = 1.0;
+            NSTimeInterval timeIntervalUntilNextAttempt = pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval;
+
+            DDLogInfo(@"Will try to reconnect client %@ for account %@ in %f seconds.", client, account, timeIntervalUntilNextAttempt);
+
+            account.nextConnectionAttempt = [NSDate dateWithTimeIntervalSinceNow:timeIntervalUntilNextAttempt];
+
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeIntervalUntilNextAttempt * NSEC_PER_SEC)), _operationQueue, ^{
+                account.nextConnectionAttempt = nil;
+                if (account.suspended) {
+                    DDLogDebug(@"Will not try to reconnect account %@, because the account has been suspended.", account);
+                } else {
+
+                    XMPPClient *client = [self xmpp_clientForAccount:account];
+                    if (client) {
+                        client = [self xmpp_createClientForAccount:account];
+                    }
+
+                    DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
+                    [client connect];
+                }
+            });
+        }
+
+    } else {
+        [self xmpp_removeClientForAccount:account];
+    }
+}
+
 #pragma mark -
 #pragma mark XMPPClientDelegate (called on operation queue)
 
@@ -355,6 +405,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
     if (account) {
         account.connected = YES;
+        account.numberOfConnectionAttempts = 0;
+        account.nextConnectionAttempt = nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
@@ -381,12 +433,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
         });
 
-        if (account.suspended == NO) {
-            DDLogInfo(@"Will reconnect client %@ for account %@.", client, account);
-            [client connect];
-        } else {
-            [self xmpp_removeClientForAccount:account];
-        }
+        [self xmpp_reconnectClientForAccount:account];
     }
 }
 
@@ -405,19 +452,24 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
     if (account) {
 
-        account.connected = NO;
-
         dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerConnectionDidFailNotification
                                                                 object:self
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
 
-        if (account.suspended == NO) {
-            DDLogInfo(@"Will reconnect client: %@", client);
-            [client connect];
+        if (account.connected) {
+            account.connected = NO;
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
+                                                                    object:self
+                                                                  userInfo:@{XMPPServiceManagerAccountKey : account}];
+
+            });
         }
+
+        [self xmpp_reconnectClientForAccount:account];
     }
 }
 

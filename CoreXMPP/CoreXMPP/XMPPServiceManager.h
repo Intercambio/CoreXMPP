@@ -18,6 +18,7 @@ extern NSString *const XMPPServiceManagerDidResumeAccountNotification;
 extern NSString *const XMPPServiceManagerDidSuspendAccountNotification;
 extern NSString *const XMPPServiceManagerDidConnectAccountNotification;
 extern NSString *const XMPPServiceManagerDidDisconnectAccountNotification;
+extern NSString *const XMPPServiceManagerConnectionDidFailNotification;
 
 extern NSString *const XMPPServiceManagerAccountKey;
 
