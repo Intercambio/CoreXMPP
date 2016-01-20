@@ -176,6 +176,17 @@
     });
 }
 
+- (NSUInteger)numberOfPendingIQResponses
+{
+    __block NSUInteger numberOfPendingIQResponses = 0;
+    dispatch_sync(_operationQueue, ^{
+        // Use the dictionary representation of the map table to
+        // make sure, that nil objects are not counted.
+        numberOfPendingIQResponses = [[_responseHandlers dictionaryRepresentation] count];
+    });
+    return numberOfPendingIQResponses;
+}
+
 #pragma mark XMPPStanzaHandler
 
 - (void)handleStanza:(PXElement *)stanza

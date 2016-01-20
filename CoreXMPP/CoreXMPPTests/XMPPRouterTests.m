@@ -79,7 +79,7 @@
     [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [connection onHandleStanza:^(PXElement *message) {
+    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"message")));
         assertThat([message stringValue], equalTo(@"Hello!"));
         [expectation fulfill];
@@ -146,7 +146,7 @@
     [presence setValue:[to stringValue] forAttribute:@"to"];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [connection onHandleStanza:^(PXElement *message) {
+    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"presence")));
         [expectation fulfill];
     }];
@@ -209,7 +209,7 @@
     
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [connection onHandleStanza:^(PXElement *message) {
+    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"iq")));
         [expectation fulfill];
     }];
@@ -223,9 +223,10 @@
 {
     XMPPRouter *router = [[XMPPRouter alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
-    XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     
+    XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = router;
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -238,7 +239,7 @@
     [request setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
     [request addElementWithName:@"query" namespace:@"foo:bar" content:nil];
     
-    [connection onHandleStanza:^(PXElement *stanza) {
+    [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         
         NSString *from = [stanza valueForAttribute:@"to"];
@@ -252,7 +253,7 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
-        [router handleStanza:response];
+        [responseHandler handleStanza:response];
     }];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];

@@ -55,4 +55,6 @@
 - (void)removeIQHandlerForQuery:(PXQName *)query;
 - (void)removeIQHandler:(id<XMPPIQHandler>)handler;
 
+- (NSUInteger)numberOfPendingIQResponses;
+
 @end

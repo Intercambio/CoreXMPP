@@ -49,11 +49,11 @@
 - (void)handleStanza:(PXElement *)stanza
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onHandleStanzaCallbacks firstObject];
+        void (^_callback)(PXElement *, id<XMPPStanzaHandler>) = [_onHandleStanzaCallbacks firstObject];
         if (_callback) {
             [_onHandleStanzaCallbacks removeObjectAtIndex:0];
             dispatch_async(dispatch_get_main_queue(), ^{
-                _callback(stanza);
+                _callback(stanza, _stanzaHandler);
             });
         }
     });
@@ -61,7 +61,7 @@
 
 #pragma mark -
 
-- (void)onHandleStanza:(void (^)(PXElement *))callback
+- (void)onHandleStanza:(void (^)(PXElement *, id<XMPPStanzaHandler>))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
