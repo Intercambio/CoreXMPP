@@ -88,6 +88,11 @@
     return self.stringValue;
 }
 
+- (NSUInteger)hash
+{
+    return [_user hash] + [_host hash] + [_resource hash];
+}
+
 - (BOOL)isEqual:(id)object
 {
     if ([object isKindOfClass:[XMPPJID class]]) {
