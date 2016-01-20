@@ -25,12 +25,13 @@
 
 #pragma mark Life-cycle
 
-- (instancetype)init
+- (instancetype)initWithRouter:(XMPPRouter *)router options:(NSDictionary *)options
 {
-    self = [super init];
+    self = [super initWithRouter:router options:options];
     if (self) {
         _operationQueue = dispatch_queue_create("XMPPPingModule", DISPATCH_QUEUE_SERIAL);
         _pendingResponseHandler = [[NSMutableDictionary alloc] init];
+        [router setIQHandler:self forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
     }
     return self;
 }

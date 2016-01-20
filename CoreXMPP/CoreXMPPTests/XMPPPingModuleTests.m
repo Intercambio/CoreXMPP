@@ -44,8 +44,7 @@
         [responseHandler handleStanza:response];
     }];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] init];
-    module.router = router;
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -93,8 +92,7 @@
         [responseHandler handleStanza:response];
     }];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] init];
-    module.router = router;
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -118,8 +116,7 @@
     connection.stanzaHandler = router;
     [router setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] init];
-    module.router = router;
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -141,9 +138,7 @@
     connection.stanzaHandler = router;
     [router setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] init];
-    module.router = router;
-    [router setIQHandler:module forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
+    __unused XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
     
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");

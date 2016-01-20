@@ -12,10 +12,12 @@
 
 #pragma mark Life-cycle
 
-- (instancetype)init
+- (instancetype)initWithRouter:(XMPPRouter *)router options:(NSDictionary *)options
 {
     self = [super init];
     if (self) {
+        _router = router;
+        _options = options;
     }
     return self;
 }

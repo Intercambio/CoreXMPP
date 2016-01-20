@@ -13,9 +13,12 @@
 @interface XMPPModule : NSObject
 
 #pragma mark Life-cycle
-- (instancetype)init;
+- (instancetype)initWithRouter:(XMPPRouter *)router options:(NSDictionary *)options;
+
+#pragma mark Options
+@property (nonatomic, readonly) NSDictionary *options;
 
 #pragma mark Router
-@property (nonatomic, weak) XMPPRouter *router;
+@property (nonatomic, readonly) XMPPRouter *router;
 
 @end
