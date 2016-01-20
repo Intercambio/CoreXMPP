@@ -11,9 +11,5 @@
 @class PXElement;
 
 @interface XMPPConnectionStub : NSObject <XMPPConnection>
-
-@property (nonatomic, readwrite) NSArray *JIDs;
-
 - (void)onHandleStanza:(void (^)(PXElement *))callback;
-
 @end

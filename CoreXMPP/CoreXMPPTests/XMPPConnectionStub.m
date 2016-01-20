@@ -11,8 +11,7 @@
 @interface XMPPConnectionStub () {
     dispatch_queue_t _operationQueue;
     NSMutableArray *_onHandleStanzaCallbacks;
-    NSArray *_JIDs;
-    XMPPRouter *_router;
+    id<XMPPStanzaHandler> _stanzaHandler;
 }
 
 @end
@@ -31,39 +30,21 @@
 
 #pragma mark XMPPConnection
 
-- (void)setJIDs:(NSArray *)JIDs
+- (void)setStanzaHandler:(id<XMPPStanzaHandler>)stanzaHandler
 {
     dispatch_async(_operationQueue, ^{
-        _JIDs = JIDs;
+        _stanzaHandler = stanzaHandler;
     });
 }
 
-- (NSArray *)JIDs
+- (id<XMPPStanzaHandler>)stanzaHandler
 {
-    __block NSArray *JIDs = nil;
+    __block id<XMPPStanzaHandler> handler = nil;
     dispatch_sync(_operationQueue, ^{
-        JIDs = [_JIDs copy];
+        handler = _stanzaHandler;
     });
-    return JIDs;
+    return handler;
 }
-
-- (XMPPRouter *)router
-{
-    __block XMPPRouter *router = nil;
-    dispatch_sync(_operationQueue, ^{
-        router = _router;
-    });
-    return router;
-}
-
-- (void)setRouter:(XMPPRouter *)router
-{
-    dispatch_async(_operationQueue, ^{
-        _router = router;
-    });
-}
-
-#pragma mark XMPPStanzaHandler
 
 - (void)handleStanza:(PXElement *)stanza
 {

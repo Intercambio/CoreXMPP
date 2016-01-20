@@ -10,17 +10,14 @@
 
 @class PXQName;
 @class PXElement;
-@class XMPPModule;
 @class XMPPJID;
-@class XMPPRouter;
 
 @protocol XMPPStanzaHandler <NSObject>
 - (void)handleStanza:(PXElement *)stanza;
 @end
 
 @protocol XMPPConnection <XMPPStanzaHandler>
-@property (nonatomic, weak) XMPPRouter *router;
-@property (nonatomic, readonly) NSArray *JIDs;
+@property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;
 @end
 
 @protocol XMPPIQHandler <NSObject>
@@ -39,18 +36,23 @@
 @interface XMPPRouter : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
 #pragma mark Manage Connections
-@property (nonatomic, readonly) NSArray *connections;
-- (void)addConnection:(id<XMPPConnection>)connection;
+@property (nonatomic, readonly) NSDictionary *connectionsByJID;
+- (void)setConnection:(id<XMPPConnection>)connection forJID:(XMPPJID *)JID;
+- (void)removeConnectionForJID:(XMPPJID *)JID;
 - (void)removeConnection:(id<XMPPConnection>)connection;
 
-- (void)connection:(id<XMPPConnection>)connection didAddRoute:(XMPPJID *)JID;
-- (void)connection:(id<XMPPConnection>)connection didRemoveRoute:(XMPPJID *)JID;
+#pragma mark Manage Handlers
+@property (nonatomic, readonly) NSArray *messageHandlers;
+- (void)addMessageHandler:(id<XMPPMessageHandler>)messageHandler;
+- (void)removeMessageHandler:(id<XMPPMessageHandler>)messageHandler;
 
-#pragma mark Manage Modules
-@property (nonatomic, readonly) NSArray *modules;
-- (void)addModule:(XMPPModule *)module;
-- (void)removeModule:(XMPPModule *)module;
+@property (nonatomic, readonly) NSArray *presenceHandlers;
+- (void)addPresenceHandler:(id<XMPPPresenceHandler>)presenceHandler;
+- (void)removePresenceHandler:(id<XMPPPresenceHandler>)presenceHandler;
 
-- (void)setModule:(XMPPModule *)module forIQQuery:(PXQName *)query;
+@property (nonatomic, readonly) NSDictionary *IQHandlersByQuery;
+- (void)setIQHandler:(id<XMPPIQHandler>)handler forQuery:(PXQName *)query;
+- (void)removeIQHandlerForQuery:(PXQName *)query;
+- (void)removeIQHandler:(id<XMPPIQHandler>)handler;
 
 @end
