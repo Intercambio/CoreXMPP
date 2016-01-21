@@ -11,7 +11,10 @@
 extern NSString * const XMPPDispatcherErrorDomain;
 
 typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
-    XMPPDispatcherErrorCodeTimeout
+    XMPPDispatcherErrorCodeTimeout,
+    XMPPDispatcherErrorCodeNoSender,
+    XMPPDispatcherErrorCodeNoRoute,
+    XMPPDispatcherErrorCodeInvalidStanza
 };
 
 @class PXQName;

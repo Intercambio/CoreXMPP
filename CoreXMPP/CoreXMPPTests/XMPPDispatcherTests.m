@@ -93,6 +93,72 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
+- (void)testOutgoingMessageWithoutRoute
+{
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
+    
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    
+    XMPPJID *from = JID(@"romeo@example.com");
+    XMPPJID *to = JID(@"juliet@example.com");
+    
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
+    PXElement *message = doc.root;
+    [message setValue:[from stringValue] forAttribute:@"from"];
+    [message setValue:[to stringValue] forAttribute:@"to"];
+    [message setValue:@"chat" forAttribute:@"type"];
+    [message setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
+    [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
+    
+    [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+        assertThat(message, equalTo(PXQN(@"jabber:client", @"message")));
+        assertThat([message stringValue], equalTo(@"Hello!"));
+        if (completion) completion(nil);
+    }];
+    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
+    [dispatcher handleMessage:message completion:^(NSError *error) {
+        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoRoute));
+        [expectation fulfill];
+    }];
+    
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
+- (void)testOutgoingMessageWithoutSender
+{
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
+    
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    
+    XMPPJID *to = JID(@"juliet@example.com");
+    
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
+    PXElement *message = doc.root;
+    [message setValue:[to stringValue] forAttribute:@"to"];
+    [message setValue:@"chat" forAttribute:@"type"];
+    [message setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
+    [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
+    
+    [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+        assertThat(message, equalTo(PXQN(@"jabber:client", @"message")));
+        assertThat([message stringValue], equalTo(@"Hello!"));
+        if (completion) completion(nil);
+    }];
+    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
+    [dispatcher handleMessage:message completion:^(NSError *error) {
+        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoSender));
+        [expectation fulfill];
+    }];
+    
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
 #pragma mark Presence Handling
 
 - (void)testManagingPresenceHandler

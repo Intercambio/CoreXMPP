@@ -14,6 +14,10 @@
 
 + (instancetype)JIDFromString:(NSString *)string
 {
+    if (string == nil) {
+        return nil;
+    }
+    
     static NSRegularExpression *expression;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{

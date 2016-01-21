@@ -41,6 +41,10 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
+        if (completion) {
+            completion(nil);
+        }
+        
         [responseHandler handleStanza:response completion:nil];
     }];
     
@@ -88,6 +92,10 @@
         PXElement *error = [response addElementWithName:@"error" namespace:@"jabber:client" content:nil];
         [error setValue:@"cancel" forAttribute:@"type"];
         [error addElementWithName:@"service-unavailable" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
+        
+        if (completion) {
+            completion(nil);
+        }
         
         [responseHandler handleStanza:response completion:nil];
     }];
