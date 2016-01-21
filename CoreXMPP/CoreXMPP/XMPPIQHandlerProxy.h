@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-#import "XMPPRouter.h"
+#import "XMPPDispatcher.h"
 
 @interface XMPPIQHandlerProxy : NSObject <XMPPIQHandler>
 

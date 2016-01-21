@@ -1,5 +1,5 @@
 //
-//  XMPPRouter.m
+//  XMPPDispatcher.m
 //  CoreXMPP
 //
 //  Created by Tobias Kräntzer on 19.01.16.
@@ -10,9 +10,9 @@
 
 #import "XMPPJID.h"
 #import "XMPPModule.h"
-#import "XMPPRouter.h"
+#import "XMPPDispatcher.h"
 
-@interface XMPPRouter () {
+@interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;
     NSMapTable *_connectionsByJID;
     NSHashTable *_messageHandlers;
@@ -23,7 +23,7 @@
 
 @end
 
-@implementation XMPPRouter
+@implementation XMPPDispatcher
 
 #pragma mark Life-cycle
 
@@ -31,7 +31,7 @@
 {
     self = [super init];
     if (self) {
-        _operationQueue = dispatch_queue_create("XMPPRouter", DISPATCH_QUEUE_SERIAL);
+        _operationQueue = dispatch_queue_create("XMPPDispatcher", DISPATCH_QUEUE_SERIAL);
         
         _connectionsByJID = [NSMapTable strongToWeakObjectsMapTable];
         _messageHandlers = [NSHashTable weakObjectsHashTable];

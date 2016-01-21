@@ -12,11 +12,11 @@
 
 #pragma mark Life-cycle
 
-- (instancetype)initWithRouter:(XMPPRouter *)router options:(NSDictionary *)options
+- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher options:(NSDictionary *)options
 {
     self = [super init];
     if (self) {
-        _router = router;
+        _dispatcher = dispatcher;
         _options = options;
     }
     return self;

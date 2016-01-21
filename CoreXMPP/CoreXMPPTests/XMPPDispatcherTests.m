@@ -1,5 +1,5 @@
 //
-//  XMPPRouterTests.m
+//  XMPPDispatcherTests.m
 //  CoreXMPP
 //
 //  Created by Tobias Kräntzer on 20.01.16.
@@ -10,29 +10,29 @@
 
 #import "XMPPTestCase.h"
 
-@interface XMPPRouterTests : XMPPTestCase
+@interface XMPPDispatcherTests : XMPPTestCase
 
 @end
 
-@implementation XMPPRouterTests
+@implementation XMPPDispatcherTests
 
 #pragma mark Message Handling
 
 - (void)testManagingMessageHandler
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
-    [router addMessageHandler:module];
-    assertThat(router.messageHandlers, contains(module, nil));
+    [dispatcher addMessageHandler:module];
+    assertThat(dispatcher.messageHandlers, contains(module, nil));
     
-    [router removeMessageHandler:module];
-    assertThat(router.messageHandlers, isNot(contains(module, nil)));
+    [dispatcher removeMessageHandler:module];
+    assertThat(dispatcher.messageHandlers, isNot(contains(module, nil)));
 }
 
 - (void)testIncomingMessage
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
@@ -42,7 +42,7 @@
         [expectation fulfill];
     }];
     
-    [router addMessageHandler:module];
+    [dispatcher addMessageHandler:module];
     
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -55,17 +55,17 @@
     [message setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
     [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
     
-    [router handleStanza:message];
+    [dispatcher handleStanza:message];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 - (void)testOutgoingMessage
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -85,7 +85,7 @@
         [expectation fulfill];
     }];
     
-    [router handleMessage:message];
+    [dispatcher handleMessage:message];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -94,19 +94,19 @@
 
 - (void)testManagingPresenceHandler
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     
-    [router addPresenceHandler:module];
-    assertThat(router.presenceHandlers, contains(module, nil));
+    [dispatcher addPresenceHandler:module];
+    assertThat(dispatcher.presenceHandlers, contains(module, nil));
     
-    [router removePresenceHandler:module];
-    assertThat(router.presenceHandlers, isNot(contains(module, nil)));
+    [dispatcher removePresenceHandler:module];
+    assertThat(dispatcher.presenceHandlers, isNot(contains(module, nil)));
 }
 
 - (void)testIncomingPresence
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
@@ -115,7 +115,7 @@
         [expectation fulfill];
     }];
     
-    [router addPresenceHandler:module];
+    [dispatcher addPresenceHandler:module];
     
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -125,17 +125,17 @@
     [presence setValue:[from stringValue] forAttribute:@"from"];
     [presence setValue:[to stringValue] forAttribute:@"to"];
     
-    [router handleStanza:presence];
+    [dispatcher handleStanza:presence];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 - (void)testOutgoingPresence
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -151,7 +151,7 @@
         [expectation fulfill];
     }];
     
-    [router handlePresence:presence];
+    [dispatcher handlePresence:presence];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -160,24 +160,24 @@
 
 - (void)testManageIQHandler
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
-    [router setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
-    assertThat(router.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(module));
+    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(module));
     
-    [router removeIQHandlerForQuery:PXQN(@"foo:bar", @"query")];
-    assertThat(router.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], nilValue());
+    [dispatcher removeIQHandlerForQuery:PXQN(@"foo:bar", @"query")];
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], nilValue());
 }
 
 - (void)testIncomingIQRequest
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     
-    [router setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -214,19 +214,19 @@
         [expectation fulfill];
     }];
     
-    [router handleStanza:request];
+    [dispatcher handleStanza:request];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 - (void)testOutgoingIQRequest
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
-    connection.stanzaHandler = router;
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -261,7 +261,7 @@
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         [expectation fulfill];
     }];
-    [router handleIQRequest:request resultHandler:module];
+    [dispatcher handleIQRequest:request resultHandler:module];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }

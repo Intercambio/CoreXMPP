@@ -18,10 +18,10 @@
 
 - (void)testPingSuccess
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = router;
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
     [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
@@ -44,7 +44,7 @@
         [responseHandler handleStanza:response];
     }];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -57,15 +57,15 @@
     }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
     
-    assertThatInteger(router.numberOfPendingIQResponses, equalToInteger(0));
+    assertThatInteger(dispatcher.numberOfPendingIQResponses, equalToInteger(0));
 }
 
 - (void)testPingError
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = router;
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
     [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
@@ -92,7 +92,7 @@
         [responseHandler handleStanza:response];
     }];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -106,17 +106,17 @@
     }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
     
-    assertThatInteger(router.numberOfPendingIQResponses, equalToInteger(0));
+    assertThatInteger(dispatcher.numberOfPendingIQResponses, equalToInteger(0));
 }
 
 - (void)testPingWithTimeout
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = router;
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
     
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -128,17 +128,17 @@
     }];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
     
-    assertThatInteger(router.numberOfPendingIQResponses, equalToInteger(0));
+    assertThatInteger(dispatcher.numberOfPendingIQResponses, equalToInteger(0));
 }
 
 - (void)testPong
 {
-    XMPPRouter *router = [[XMPPRouter alloc] init];
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = router;
-    [router setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    __unused XMPPPingModule *module = [[XMPPPingModule alloc] initWithRouter:router options:nil];
+    __unused XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
     
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -163,7 +163,7 @@
         [expectation fulfill];
     }];
     
-    [router handleStanza:iq];
+    [dispatcher handleStanza:iq];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 

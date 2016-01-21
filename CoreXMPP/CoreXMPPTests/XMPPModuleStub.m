@@ -120,7 +120,7 @@
 - (void)sendIQRequest:(PXElement *)stanza
 {
     dispatch_async(_operationQueue, ^{
-        [self.router handleIQRequest:stanza resultHandler:self];
+        [self.dispatcher handleIQRequest:stanza resultHandler:self];
     });
 }
 

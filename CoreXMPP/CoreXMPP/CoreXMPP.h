@@ -26,8 +26,8 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPServiceManager.h>
 #import <CoreXMPP/XMPPAccount.h>
 
-// XMPP Router
-#import <CoreXMPP/XMPPRouter.h>
+// XMPP Dispatcher
+#import <CoreXMPP/XMPPDispatcher.h>
 
 // XMPP Module
 #import <CoreXMPP/XMPPModule.h>

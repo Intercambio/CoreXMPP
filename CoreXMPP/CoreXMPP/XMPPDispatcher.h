@@ -1,5 +1,5 @@
 //
-//  XMPPRouter.h
+//  XMPPDispatcher.h
 //  CoreXMPP
 //
 //  Created by Tobias Kräntzer on 19.01.16.
@@ -33,7 +33,7 @@
 - (void)handlePresence:(PXElement *)stanza;
 @end
 
-@interface XMPPRouter : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
 #pragma mark Manage Connections
 @property (nonatomic, readonly) NSDictionary *connectionsByJID;
