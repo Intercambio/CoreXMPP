@@ -14,6 +14,10 @@
 
 + (instancetype)JIDFromString:(NSString *)string
 {
+    if (string == nil) {
+        return nil;
+    }
+
     static NSRegularExpression *expression;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -99,6 +103,13 @@
         return [[self stringValue] isEqualToString:[object stringValue]];
     }
     return NO;
+}
+
+#pragma mark NSCopying
+
+- (id)copyWithZone:(nullable NSZone *)zone
+{
+    return self;
 }
 
 @end

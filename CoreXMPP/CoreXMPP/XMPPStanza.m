@@ -13,6 +13,32 @@ NSString *const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey"
 
 @implementation XMPPStanza
 
++ (NSDictionary *)errorCodesByErrorName
+{
+    return @{ @"bad-request" : @(XMPPStanzaErrorCodeBadRequest),
+              @"conflict" : @(XMPPStanzaErrorCodeConflict),
+              @"feature-not-implemented" : @(XMPPStanzaErrorCodeFeatureNotImplemented),
+              @"forbidden" : @(XMPPStanzaErrorCodeForbidden),
+              @"gone" : @(XMPPStanzaErrorCodeGone),
+              @"internal-server-error" : @(XMPPStanzaErrorCodeInternalServerError),
+              @"item-not-found" : @(XMPPStanzaErrorCodeItemNotFound),
+              @"jid-malformed" : @(XMPPStanzaErrorCodeJIDMalformed),
+              @"not-acceptable" : @(XMPPStanzaErrorCodeNotAcceptable),
+              @"not-allowed" : @(XMPPStanzaErrorCodeNotAllowed),
+              @"not-authorized" : @(XMPPStanzaErrorCodeNotAuthorithed),
+              @"policy-violation" : @(XMPPStanzaErrorCodePolicyViolation),
+              @"recipient-unavailable" : @(XMPPStanzaErrorCodeRecipientUnavailable),
+              @"redirect" : @(XMPPStanzaErrorCodeRedirect),
+              @"registration-required" : @(XMPPStanzaErrorCodeRegistrationRequired),
+              @"remote-server-not-found" : @(XMPPStanzaErrorCodeRemoteServerNotFound),
+              @"remote-server-timeout" : @(XMPPStanzaErrorCodeRemoteServerTimeout),
+              @"resource-constraint" : @(XMPPStanzaErrorCodeResourceConstraint),
+              @"service-unavailable" : @(XMPPStanzaErrorCodeServiceUnavailable),
+              @"subscription-required" : @(XMPPStanzaErrorCodeSubscriptionRequired),
+              @"undefined-condition" : @(XMPPStanzaErrorCodeUndefinedCondition),
+              @"unexpected-request" : @(XMPPStanzaErrorCodeUnexpectedRequest) };
+}
+
 + (NSError *)errorFromStanza:(PXElement *)element
 {
     __block PXElement *errorElement = nil;
@@ -41,28 +67,7 @@ NSString *const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey"
         PXElement *definedCondition = [children firstObject];
         if ([definedCondition.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-stanzas"]) {
 
-            NSDictionary *errorCodes = @{ @"bad-request" : @(XMPPStanzaErrorCodeBadRequest),
-                                          @"conflict" : @(XMPPStanzaErrorCodeConflict),
-                                          @"feature-not-implemented" : @(XMPPStanzaErrorCodeFeatureNotImplemented),
-                                          @"forbidden" : @(XMPPStanzaErrorCodeForbidden),
-                                          @"gone" : @(XMPPStanzaErrorCodeGone),
-                                          @"internal-server-error" : @(XMPPStanzaErrorCodeInternalServerError),
-                                          @"item-not-found" : @(XMPPStanzaErrorCodeItemNotFound),
-                                          @"jid-malformed" : @(XMPPStanzaErrorCodeJIDMalformed),
-                                          @"not-acceptable" : @(XMPPStanzaErrorCodeNotAcceptable),
-                                          @"not-allowed" : @(XMPPStanzaErrorCodeNotAllowed),
-                                          @"not-authorized" : @(XMPPStanzaErrorCodeNotAuthorithed),
-                                          @"policy-violation" : @(XMPPStanzaErrorCodePolicyViolation),
-                                          @"recipient-unavailable" : @(XMPPStanzaErrorCodeRecipientUnavailable),
-                                          @"redirect" : @(XMPPStanzaErrorCodeRedirect),
-                                          @"registration-required" : @(XMPPStanzaErrorCodeRegistrationRequired),
-                                          @"remote-server-not-found" : @(XMPPStanzaErrorCodeRemoteServerNotFound),
-                                          @"remote-server-timeout" : @(XMPPStanzaErrorCodeRemoteServerTimeout),
-                                          @"resource-constraint" : @(XMPPStanzaErrorCodeResourceConstraint),
-                                          @"service-unavailable" : @(XMPPStanzaErrorCodeServiceUnavailable),
-                                          @"subscription-required" : @(XMPPStanzaErrorCodeSubscriptionRequired),
-                                          @"undefined-condition" : @(XMPPStanzaErrorCodeUndefinedCondition),
-                                          @"unexpected-request" : @(XMPPStanzaErrorCodeUnexpectedRequest) };
+            NSDictionary *errorCodes = [self errorCodesByErrorName];
 
             errorCode = [errorCodes[definedCondition.name] integerValue] ?: XMPPStanzaErrorCodeUndefinedCondition;
         }
@@ -82,6 +87,33 @@ NSString *const XMPPStanzaErrorXMLDocumentKey = @"XMPPStanzaErrorXMLDocumentKey"
     } else {
         return nil;
     }
+}
+
++ (PXElement *)IQResponseWithError:(NSError *)error
+{
+    NSUInteger errorCode = XMPPStanzaErrorCodeUndefinedCondition;
+    if ([error.domain isEqualToString:XMPPStanzaErrorDomain]) {
+        errorCode = error.code;
+    }
+
+    NSDictionary *errorCodes = [self errorCodesByErrorName];
+
+    NSString *errorName = [[errorCodes keysOfEntriesPassingTest:^BOOL(NSString *name, NSNumber *code, BOOL *stop) {
+        return [code integerValue] == errorCode;
+    }] anyObject];
+
+    if (errorName == nil) {
+        errorName = @"undefined-condition";
+    }
+
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+    PXElement *response = doc.root;
+    [response setValue:@"error" forAttribute:@"type"];
+
+    PXElement *errorElement = [response addElementWithName:@"error" namespace:@"jabber:client" content:nil];
+    [errorElement addElementWithName:errorName namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
+
+    return response;
 }
 
 @end

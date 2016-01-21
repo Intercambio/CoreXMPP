@@ -35,7 +35,7 @@
 
 #pragma mark XMPPMessageHandler
 
-- (void)handleMessage:(PXElement *)stanza
+- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         void (^_callback)(PXElement *) = [_onMessageCallbacks firstObject];
@@ -46,7 +46,7 @@
     });
 }
 
-- (void)handlePresence:(PXElement *)stanza
+- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         void (^_callback)(PXElement *) = [_onPresenceCallbacks firstObject];
@@ -57,24 +57,13 @@
     });
 }
 
-- (void)handleIQRequest:(PXElement *)stanza resultHandler:(id<XMPPIQHandler>)resultHandler
+- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *, id<XMPPIQHandler>) = [_onIQRequestCallbacks firstObject];
+        void (^_callback)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)) = [_onIQRequestCallbacks firstObject];
         if (_callback) {
             [_onIQRequestCallbacks removeObjectAtIndex:0];
-            _callback(stanza, resultHandler);
-        }
-    });
-}
-
-- (void)handleIQResponse:(PXElement *)stanza
-{
-    dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onIQResponseCallbacks firstObject];
-        if (_callback) {
-            [_onIQResponseCallbacks removeObjectAtIndex:0];
-            _callback(stanza);
+            _callback(stanza, timeout, completion);
         }
     });
 }
@@ -99,28 +88,12 @@
     });
 }
 
-- (void)onIQRequest:(void (^)(PXElement *stanza, id<XMPPIQHandler> resultHandler))callback
+- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
             [_onIQRequestCallbacks addObject:callback];
         }
-    });
-}
-
-- (void)onIQResponse:(void (^)(PXElement *stanza))callback
-{
-    dispatch_async(_operationQueue, ^{
-        if (callback) {
-            [_onIQResponseCallbacks addObject:callback];
-        }
-    });
-}
-
-- (void)sendIQRequest:(PXElement *)stanza
-{
-    dispatch_async(_operationQueue, ^{
-        [self.dispatcher handleIQRequest:stanza resultHandler:self];
     });
 }
 

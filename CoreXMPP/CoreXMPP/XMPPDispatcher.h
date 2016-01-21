@@ -8,12 +8,21 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString *const XMPPDispatcherErrorDomain;
+
+typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
+    XMPPDispatcherErrorCodeTimeout,
+    XMPPDispatcherErrorCodeNoSender,
+    XMPPDispatcherErrorCodeNoRoute,
+    XMPPDispatcherErrorCodeInvalidStanza
+};
+
 @class PXQName;
 @class PXElement;
 @class XMPPJID;
 
 @protocol XMPPStanzaHandler <NSObject>
-- (void)handleStanza:(PXElement *)stanza;
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
 @protocol XMPPConnection <XMPPStanzaHandler>
@@ -21,16 +30,15 @@
 @end
 
 @protocol XMPPIQHandler <NSObject>
-- (void)handleIQRequest:(PXElement *)stanza resultHandler:(id<XMPPIQHandler>)resultHandler;
-- (void)handleIQResponse:(PXElement *)stanza;
+- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;
 @end
 
 @protocol XMPPMessageHandler <NSObject>
-- (void)handleMessage:(PXElement *)stanza;
+- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
 @protocol XMPPPresenceHandler <NSObject>
-- (void)handlePresence:(PXElement *)stanza;
+- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
 @interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>

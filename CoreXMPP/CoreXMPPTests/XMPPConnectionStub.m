@@ -46,22 +46,26 @@
     return handler;
 }
 
-- (void)handleStanza:(PXElement *)stanza
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *, id<XMPPStanzaHandler>) = [_onHandleStanzaCallbacks firstObject];
+        void (^_callback)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) = [_onHandleStanzaCallbacks firstObject];
         if (_callback) {
             [_onHandleStanzaCallbacks removeObjectAtIndex:0];
             dispatch_async(dispatch_get_main_queue(), ^{
-                _callback(stanza, _stanzaHandler);
+                _callback(stanza, completion, _stanzaHandler);
             });
+        } else {
+            if (completion) {
+                completion(nil);
+            }
         }
     });
 }
 
 #pragma mark -
 
-- (void)onHandleStanza:(void (^)(PXElement *, id<XMPPStanzaHandler>))callback
+- (void)onHandleStanza:(void (^)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler))callback;
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
