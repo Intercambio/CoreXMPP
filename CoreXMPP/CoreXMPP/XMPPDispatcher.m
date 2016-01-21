@@ -311,7 +311,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                     
                     if (completion == nil) {
                         // Try bare JID
-                        NSArray *key = @[ from, [to bareJID], requestID ];
+                        key = @[ from, [to bareJID], requestID ];
                         completion = [_responseHandlers objectForKey:key];
                     }
                     
