@@ -35,7 +35,7 @@
 
 #pragma mark XMPPMessageHandler
 
-- (void)handleMessage:(PXElement *)stanza
+- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         void (^_callback)(PXElement *) = [_onMessageCallbacks firstObject];

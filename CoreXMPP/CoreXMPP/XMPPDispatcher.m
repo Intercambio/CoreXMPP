@@ -189,14 +189,14 @@
 
 #pragma mark XMPPStanzaHandler
 
-- (void)handleStanza:(PXElement *)stanza
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
         if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
 
             for (id<XMPPMessageHandler> handler in _messageHandlers) {
-                [handler handleMessage:stanza];
+                [handler handleMessage:stanza completion:nil];
             }
 
         } else if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
@@ -252,11 +252,11 @@
 
 #pragma mark XMPPMessageHandler
 
-- (void)handleMessage:(PXElement *)stanza
+- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
-            [self xmpp_routeStanza:stanza];
+            [self xmpp_routeStanza:stanza completion:completion];
         } else {
             // ...
         }
@@ -269,7 +269,7 @@
 {
     dispatch_async(_operationQueue, ^{
         if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
-            [self xmpp_routeStanza:stanza];
+            [self xmpp_routeStanza:stanza completion:nil];
         } else {
             // ...
         }
@@ -297,7 +297,7 @@
             NSArray *key = @[ to, from, requestId ];
             [_responseHandlers setObject:resultHandler forKey:key];
 
-            [self xmpp_routeStanza:stanza];
+            [self xmpp_routeStanza:stanza completion:nil];
         } else {
             // ...
         }
@@ -308,7 +308,7 @@
 {
     dispatch_async(_operationQueue, ^{
         if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
-            [self xmpp_routeStanza:stanza];
+            [self xmpp_routeStanza:stanza completion:nil];
         } else {
             // ...
         }
@@ -317,7 +317,7 @@
 
 #pragma mark -
 
-- (void)xmpp_routeStanza:(PXElement *)stanza
+- (void)xmpp_routeStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
     if (from) {
@@ -325,7 +325,7 @@
         XMPPJID *bareJID = [from bareJID];
         id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
         if (connection) {
-            [connection handleStanza:stanza];
+            [connection handleStanza:stanza completion:completion];
         }
 
     } else {

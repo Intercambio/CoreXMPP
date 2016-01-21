@@ -23,7 +23,7 @@
     connection.stanzaHandler = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThatInteger(stanza.numberOfElements, equalToInteger(1));
         
@@ -41,7 +41,7 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
-        [responseHandler handleStanza:response];
+        [responseHandler handleStanza:response completion:nil];
     }];
     
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
@@ -67,7 +67,7 @@
     connection.stanzaHandler = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
     
-    [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThatInteger(stanza.numberOfElements, equalToInteger(1));
         
@@ -89,7 +89,7 @@
         [error setValue:@"cancel" forAttribute:@"type"];
         [error addElementWithName:@"service-unavailable" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
         
-        [responseHandler handleStanza:response];
+        [responseHandler handleStanza:response completion:nil];
     }];
     
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
@@ -153,7 +153,7 @@
     [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
-    [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThatInteger(stanza.numberOfElements, equalToInteger(0));
         assertThat([stanza valueForAttribute:@"type"], equalTo(@"result"));
@@ -163,7 +163,7 @@
         [expectation fulfill];
     }];
     
-    [dispatcher handleStanza:iq];
+    [dispatcher handleStanza:iq completion:nil];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 

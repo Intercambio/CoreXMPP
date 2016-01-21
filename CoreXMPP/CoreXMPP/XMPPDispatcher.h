@@ -13,7 +13,7 @@
 @class XMPPJID;
 
 @protocol XMPPStanzaHandler <NSObject>
-- (void)handleStanza:(PXElement *)stanza;
+- (void)handleStanza:(PXElement *)stanza completion:(void(^)(NSError *error))completion;
 @end
 
 @protocol XMPPConnection <XMPPStanzaHandler>
@@ -26,7 +26,7 @@
 @end
 
 @protocol XMPPMessageHandler <NSObject>
-- (void)handleMessage:(PXElement *)stanza;
+- (void)handleMessage:(PXElement *)stanza completion:(void(^)(NSError *error))completion;
 @end
 
 @protocol XMPPPresenceHandler <NSObject>

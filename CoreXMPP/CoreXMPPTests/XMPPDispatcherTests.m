@@ -55,7 +55,7 @@
     [message setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
     [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
     
-    [dispatcher handleStanza:message];
+    [dispatcher handleStanza:message completion:nil];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -78,14 +78,17 @@
     [message setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
     [message addElementWithName:@"body" namespace:@"jabber:client" content:@"Hello!"];
     
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"message")));
         assertThat([message stringValue], equalTo(@"Hello!"));
-        [expectation fulfill];
+        if (completion) completion(nil);
     }];
     
-    [dispatcher handleMessage:message];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
+    [dispatcher handleMessage:message completion:^(NSError *error) {
+        assertThat(error, nilValue());
+        [expectation fulfill];
+    }];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -125,7 +128,7 @@
     [presence setValue:[from stringValue] forAttribute:@"from"];
     [presence setValue:[to stringValue] forAttribute:@"to"];
     
-    [dispatcher handleStanza:presence];
+    [dispatcher handleStanza:presence completion:nil];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -146,7 +149,7 @@
     [presence setValue:[to stringValue] forAttribute:@"to"];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"presence")));
         [expectation fulfill];
     }];
@@ -209,12 +212,12 @@
     
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [connection onHandleStanza:^(PXElement *message, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"iq")));
         [expectation fulfill];
     }];
     
-    [dispatcher handleStanza:request];
+    [dispatcher handleStanza:request completion:nil];
     
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
@@ -239,7 +242,7 @@
     [request setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
     [request addElementWithName:@"query" namespace:@"foo:bar" content:nil];
     
-    [connection onHandleStanza:^(PXElement *stanza, id<XMPPStanzaHandler> responseHandler) {
+    [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         
         NSString *from = [stanza valueForAttribute:@"to"];
@@ -253,7 +256,7 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
-        [responseHandler handleStanza:response];
+        [responseHandler handleStanza:response completion:nil];
     }];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
