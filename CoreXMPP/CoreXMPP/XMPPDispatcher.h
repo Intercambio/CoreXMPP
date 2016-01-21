@@ -14,6 +14,7 @@ typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
     XMPPDispatcherErrorCodeTimeout,
     XMPPDispatcherErrorCodeNoSender,
     XMPPDispatcherErrorCodeNoRoute,
+    XMPPDispatcherErrorCodeNotConnected,
     XMPPDispatcherErrorCodeInvalidStanza
 };
 

@@ -31,6 +31,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     XMPPWebsocketStream *_stream;
     XMPPStreamFeature *_currentFeature;
     NSMutableArray *_featureConfigurations;
+    id<XMPPStanzaHandler> _stanzaHandler;
 }
 
 @end
@@ -194,16 +195,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     });
 }
 
-#pragma mark Sending Stanza
-
-- (void)sendStanza:(PXElement *)stanza
-{
-    dispatch_async(_operationQueue, ^{
-        NSAssert(_state == XMPPClientStateEstablished, @"Invalid State: Can only send stanza with a client with an established connection.");
-        [_stream sendElement:stanza];
-    });
-}
-
 #pragma mark Feature Negotiation
 
 - (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
@@ -263,6 +254,43 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     }
 }
 
+#pragma mark XMPPConnection
+
+- (void)setStanzaHandler:(id<XMPPStanzaHandler>)stanzaHandler
+{
+    dispatch_async(_operationQueue, ^{
+        _stanzaHandler = stanzaHandler;
+    });
+}
+
+- (id<XMPPStanzaHandler>)stanzaHandler
+{
+    __block id<XMPPStanzaHandler> stanzaHandler = nil;
+    dispatch_sync(_operationQueue, ^{
+        stanzaHandler = _stanzaHandler;
+    });
+    return stanzaHandler;
+}
+
+#pragma mark XMPPStanzaHandler
+
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+{
+    dispatch_async(_operationQueue, ^{
+        NSError *error = nil;
+        if (_state == XMPPClientStateEstablished) {
+            [_stream sendElement:stanza];
+        } else {
+            error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                        code:XMPPDispatcherErrorCodeNotConnected
+                                    userInfo:nil];
+        }
+        if (completion) {
+            completion(error);
+        }
+    });
+}
+
 #pragma mark XMPPStreamDelegate
 
 - (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId
@@ -318,9 +346,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
                                                                  [element.name isEqual:@"iq"])) {
 
                 dispatch_async(delegateQueue, ^{
-                    if ([delegate respondsToSelector:@selector(client:didReceiveStanza:)]) {
-                        [delegate client:self didReceiveStanza:element];
-                    }
+                    [_stanzaHandler handleStanza:element completion:nil];
                 });
 
             } else {

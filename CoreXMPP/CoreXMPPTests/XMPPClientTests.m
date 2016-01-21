@@ -41,6 +41,9 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    client.stanzaHandler = stanzaHandler;
+    
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
@@ -70,12 +73,14 @@
     [ping.root setValue:@"get" forAttribute:@"type"];
     [ping.root setValue:@"localhost" forAttribute:@"to"];
     [ping.root addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-    [client sendStanza:ping.root];
+    [client handleStanza:ping.root completion:^(NSError *error) {
+        
+    }];
 
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
-    [givenVoid([delegate client:client didReceiveStanza:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *pong = [[invocation mkt_arguments] lastObject];
+        PXElement *pong = [[invocation mkt_arguments] firstObject];
         if ([pong isKindOfClass:[PXElement class]] &&
             [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
             [waitForPong fulfill];
@@ -896,6 +901,9 @@
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
+    
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    client.stanzaHandler = stanzaHandler;
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
@@ -957,7 +965,7 @@
     //
 
     HCArgumentCaptor *captoredStanzas = [[HCArgumentCaptor alloc] init];
-    [verifyCount(delegate, atLeastOnce()) client:client didReceiveStanza:(id)captoredStanzas];
+    [verifyCount(stanzaHandler, atLeastOnce()) handleStanza:(id)captoredStanzas completion:anything()];
 
     NSArray *stanzas = [captoredStanzas allValues];
     assertThat(stanzas, hasCountOf(3));
@@ -1037,21 +1045,21 @@
         assertThat(element.name, equalTo(@"message"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client sendStanza:messageDocument.root];
+    [client handleStanza:messageDocument.root completion:nil];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
     [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
         assertThat(element.name, equalTo(@"presence"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client sendStanza:presenceDocument.root];
+    [client handleStanza:presenceDocument.root completion:nil];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
         assertThat(element.name, equalTo(@"iq"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client sendStanza:IQDocument.root];
+    [client handleStanza:IQDocument.root completion:nil];
 
     //
     // Disconnect Client
