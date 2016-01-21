@@ -60,7 +60,7 @@
 - (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *stanza, NSTimeInterval timeout, void(^)(PXElement *, NSError *)) = [_onIQRequestCallbacks firstObject];
+        void (^_callback)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)) = [_onIQRequestCallbacks firstObject];
         if (_callback) {
             [_onIQRequestCallbacks removeObjectAtIndex:0];
             _callback(stanza, timeout, completion);
@@ -88,7 +88,7 @@
     });
 }
 
-- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void(^)(PXElement *, NSError *)))callback
+- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {

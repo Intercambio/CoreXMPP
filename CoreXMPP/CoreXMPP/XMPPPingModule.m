@@ -35,39 +35,41 @@
 
 #pragma mark Send Ping
 
-- (void)sendPingTo:(XMPPJID *)to from:(XMPPJID *)from timeout:(NSTimeInterval)timeout completionHandler:(void(^)(BOOL success, NSError *error))completionHandler
+- (void)sendPingTo:(XMPPJID *)to from:(XMPPJID *)from timeout:(NSTimeInterval)timeout completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
 {
     dispatch_async(_operationQueue, ^{
-        
+
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-        
+
         PXElement *iq = doc.root;
         [iq setValue:[to stringValue] forAttribute:@"to"];
         [iq setValue:[from stringValue] forAttribute:@"from"];
         [iq setValue:@"get" forAttribute:@"type"];
-        
+
         NSString *requestID = [[NSUUID UUID] UUIDString];
         [iq setValue:requestID forAttribute:@"id"];
-        
+
         [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-        
-        [self.dispatcher handleIQRequest:iq timeout:timeout completion:^(PXElement *response, NSError *error) {
-            if (completionHandler) {
-                dispatch_async(_operationQueue, ^{
-                    if (error) {
-                        completionHandler(NO, error);
-                    } else {
-                        NSString *type = [response valueForAttribute:@"type"];
-                        if ([type isEqualToString:@"result"]) {
-                            completionHandler(YES, nil);
-                        } else if ([type isEqualToString:@"error"]) {
-                            NSError *error = [XMPPStanza errorFromStanza:response];
-                            completionHandler(NO, error);
-                        }
-                    }
-                });
-            }
-        }];
+
+        [self.dispatcher handleIQRequest:iq
+                                 timeout:timeout
+                              completion:^(PXElement *response, NSError *error) {
+                                  if (completionHandler) {
+                                      dispatch_async(_operationQueue, ^{
+                                          if (error) {
+                                              completionHandler(NO, error);
+                                          } else {
+                                              NSString *type = [response valueForAttribute:@"type"];
+                                              if ([type isEqualToString:@"result"]) {
+                                                  completionHandler(YES, nil);
+                                              } else if ([type isEqualToString:@"error"]) {
+                                                  NSError *error = [XMPPStanza errorFromStanza:response];
+                                                  completionHandler(NO, error);
+                                              }
+                                          }
+                                      });
+                                  }
+                              }];
     });
 }
 
@@ -82,14 +84,14 @@
                 NSString *from = [stanza valueForAttribute:@"to"];
                 NSString *to = [stanza valueForAttribute:@"from"];
                 NSString *_id = [stanza valueForAttribute:@"id"];
-                
+
                 PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
                 PXElement *response = doc.root;
                 [response setValue:from forAttribute:@"from"];
                 [response setValue:to forAttribute:@"to"];
                 [response setValue:@"result" forAttribute:@"type"];
                 [response setValue:_id forAttribute:@"id"];
-                
+
                 if (completion) {
                     completion(response, nil);
                 }

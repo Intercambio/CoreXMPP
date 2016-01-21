@@ -18,6 +18,6 @@
 - (void)sendPingTo:(XMPPJID *)to
               from:(XMPPJID *)from
            timeout:(NSTimeInterval)timeout
- completionHandler:(void(^)(BOOL success, NSError *error))completionHandler;
+ completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
 
 @end

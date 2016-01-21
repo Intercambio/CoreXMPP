@@ -14,6 +14,6 @@
 
 - (void)onMessage:(void (^)(PXElement *stanza))callback;
 - (void)onPresence:(void (^)(PXElement *stanza))callback;
-- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void(^)(PXElement *, NSError *)))callback;
+- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback;
 
 @end
