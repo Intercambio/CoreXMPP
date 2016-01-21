@@ -10,6 +10,8 @@
 
 #import "XMPPJID.h"
 #import "XMPPWebsocketStream.h"
+#import "XMPPModule.h"
+#import "XMPPDispatcher.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
@@ -32,6 +34,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     BOOL _suspended;
     NSMutableArray *_accounts;
     NSMapTable *_clients;
+    NSMutableArray *_modules;
+    XMPPDispatcher *_dispatcher;
 }
 
 @end
@@ -50,6 +54,28 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     ddLogLevel = logLevel;
 }
 
+#pragma mark Registered Modules
+
++ (NSMutableDictionary *)xmpp_registeredModules
+{
+    static NSMutableDictionary *registeredModules;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        registeredModules = [[NSMutableDictionary alloc] init];
+    });
+    return registeredModules;
+}
+
++ (NSDictionary *)registeredModules
+{
+    return [self xmpp_registeredModules];
+}
+
++ (void)registerModuleClass:(Class)moduleClass forModuleType:(NSString *)moduleType
+{
+    [[self xmpp_registeredModules] setObject:moduleClass forKey:moduleType];
+}
+
 #pragma mark Life-cycle
 
 - (instancetype)initWithOptions:(NSDictionary *)options
@@ -60,6 +86,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         _operationQueue = dispatch_queue_create("XMPPServiceManager", DISPATCH_QUEUE_SERIAL);
         _clients = [NSMapTable strongToStrongObjectsMapTable];
         _accounts = [[NSMutableArray alloc] init];
+        _modules = [[NSMutableArray alloc] init];
+        _dispatcher = [[XMPPDispatcher alloc] init];
     }
     return self;
 }
@@ -155,6 +183,33 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     });
 }
 
+#pragma mark Manage Modules
+
+- (NSArray *)modules
+{
+    __block NSArray *modules = nil;
+    dispatch_sync(_operationQueue, ^{
+        modules = [self xmpp_modules];
+    });
+    return modules;
+}
+
+- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options
+{
+    __block XMPPModule *module = nil;
+    dispatch_sync(_operationQueue, ^{
+        module = [self xmpp_addModuleWithType:moduleType options:options];
+    });
+    return module;
+}
+
+- (void)removeModule:(XMPPModule *)module
+{
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_removeModule:module];
+    });
+}
+
 #pragma mark -
 
 #pragma mark Accounts
@@ -245,6 +300,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.SASLDelegate = self.SASLDelegate;
     client.SASLDelegateQueue = dispatch_get_main_queue();
     client.SASLContext = account;
+    client.stanzaHandler = _dispatcher;
 
     [_clients setObject:client forKey:account];
 
@@ -262,6 +318,39 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_clients removeObjectForKey:account];
 
     DDLogDebug(@"Did remove client %@ for account %@", client, account);
+}
+
+#pragma mark Modules
+
+- (NSArray *)xmpp_modules
+{
+    return [_modules copy];
+}
+
+- (XMPPModule *)xmpp_addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options
+{
+    Class moduleClass = [[[self class] registeredModules] objectForKey:moduleType];
+    if (moduleClass) {
+        XMPPModule *module = [[moduleClass alloc] initWithDispatcher:_dispatcher options:options];
+        [_modules addObject:module];
+        
+        for (XMPPClient *client in [self xmpp_clients]) {
+            XMPPAccount *account = [self xmpp_accountForClient:client];
+            if (account && client.state == XMPPClientStateEstablished) {
+                [_dispatcher setConnection:client forJID:account.JID];
+            }
+        }
+        
+        return module;
+    } else {
+        return nil;
+    }
+}
+
+- (void)xmpp_removeModule:(XMPPModule *)module
+{
+    [_dispatcher removeHandler:module];
+    [_modules removeObject:module];
 }
 
 #pragma mark Suspend & Resume
@@ -308,7 +397,9 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 });
 
                 DDLogInfo(@"Did suspend account: %@", account);
-
+                
+                [_dispatcher removeConnection:client];
+                
                 if (client.state == XMPPClientStateEstablished) {
                     [client disconnect];
                 }
@@ -413,6 +504,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
+        
+        [_dispatcher setConnection:client forJID:account.JID];
     }
 }
 
@@ -432,7 +525,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
-
+        
+        [_dispatcher removeConnection:client];
         [self xmpp_reconnectClientForAccount:account];
     }
 }
@@ -469,6 +563,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             });
         }
 
+        [_dispatcher removeConnection:client];
         [self xmpp_reconnectClientForAccount:account];
     }
 }

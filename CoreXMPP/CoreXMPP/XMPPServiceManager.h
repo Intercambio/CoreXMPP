@@ -12,6 +12,7 @@
 @class SASLMechanism;
 @class XMPPAccount;
 @class XMPPClient;
+@class XMPPModule;
 @class XMPPServiceManager;
 
 extern NSString *const XMPPServiceManagerDidResumeAccountNotification;
@@ -32,6 +33,10 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @end
 
 @interface XMPPServiceManager : NSObject
+
+#pragma mark Registered Modules
++ (NSDictionary *)registeredModules;
++ (void)registerModuleClass:(Class)moduleClass forModuleType:(NSString *)moduleType;
 
 #pragma mark Life-cycle
 - (instancetype)initWithOptions:(NSDictionary *)options;
@@ -59,5 +64,10 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 - (void)resumeAccount:(XMPPAccount *)resume;
 - (void)suspendAllAccounts;
 - (void)resumeAllAccounts;
+
+#pragma mark Manage Modules
+@property (nonatomic, readonly) NSArray *modules;
+- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options;
+- (void)removeModule:(XMPPModule *)module;
 
 @end

@@ -190,6 +190,28 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
     return numberOfPendingIQResponses;
 }
 
+- (void)removeHandler:(id)handler
+{
+    dispatch_async(_operationQueue, ^{
+        if ([_messageHandlers containsObject:handler]) {
+            [_messageHandlers removeObject:handler];
+        }
+        
+        if ([_presenceHandlers containsObject:handler]) {
+            [_presenceHandlers removeObject:handler];
+        }
+        NSMutableArray *keys = [[NSMutableArray alloc] init];
+        for (PXQName *query in [_IQHandlersByQuery keyEnumerator]) {
+            if ([_IQHandlersByQuery objectForKey:query] == handler) {
+                [keys addObject:query];
+            }
+        }
+        for (PXQName *query in keys) {
+            [_IQHandlersByQuery removeObjectForKey:query];
+        }
+    });
+}
+
 #pragma mark XMPPStanzaHandler
 
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
@@ -286,6 +308,13 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                 if (from && to && requestID) {
                     NSArray *key = @[ from, to, requestID ];
                     void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                    
+                    if (completion == nil) {
+                        // Try bare JID
+                        NSArray *key = @[ from, [to bareJID], requestID ];
+                        completion = [_responseHandlers objectForKey:key];
+                    }
+                    
                     if (completion) {
                         [_responseHandlers removeObjectForKey:key];
                         completion(stanza, nil);
@@ -383,7 +412,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                                     }
 
                                     NSTimeInterval defaultTimeout = 60.0;
-                                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout ?: defaultTimeout * NSEC_PER_SEC)), _operationQueue, ^{
+                                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), _operationQueue, ^{
                                         void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
                                         if (completion) {
                                             [_responseHandlers removeObjectForKey:key];

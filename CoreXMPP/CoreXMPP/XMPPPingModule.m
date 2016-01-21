@@ -10,6 +10,7 @@
 
 #import "XMPPJID.h"
 #import "XMPPStanza.h"
+#import "XMPPServiceManager.h"
 
 #import "XMPPPingModule.h"
 
@@ -20,6 +21,11 @@
 @end
 
 @implementation XMPPPingModule
+
++ (void)load
+{
+    [XMPPServiceManager registerModuleClass:[self class] forModuleType:@"XEP-0199"];
+}
 
 #pragma mark Life-cycle
 

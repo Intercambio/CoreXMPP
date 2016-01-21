@@ -14,6 +14,8 @@
 
 @implementation XMPPServiceManagerTests
 
+#pragma mark Account Management
+
 - (void)testAccountManagement
 {
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
@@ -233,6 +235,8 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
+#pragma mark Reconnect
+
 - (void)testReconnectOnFailure
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
@@ -402,6 +406,8 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
+#pragma mark Suspend & Resume
+
 - (void)testSuspendAndResumeServiceManager
 {
     XMPPServiceManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
@@ -465,6 +471,128 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
     assertThatBool(account.connected, isTrue());
+}
+
+#pragma mark Module Management
+
+- (void)testManageModules
+{
+    XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
+    
+    NSString *moduleName = @"XEP-0199";
+
+    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:moduleName options:nil];
+    assertThat(module, isA([XMPPPingModule class]));
+    assertThat(serviceManager.modules, contains(module, nil));
+    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Completion"];
+    [module sendPingTo:JID(@"juliet@localhost")
+                  from:JID(@"romeo@localhost")
+               timeout:10.0
+     completionHandler:^(BOOL success, NSError *error) {
+         assertThatBool(success, isFalse());
+         assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+         assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
+         [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+    
+    [serviceManager removeModule:module];
+    assertThat(serviceManager.modules, isNot(contains(module, nil)));
+}
+
+#pragma mark Despatching
+
+- (void)testDispatching
+{
+    XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    serviceManager.SASLDelegate = SASLDelegate;
+    
+    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:@"XEP-0199" options:nil];
+    
+    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    
+    //
+    // Prepare SASL Authentication
+    //
+    
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
+        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
+        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
+            assertThat(mechanism.context, is(account));
+            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
+                                       password:@"123"];
+        }
+        return nil;
+    }];
+    
+    //
+    // Resume Account
+    //
+    
+    [serviceManager resumeAccount:account];
+    
+    //
+    // Wait for the Account to be connected
+    //
+    
+    [self expectationForNotification:XMPPServiceManagerDidConnectAccountNotification
+                              object:serviceManager
+                             handler:^BOOL(NSNotification *_Nonnull notification) {
+                                 assertThatBool(account.connected, isTrue());
+                                 return notification.userInfo[XMPPServiceManagerAccountKey] == account;
+                             }];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    
+    //
+    // Send Ping
+    //
+    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    [module sendPingTo:JID(@"localhost")
+                  from:JID(@"romeo@localhost")
+               timeout:10.0
+     completionHandler:^(BOOL success, NSError *error) {
+         assertThatBool(success, isTrue());
+         [expectation fulfill];
+     }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+    
+    //
+    // Suspend Account
+    //
+    
+    [serviceManager suspendAccount:account];
+    
+    //
+    // Wait for the Account to be suspended
+    //
+    
+    [self expectationForNotification:XMPPServiceManagerDidSuspendAccountNotification
+                              object:serviceManager
+                             handler:^BOOL(NSNotification *_Nonnull notification) {
+                                 assertThatBool(account.suspended, isTrue());
+                                 return notification.userInfo[XMPPServiceManagerAccountKey] == account;
+                             }];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    
+    //
+    // Send Ping
+    //
+    
+    expectation = [self expectationWithDescription:@"Expect Completion"];
+    [module sendPingTo:JID(@"juliet@localhost")
+                  from:JID(@"romeo@localhost")
+               timeout:10.0
+     completionHandler:^(BOOL success, NSError *error) {
+         assertThatBool(success, isFalse());
+         assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+         assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
+         [expectation fulfill];
+     }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 @end

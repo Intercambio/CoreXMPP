@@ -23,6 +23,7 @@
     for (NSString *name in [DDLog registeredClassNames]) {
         [DDLog setLevel:DDLogLevelOff forClassWithName:name];
     }
+    [DDLog setLevel:DDLogLevelAll forClassWithName:@"XMPPWebsocketStream"];
 }
 
 - (void)setUp

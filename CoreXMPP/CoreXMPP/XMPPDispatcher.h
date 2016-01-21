@@ -66,4 +66,5 @@ typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
 
 - (NSUInteger)numberOfPendingIQResponses;
 
+- (void)removeHandler:(id)handler;
 @end
