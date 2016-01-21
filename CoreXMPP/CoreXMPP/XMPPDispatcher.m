@@ -202,7 +202,7 @@
         } else if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
 
             for (id<XMPPPresenceHandler> handler in _presenceHandlers) {
-                [handler handlePresence:stanza];
+                [handler handlePresence:stanza completion:nil];
             }
             
         } else if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
@@ -265,11 +265,11 @@
 
 #pragma mark XMPPPresenceHandler
 
-- (void)handlePresence:(PXElement *)stanza
+- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
-            [self xmpp_routeStanza:stanza completion:nil];
+            [self xmpp_routeStanza:stanza completion:completion];
         } else {
             // ...
         }

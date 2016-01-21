@@ -148,14 +148,15 @@
     [presence setValue:[from stringValue] forAttribute:@"from"];
     [presence setValue:[to stringValue] forAttribute:@"to"];
     
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
     [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"presence")));
-        [expectation fulfill];
+        if (completion) completion(nil);
     }];
     
-    [dispatcher handlePresence:presence];
-    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
+    [dispatcher handlePresence:presence completion:^(NSError *error) {
+        [expectation fulfill];
+    }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 

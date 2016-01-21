@@ -30,7 +30,7 @@
 @end
 
 @protocol XMPPPresenceHandler <NSObject>
-- (void)handlePresence:(PXElement *)stanza;
+- (void)handlePresence:(PXElement *)stanza completion:(void(^)(NSError *error))completion;
 @end
 
 @interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>

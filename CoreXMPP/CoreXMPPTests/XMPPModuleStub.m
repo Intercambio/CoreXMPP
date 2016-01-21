@@ -46,7 +46,7 @@
     });
 }
 
-- (void)handlePresence:(PXElement *)stanza
+- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         void (^_callback)(PXElement *) = [_onPresenceCallbacks firstObject];
