@@ -10,7 +10,7 @@
 
 #define JID(x) [XMPPJID JIDFromString:x]
 
-@interface XMPPJID : NSObject
+@interface XMPPJID : NSObject <NSCopying>
 
 #pragma mark Life-cycle
 + (instancetype)JIDFromString:(NSString *)string;

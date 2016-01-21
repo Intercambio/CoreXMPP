@@ -41,5 +41,6 @@ extern NSString *const XMPPStanzaErrorXMLDocumentKey;
 @interface XMPPStanza : NSObject
 
 + (NSError *)errorFromStanza:(PXElement *)element;
++ (PXElement *)IQResponseWithError:(NSError *)error;
 
 @end

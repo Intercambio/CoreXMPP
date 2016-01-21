@@ -105,4 +105,11 @@
     return NO;
 }
 
+#pragma mark NSCopying
+
+- (id)copyWithZone:(nullable NSZone *)zone
+{
+    return self;
+}
+
 @end

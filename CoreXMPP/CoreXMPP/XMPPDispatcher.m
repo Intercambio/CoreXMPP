@@ -9,6 +9,7 @@
 #import <PureXML/PureXML.h>
 
 #import "XMPPJID.h"
+#import "XMPPStanza.h"
 #import "XMPPModule.h"
 #import "XMPPDispatcher.h"
 
@@ -173,7 +174,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
             }
         }
         for (PXQName *query in keys) {
-            [_connectionsByJID removeObjectForKey:query];
+            [_IQHandlersByQuery removeObjectForKey:query];
         }
     });
 }
@@ -224,17 +225,50 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                                          timeout:0
                                       completion:^(PXElement *response, NSError *error) {
                                           dispatch_async(_operationQueue, ^{
-                                              if (error) {
+                                              if (error || ![stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+
+                                                  NSString *from = [stanza valueForAttribute:@"from"];
+                                                  NSString *to = [stanza valueForAttribute:@"to"];
+                                                  NSString *requestID = [stanza valueForAttribute:@"id"];
+
+                                                  if (from && requestID) {
+                                                      PXElement *response = [XMPPStanza IQResponseWithError:error];
+
+                                                      [response setValue:from forAttribute:@"to"];
+                                                      [response setValue:requestID forAttribute:@"id"];
+
+                                                      if (to)
+                                                          [response setValue:to forAttribute:@"from"];
+
+                                                      [self xmpp_routeStanza:response completion:nil];
+                                                  }
 
                                               } else {
-                                                  if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
-                                                      [self xmpp_routeStanza:response completion:nil];
-                                                  } else {
-                                                      // ...
-                                                  }
+                                                  [self xmpp_routeStanza:response completion:nil];
                                               }
                                           });
                                       }];
+                    } else {
+                        NSString *from = [stanza valueForAttribute:@"from"];
+                        NSString *to = [stanza valueForAttribute:@"to"];
+                        NSString *requestID = [stanza valueForAttribute:@"id"];
+
+                        if (from && requestID) {
+
+                            NSError *error = [NSError errorWithDomain:XMPPStanzaErrorDomain
+                                                                 code:XMPPStanzaErrorCodeItemNotFound
+                                                             userInfo:nil];
+
+                            PXElement *response = [XMPPStanza IQResponseWithError:error];
+
+                            [response setValue:from forAttribute:@"to"];
+                            [response setValue:requestID forAttribute:@"id"];
+
+                            if (to)
+                                [response setValue:to forAttribute:@"from"];
+
+                            [self xmpp_routeStanza:response completion:nil];
+                        }
                     }
                 } else {
                     error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
