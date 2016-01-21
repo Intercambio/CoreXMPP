@@ -301,6 +301,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.SASLDelegateQueue = dispatch_get_main_queue();
     client.SASLContext = account;
     client.stanzaHandler = _dispatcher;
+    [_dispatcher setConnection:client forJID:account.JID];
 
     [_clients setObject:client forKey:account];
 
@@ -316,6 +317,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.delegateQueue = nil;
     account.connected = NO;
     [_clients removeObjectForKey:account];
+    [_dispatcher removeConnection:client];
 
     DDLogDebug(@"Did remove client %@ for account %@", client, account);
 }
@@ -333,14 +335,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     if (moduleClass) {
         XMPPModule *module = [[moduleClass alloc] initWithDispatcher:_dispatcher options:options];
         [_modules addObject:module];
-        
-        for (XMPPClient *client in [self xmpp_clients]) {
-            XMPPAccount *account = [self xmpp_accountForClient:client];
-            if (account && client.state == XMPPClientStateEstablished) {
-                [_dispatcher setConnection:client forJID:account.JID];
-            }
-        }
-        
+
         return module;
     } else {
         return nil;
@@ -397,9 +392,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 });
 
                 DDLogInfo(@"Did suspend account: %@", account);
-                
-                [_dispatcher removeConnection:client];
-                
+
                 if (client.state == XMPPClientStateEstablished) {
                     [client disconnect];
                 }
@@ -504,8 +497,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
-        
-        [_dispatcher setConnection:client forJID:account.JID];
     }
 }
 
@@ -525,8 +516,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
-        
-        [_dispatcher removeConnection:client];
+
         [self xmpp_reconnectClientForAccount:account];
     }
 }
@@ -563,7 +553,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             });
         }
 
-        [_dispatcher removeConnection:client];
         [self xmpp_reconnectClientForAccount:account];
     }
 }

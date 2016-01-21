@@ -196,7 +196,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
         if ([_messageHandlers containsObject:handler]) {
             [_messageHandlers removeObject:handler];
         }
-        
+
         if ([_presenceHandlers containsObject:handler]) {
             [_presenceHandlers removeObject:handler];
         }
@@ -308,13 +308,13 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                 if (from && to && requestID) {
                     NSArray *key = @[ from, to, requestID ];
                     void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
-                    
+
                     if (completion == nil) {
                         // Try bare JID
                         key = @[ from, [to bareJID], requestID ];
                         completion = [_responseHandlers objectForKey:key];
                     }
-                    
+
                     if (completion) {
                         [_responseHandlers removeObjectForKey:key];
                         completion(stanza, nil);

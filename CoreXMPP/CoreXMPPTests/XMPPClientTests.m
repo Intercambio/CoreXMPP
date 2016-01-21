@@ -43,7 +43,7 @@
 
     id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
     client.stanzaHandler = stanzaHandler;
-    
+
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
         [mechanism authenticateWithUsername:@"romeo" password:@"123"];
@@ -73,9 +73,10 @@
     [ping.root setValue:@"get" forAttribute:@"type"];
     [ping.root setValue:@"localhost" forAttribute:@"to"];
     [ping.root addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-    [client handleStanza:ping.root completion:^(NSError *error) {
-        
-    }];
+    [client handleStanza:ping.root
+              completion:^(NSError *error){
+
+              }];
 
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
     [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
@@ -901,7 +902,7 @@
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
-    
+
     id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
     client.stanzaHandler = stanzaHandler;
 
