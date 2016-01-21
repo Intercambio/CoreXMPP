@@ -12,6 +12,8 @@
 #import "XMPPModule.h"
 #import "XMPPDispatcher.h"
 
+NSString * const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
+
 @interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;
     NSMapTable *_connectionsByJID;
@@ -37,7 +39,7 @@
         _messageHandlers = [NSHashTable weakObjectsHashTable];
         _presenceHandlers = [NSHashTable weakObjectsHashTable];
         _IQHandlersByQuery = [NSMapTable strongToWeakObjectsMapTable];
-        _responseHandlers = [NSMapTable strongToWeakObjectsMapTable];
+        _responseHandlers = [NSMapTable strongToStrongObjectsMapTable];
     }
     return self;
 }
@@ -193,6 +195,8 @@
 {
     dispatch_async(_operationQueue, ^{
 
+        NSError *error = nil;
+        
         if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
 
             for (id<XMPPMessageHandler> handler in _messageHandlers) {
@@ -216,14 +220,24 @@
                     PXElement *query = [stanza elementAtIndex:0];
                     id<XMPPIQHandler> handler = [_IQHandlersByQuery objectForKey:query.qualifiedName];
                     if (handler) {
-                        [handler handleIQRequest:stanza resultHandler:self];
-                    } else {
-                        
+                        [handler handleIQRequest:stanza timeout:0 completion:^(PXElement *response, NSError *error) {
+                            dispatch_async(_operationQueue, ^{
+                                if (error) {
+                                    
+                                } else {
+                                    if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+                                        [self xmpp_routeStanza:response completion:nil];
+                                    } else {
+                                        // ...
+                                    }
+                                }
+                            });
+                        }];
                     }
                 } else {
-                    // Invalid Stanza
+                    // TODO: error = ...
                 }
-
+                
             } else if ([type isEqualToString:@"result"] ||
                        [type isEqualToString:@"error"]) {
 
@@ -233,19 +247,22 @@
 
                 if (from && to && requestID) {
                     NSArray *key = @[ from, to, requestID ];
-                    id<XMPPIQHandler> handler = [_responseHandlers objectForKey:key];
-                    if (handler) {
-                        [handler handleIQResponse:stanza];
+                    void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                    if (completion) {
                         [_responseHandlers removeObjectForKey:key];
+                        completion(stanza, nil);
                     }
                 }
-
+                
             } else {
-                // Invalid Stanza
+                // TODO: error = ...
             }
-
         } else {
-            // Invalid Stanza
+            // TODO: error = ...
+        }
+        
+        if (completion) {
+            completion(error);
         }
     });
 }
@@ -278,40 +295,58 @@
 
 #pragma mark XMPPIQHandler
 
-- (void)handleIQRequest:(PXElement *)stanza resultHandler:(id<XMPPIQHandler>)resultHandler
+- (void)handleIQRequest:(PXElement *)stanza
+                timeout:(NSTimeInterval)timeout
+             completion:(void (^)(PXElement *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-
+        
         NSString *type = [stanza valueForAttribute:@"type"];
         XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
         XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
-
-        if ([stanza isEqual:PXQN(@"jabber:client", @"iq")] && from != nil && to != nil && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
-
+        
+        if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]
+            && from != nil
+            && to != nil
+            && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
+            
             NSString *requestId = [stanza valueForAttribute:@"id"];
             if (requestId == nil) {
                 requestId = [[NSUUID UUID] UUIDString];
                 [stanza setValue:requestId forAttribute:@"id"];
             }
-
+            
             NSArray *key = @[ to, from, requestId ];
-            [_responseHandlers setObject:resultHandler forKey:key];
-
-            [self xmpp_routeStanza:stanza completion:nil];
+            [_responseHandlers setObject:completion forKey:key];
+            
+            [self xmpp_routeStanza:stanza completion:^(NSError *error) {
+                if (error) {
+                    dispatch_async(_operationQueue, ^{
+                        void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                        if (completion) {
+                            [_responseHandlers removeObjectForKey:key];
+                            completion(nil, error);
+                        }
+                    });
+                } else {
+                    NSTimeInterval defaultTimeout = 60.0;
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout ?: defaultTimeout * NSEC_PER_SEC)), _operationQueue, ^{
+                        void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                        if (completion) {
+                            [_responseHandlers removeObjectForKey:key];
+                            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                                 code:XMPPDispatcherErrorCodeTimeout
+                                                             userInfo:nil];
+                            completion(nil, error);
+                        }
+                    });
+                }
+            }];
+            
         } else {
             // ...
         }
-    });
-}
-
-- (void)handleIQResponse:(PXElement *)stanza
-{
-    dispatch_async(_operationQueue, ^{
-        if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
-            [self xmpp_routeStanza:stanza completion:nil];
-        } else {
-            // ...
-        }
+        
     });
 }
 

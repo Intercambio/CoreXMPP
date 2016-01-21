@@ -186,8 +186,9 @@
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
     
-    [module onIQRequest:^(PXElement *stanza, id<XMPPIQHandler> resultHandler) {
+    [module onIQRequest:^(PXElement *stanza, NSTimeInterval timeout, void(^completion)(PXElement *, NSError *)) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
+        assertThat(completion, notNilValue());
         
         NSString *from = [stanza valueForAttribute:@"to"];
         NSString *to = [stanza valueForAttribute:@"from"];
@@ -200,7 +201,9 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
-        [resultHandler handleIQResponse:response];
+        if (completion) {
+            completion(response, nil);
+        }
     }];
     
     PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
@@ -226,7 +229,6 @@
 - (void)testOutgoingIQRequest
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -257,17 +259,61 @@
         [response setValue:@"result" forAttribute:@"type"];
         [response setValue:_id forAttribute:@"id"];
         
-        [responseHandler handleStanza:response completion:nil];
+        if (completion) {
+            completion(nil);
+        }
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [responseHandler handleStanza:response completion:nil];
+        });
     }];
     
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [module onIQResponse:^(PXElement *stanza) {
-        assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
+    [dispatcher handleIQRequest:request timeout:0 completion:^(PXElement *response, NSError *error) {
+        assertThat(response, equalTo(PXQN(@"jabber:client", @"iq")));
         [expectation fulfill];
     }];
-    [dispatcher handleIQRequest:request resultHandler:module];
+    [self waitForExpectationsWithTimeout:100.0 handler:nil];
     
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+    assertThatInteger(dispatcher.numberOfPendingIQResponses, equalToInteger(0));
+}
+
+- (void)testOutgoingIQRequestWithTimeout
+{
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    
+    XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
+    [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    connection.stanzaHandler = dispatcher;
+    
+    XMPPJID *from = JID(@"romeo@localhost");
+    XMPPJID *to = JID(@"juliet@example.com");
+    
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+    PXElement *request = doc.root;
+    [request setValue:[from stringValue] forAttribute:@"from"];
+    [request setValue:[to stringValue] forAttribute:@"to"];
+    [request setValue:@"get" forAttribute:@"type"];
+    [request setValue:[[NSUUID UUID] UUIDString] forAttribute:@"id"];
+    [request addElementWithName:@"query" namespace:@"foo:bar" content:nil];
+    
+    [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+        assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
+        if (completion) {
+            completion(nil);
+        }
+    }];
+    
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
+    [dispatcher handleIQRequest:request timeout:1.0 completion:^(PXElement *response, NSError *error) {
+        assertThat(response, nilValue());
+        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeTimeout));
+        [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+    
+    assertThatInteger(dispatcher.numberOfPendingIQResponses, equalToInteger(0));
 }
 
 @end

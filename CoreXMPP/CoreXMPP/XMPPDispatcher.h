@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString * const XMPPDispatcherErrorDomain;
+
+typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
+    XMPPDispatcherErrorCodeTimeout
+};
+
 @class PXQName;
 @class PXElement;
 @class XMPPJID;
@@ -21,8 +27,7 @@
 @end
 
 @protocol XMPPIQHandler <NSObject>
-- (void)handleIQRequest:(PXElement *)stanza resultHandler:(id<XMPPIQHandler>)resultHandler;
-- (void)handleIQResponse:(PXElement *)stanza;
+- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void(^)(PXElement *response, NSError *error))completion;
 @end
 
 @protocol XMPPMessageHandler <NSObject>

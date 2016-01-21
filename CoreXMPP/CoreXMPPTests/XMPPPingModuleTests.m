@@ -124,6 +124,8 @@
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
     [module sendPingTo:to from:from timeout:1.0 completionHandler:^(BOOL success, NSError *error) {
         assertThatBool(success, isFalse());
+        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeTimeout));
         [expectation fulfill];
     }];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];

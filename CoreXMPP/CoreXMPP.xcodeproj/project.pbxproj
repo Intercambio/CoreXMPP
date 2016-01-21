@@ -125,10 +125,6 @@
 		F6E72BE81C500A4E006F27FE /* XMPPPingModule.m in Sources */ = {isa = PBXBuildFile; fileRef = F6E72BE41C500A4E006F27FE /* XMPPPingModule.m */; };
 		F6E72BEB1C501215006F27FE /* XMPPPingModuleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6E72BEA1C501215006F27FE /* XMPPPingModuleTests.m */; };
 		F6E72BEC1C501215006F27FE /* XMPPPingModuleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6E72BEA1C501215006F27FE /* XMPPPingModuleTests.m */; };
-		F6F56AEF1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6F56AED1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h */; };
-		F6F56AF01C501B3D00C34CC8 /* XMPPIQHandlerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6F56AED1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h */; };
-		F6F56AF11C501B3D00C34CC8 /* XMPPIQHandlerProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = F6F56AEE1C501B3D00C34CC8 /* XMPPIQHandlerProxy.m */; };
-		F6F56AF21C501B3D00C34CC8 /* XMPPIQHandlerProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = F6F56AEE1C501B3D00C34CC8 /* XMPPIQHandlerProxy.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -239,8 +235,6 @@
 		F6E72BE31C500A4E006F27FE /* XMPPPingModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPPingModule.h; sourceTree = "<group>"; };
 		F6E72BE41C500A4E006F27FE /* XMPPPingModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPPingModule.m; sourceTree = "<group>"; };
 		F6E72BEA1C501215006F27FE /* XMPPPingModuleTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = XMPPPingModuleTests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		F6F56AED1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPIQHandlerProxy.h; sourceTree = "<group>"; };
-		F6F56AEE1C501B3D00C34CC8 /* XMPPIQHandlerProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPIQHandlerProxy.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -549,8 +543,6 @@
 				F68414161C4EA558009B37BE /* XMPPModule.m */,
 				F6E72BE31C500A4E006F27FE /* XMPPPingModule.h */,
 				F6E72BE41C500A4E006F27FE /* XMPPPingModule.m */,
-				F6F56AED1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h */,
-				F6F56AEE1C501B3D00C34CC8 /* XMPPIQHandlerProxy.m */,
 			);
 			name = "XMPP Module";
 			sourceTree = "<group>";
@@ -577,7 +569,6 @@
 				F6867C5F1C3C092C009617B5 /* SASLMechanism.h in Headers */,
 				F6867C651C3C1113009617B5 /* SASLMechanismPLAIN.h in Headers */,
 				F6DC3C3C1C45322C007C0F48 /* XMPPStreamFeatureSession.h in Headers */,
-				F6F56AEF1C501B3D00C34CC8 /* XMPPIQHandlerProxy.h in Headers */,
 				F68414201C4ED835009B37BE /* XMPPDispatcher.h in Headers */,
 				F619BDB01C4CF2B900F87F50 /* XMPPJID.h in Headers */,
 				F6E72BE51C500A4E006F27FE /* XMPPPingModule.h in Headers */,
@@ -603,7 +594,6 @@
 				F6867C601C3C092C009617B5 /* SASLMechanism.h in Headers */,
 				F6867C661C3C1114009617B5 /* SASLMechanismPLAIN.h in Headers */,
 				F6DC3C3D1C45322C007C0F48 /* XMPPStreamFeatureSession.h in Headers */,
-				F6F56AF01C501B3D00C34CC8 /* XMPPIQHandlerProxy.h in Headers */,
 				F68414211C4ED835009B37BE /* XMPPDispatcher.h in Headers */,
 				F619BDB11C4CF2B900F87F50 /* XMPPJID.h in Headers */,
 				F6E72BE61C500A4E006F27FE /* XMPPPingModule.h in Headers */,
@@ -799,7 +789,6 @@
 				F6867C771C3D0C27009617B5 /* XMPPStreamFeatureSASL.m in Sources */,
 				F6DC3C2C1C43FC97007C0F48 /* XMPPStreamFeatureBind.m in Sources */,
 				F6867C811C3D7E8E009617B5 /* XMPPClient.m in Sources */,
-				F6F56AF11C501B3D00C34CC8 /* XMPPIQHandlerProxy.m in Sources */,
 				F68414221C4ED835009B37BE /* XMPPDispatcher.m in Sources */,
 				F6E72BE71C500A4E006F27FE /* XMPPPingModule.m in Sources */,
 				F6476AC91BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
@@ -845,7 +834,6 @@
 				F6867C781C3D0C27009617B5 /* XMPPStreamFeatureSASL.m in Sources */,
 				F6DC3C2D1C43FC97007C0F48 /* XMPPStreamFeatureBind.m in Sources */,
 				F6867C821C3D7E8E009617B5 /* XMPPClient.m in Sources */,
-				F6F56AF21C501B3D00C34CC8 /* XMPPIQHandlerProxy.m in Sources */,
 				F68414231C4ED835009B37BE /* XMPPDispatcher.m in Sources */,
 				F6E72BE81C500A4E006F27FE /* XMPPPingModule.m in Sources */,
 				F6476ACA1BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,

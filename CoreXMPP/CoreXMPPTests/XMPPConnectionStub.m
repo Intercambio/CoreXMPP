@@ -55,6 +55,10 @@
             dispatch_async(dispatch_get_main_queue(), ^{
                 _callback(stanza, completion, _stanzaHandler);
             });
+        } else {
+            if (completion) {
+                completion(nil);
+            }
         }
     });
 }
