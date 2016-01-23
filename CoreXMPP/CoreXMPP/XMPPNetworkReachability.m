@@ -154,7 +154,7 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
         XMPPNetworkReachabilityStatus oldStatus = [self reachabilityStatusForHost:hostname];
         XMPPNetworkReachabilityStatus newStatus = [[self class] networkStatusForFlags:flags];
 
-        [_reachabilityRefByHostname setObject:@(flags) forKey:hostname];
+        [_reachabilityFlagsByHostname setObject:@(flags) forKey:hostname];
 
         if (oldStatus != newStatus) {
             if ([self.delegate respondsToSelector:@selector(networkReachabilityDidChange:)]) {
