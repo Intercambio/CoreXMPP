@@ -539,6 +539,10 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         account.numberOfConnectionAttempts = 0;
         account.nextConnectionAttempt = nil;
         account.needsReachabilityChange = NO;
+        
+        XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
+        [reachability removeAllHostnames];
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
