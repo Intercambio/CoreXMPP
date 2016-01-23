@@ -30,7 +30,7 @@
     //
     // Set delegate
     //
-
+    
     id<XMPPStreamDelegate> delegate = mockProtocol(@protocol(XMPPStreamDelegate));
     stream.delegate = delegate;
 
@@ -38,12 +38,24 @@
     // Open stream and wait until the stream has opened
     //
 
-    [self keyValueObservingExpectationForObject:stream
-                                        keyPath:@"state"
-                                  expectedValue:@(XMPPStreamStateOpen)];
-
+    XCTestExpectation *waitForOpen = [self expectationWithDescription:@"Open"];
+    [givenVoid([delegate stream:stream didOpenToHost:equalTo(@"localhost") withStreamId:notNilValue()]) willDo:^id(NSInvocation *invocation) {
+        [waitForOpen fulfill];
+        return nil;
+    }];
     [stream open];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
+    //
+    // Close stream and wait until the stream has closed
+    //
+
+    XCTestExpectation *waitForClose = [self expectationWithDescription:@"Close"];
+    [givenVoid([delegate streamDidClose:stream]) willDo:^id(NSInvocation *invocation) {
+        [waitForClose fulfill];
+        return nil;
+    }];
+    [stream close];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
     //
@@ -53,25 +65,6 @@
     [verifyCount(delegate, times(1)) stream:stream
                               didOpenToHost:equalTo(@"localhost")
                                withStreamId:notNilValue()];
-
-    delegate = mockProtocol(@protocol(XMPPStreamDelegate));
-    stream.delegate = delegate;
-
-    //
-    // Close stream and wait until the stream has closed
-    //
-
-    [self keyValueObservingExpectationForObject:stream
-                                        keyPath:@"state"
-                                  expectedValue:@(XMPPStreamStateClosed)];
-
-    [stream close];
-
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Verify delegate calles
-    //
 
     [verifyCount(delegate, times(1)) streamDidClose:stream];
 }

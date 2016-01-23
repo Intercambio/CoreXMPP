@@ -155,7 +155,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _state = XMPPClientStateDisconnected;
         _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
         _stream = options[XMPPClientOptionsStreamKey] ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
-        _stream.delegateQueue = _operationQueue;
+        _stream.queue = _operationQueue;
         _stream.delegate = self;
     }
     return self;

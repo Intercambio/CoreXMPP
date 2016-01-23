@@ -69,7 +69,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         _state = XMPPStreamStateOpening;
 
         id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
 
@@ -101,7 +101,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         _state = XMPPStreamStateOpening;
 
         id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
 
@@ -133,7 +133,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         _state = XMPPStreamStateClosing;
 
         id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
 
@@ -185,7 +185,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only receive an element if the stream is open.");
 
         id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
 
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
@@ -205,7 +205,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         _state = XMPPStreamStateClosed;
 
         id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
 
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {

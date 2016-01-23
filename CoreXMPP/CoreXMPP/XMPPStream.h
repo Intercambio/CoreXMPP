@@ -44,13 +44,20 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;
 
-#pragma mark Delegate
-@property (nonatomic, weak) id<XMPPStreamDelegate> delegate;
-@property (nonatomic, strong) dispatch_queue_t delegateQueue;
-
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
 @property (nonatomic, readonly) NSDictionary *options;
+
+#pragma mark Queue
+
+// The methods (and properties) of the stream must be called on the queue. If not, the stream can end up in an unexpected state.
+// The delegate will be called on this queue.
+// If the queue is not set, the main queue will be used.
+// Setting the queue after opening the stream results into undefined behavior.
+@property (nonatomic, strong) dispatch_queue_t queue;
+
+#pragma mark Delegate
+@property (nonatomic, weak) id<XMPPStreamDelegate> delegate;
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPStreamState state;
