@@ -58,6 +58,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             break;
         }
     }
+    
+    if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
+        // TODO: Check the error code to see, if the error is a reachability error
+        return YES;
+    }
+    
+    if ([error.domain isEqualToString:(NSString *)kCFErrorDomainCFNetwork]) {
+        // TODO: Check the error code to see, if the error is a reachability error
+        return YES;
+    }
 
     return NO;
 }
