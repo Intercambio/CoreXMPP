@@ -26,7 +26,7 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
 + (XMPPNetworkReachabilityStatus)networkStatusForFlags:(SCNetworkReachabilityFlags)flags
 {
     // Base on Sample Code (Reachability) by Apple.
-    
+
     if ((flags & kSCNetworkReachabilityFlagsReachable) == 0) {
         // The target host is not reachable.
         return XMPPNetworkReachabilityStatusNotReachable;
@@ -35,32 +35,32 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
     XMPPNetworkReachabilityStatus status = XMPPNetworkReachabilityStatusNotReachable;
 
     if ((flags & kSCNetworkReachabilityFlagsConnectionRequired) == 0) {
-        
+
         // If the target host is reachable and no connection is
         // required then we'll assume (for now) that you're on Wi-Fi...
-        
+
         status = XMPPNetworkReachabilityStatusReachableViaWiFi;
     }
 
     if ((((flags & kSCNetworkReachabilityFlagsConnectionOnDemand) != 0) ||
          (flags & kSCNetworkReachabilityFlagsConnectionOnTraffic) != 0)) {
-        
+
         // ... and the connection is on-demand (or on-traffic) if the
         // calling application is using the CFSocketStream or higher APIs...
 
         if ((flags & kSCNetworkReachabilityFlagsInterventionRequired) == 0) {
-            
+
             // ... and no [user] intervention is needed...
-            
+
             status = XMPPNetworkReachabilityStatusReachableViaWiFi;
         }
     }
 
 #if TARGET_OS_IPHONE
     if ((flags & kSCNetworkReachabilityFlagsIsWWAN) == kSCNetworkReachabilityFlagsIsWWAN) {
-        
+
         // ... but WWAN connections are OK if the calling application is using the CFNetwork APIs.
-        
+
         status = XMPPNetworkReachabilityStatusReachableViaWWAN;
     }
 #endif
@@ -153,10 +153,10 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
     }];
 
     if (hostname) {
-        
+
         XMPPNetworkReachabilityStatus oldStatus = [self reachabilityStatusForHost:hostname];
         XMPPNetworkReachabilityStatus newStatus = [[self class] networkStatusForFlags:flags];
-        
+
         [_reachabilityRefByHostname setObject:@(flags) forKey:hostname];
 
         if (oldStatus != newStatus) {
