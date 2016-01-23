@@ -626,8 +626,15 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             client = [self xmpp_createClientForAccount:account];
         }
 
-        DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
-        [client connect];
+        for (NSString *hostname in networkReachability.hostnames) {
+            XMPPNetworkReachabilityStatus status = [networkReachability reachabilityStatusForHost:hostname];
+            if (status == XMPPNetworkReachabilityStatusReachableViaWiFi ||
+                status == XMPPNetworkReachabilityStatusReachableViaWWAN) {
+                DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
+                [client connect];
+                break;
+            }
+        }
     }
 }
 
