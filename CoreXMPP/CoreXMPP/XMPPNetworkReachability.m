@@ -102,11 +102,9 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
             SCNetworkReachabilityContext context = {0, (__bridge void *)(self), NULL, NULL, NULL};
             SCNetworkReachabilitySetCallback(reachability, XMPPNetworkReachabilityCallback, &context);
             SCNetworkReachabilitySetDispatchQueue(reachability, _operationQueue);
-
-            if (SCNetworkReachabilityScheduleWithRunLoop(reachability, CFRunLoopGetMain(), kCFRunLoopDefaultMode)) {
-                [_reachabilityRefByHostname setObject:(__bridge id _Nonnull)(reachability) forKey:hostname];
-            }
-
+            
+            [_reachabilityRefByHostname setObject:(__bridge id)(reachability) forKey:hostname];
+            
             CFRelease(reachability);
         }
     }
@@ -116,7 +114,6 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
 {
     SCNetworkReachabilityRef reachability = (__bridge SCNetworkReachabilityRef)[_reachabilityRefByHostname valueForKey:hostname];
     if (reachability) {
-        SCNetworkReachabilityUnscheduleFromRunLoop(reachability, CFRunLoopGetMain(), kCFRunLoopDefaultMode);
         [_reachabilityRefByHostname removeObjectForKey:hostname];
     }
 }
