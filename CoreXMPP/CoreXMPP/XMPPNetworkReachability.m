@@ -102,9 +102,9 @@ XMPPNetworkReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkReacha
             SCNetworkReachabilityContext context = {0, (__bridge void *)(self), NULL, NULL, NULL};
             SCNetworkReachabilitySetCallback(reachability, XMPPNetworkReachabilityCallback, &context);
             SCNetworkReachabilitySetDispatchQueue(reachability, _operationQueue);
-            
+
             [_reachabilityRefByHostname setObject:(__bridge id)(reachability) forKey:hostname];
-            
+
             CFRelease(reachability);
         }
     }

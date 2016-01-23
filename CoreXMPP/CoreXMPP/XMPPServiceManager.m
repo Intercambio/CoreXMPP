@@ -58,12 +58,12 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             break;
         }
     }
-    
+
     if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
         // TODO: Check the error code to see, if the error is a reachability error
         return YES;
     }
-    
+
     if ([error.domain isEqualToString:(NSString *)kCFErrorDomainCFNetwork]) {
         // TODO: Check the error code to see, if the error is a reachability error
         return YES;
@@ -550,10 +550,10 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         account.numberOfConnectionAttempts = 0;
         account.nextConnectionAttempt = nil;
         account.needsReachabilityChange = NO;
-        
+
         XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
         [reachability removeAllHostnames];
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
