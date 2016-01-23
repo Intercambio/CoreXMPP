@@ -480,10 +480,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if ([[self class] isNetworkReachabilityError:error]) {
             XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
             NSString *hostname = [[self class] hostFromReachabilityError:error];
-            if (hostname) {
-                [reachability addHostname:hostname];
-                DDLogDebug(@"Start monitoring network reachability for host: %@", hostname);
+            if (hostname == nil) {
+                hostname = account.JID.host;
             }
+            [reachability addHostname:hostname];
+            DDLogDebug(@"Start monitoring network reachability for host: %@", hostname);
             account.needsReachabilityChange = [[reachability hostnames] count] > 0;
         }
 
