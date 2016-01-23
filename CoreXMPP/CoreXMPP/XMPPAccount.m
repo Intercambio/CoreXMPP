@@ -67,4 +67,9 @@
     _nextConnectionAttempt = nextConnectionAttempt;
 }
 
+- (void)setNeedsReachabilityChange:(BOOL)needsReachabilityChange
+{
+    _needsReachabilityChange = needsReachabilityChange;
+}
+
 @end

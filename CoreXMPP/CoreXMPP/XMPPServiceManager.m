@@ -15,6 +15,7 @@
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
+#import "XMPPNetworkReachability.h"
 #import "XMPPServiceManager.h"
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
@@ -29,18 +30,56 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 
 NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPServiceManagerOptionClientFactoryCallbackKey";
 
-@interface XMPPServiceManager () <XMPPClientDelegate> {
+@interface XMPPServiceManager () <XMPPClientDelegate, XMPPNetworkReachabilityDelegate> {
     dispatch_queue_t _operationQueue;
     BOOL _suspended;
     NSMutableArray *_accounts;
-    NSMapTable *_clients;
-    NSMutableArray *_modules;
+    NSMapTable *_clientsByAccount;
+    NSMapTable *_networkReachabilitiesByClient;
     XMPPDispatcher *_dispatcher;
+    NSMutableArray *_modules;
 }
 
 @end
 
 @implementation XMPPServiceManager
+
++ (BOOL)isNetworkReachabilityError:(NSError *)error
+{
+    if ([error.domain isEqualToString:NSURLErrorDomain]) {
+
+        switch (error.code) {
+        case NSURLErrorNotConnectedToInternet:
+        case NSURLErrorDNSLookupFailed:
+        case NSURLErrorCannotFindHost:
+            return YES;
+
+        default:
+            break;
+        }
+    }
+
+    if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
+        // TODO: Check the error code to see, if the error is a reachability error
+        return YES;
+    }
+
+    if ([error.domain isEqualToString:(NSString *)kCFErrorDomainCFNetwork]) {
+        // TODO: Check the error code to see, if the error is a reachability error
+        return YES;
+    }
+
+    return NO;
+}
+
++ (NSString *)hostFromReachabilityError:(NSError *)error
+{
+    if ([error.domain isEqualToString:NSURLErrorDomain]) {
+        NSURL *URL = [error.userInfo objectForKey:NSURLErrorFailingURLErrorKey];
+        return [URL host];
+    }
+    return nil;
+}
 
 #pragma mark Logging
 
@@ -84,9 +123,10 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     if (self) {
         _options = options;
         _operationQueue = dispatch_queue_create("XMPPServiceManager", DISPATCH_QUEUE_SERIAL);
-        _clients = [NSMapTable strongToStrongObjectsMapTable];
+        _clientsByAccount = [NSMapTable strongToStrongObjectsMapTable];
         _accounts = [[NSMutableArray alloc] init];
         _modules = [[NSMutableArray alloc] init];
+        _networkReachabilitiesByClient = [NSMapTable weakToStrongObjectsMapTable];
         _dispatcher = [[XMPPDispatcher alloc] init];
     }
     return self;
@@ -259,14 +299,14 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 - (NSArray *)xmpp_clients
 {
-    return [[_clients objectEnumerator] allObjects];
+    return [[_clientsByAccount objectEnumerator] allObjects];
 }
 
 - (XMPPAccount *)xmpp_accountForClient:(XMPPClient *)client
 {
     XMPPAccount *account = nil;
-    for (XMPPAccount *a in _clients) {
-        if ([_clients objectForKey:a] == client) {
+    for (XMPPAccount *a in _clientsByAccount) {
+        if ([_clientsByAccount objectForKey:a] == client) {
             account = a;
             break;
         }
@@ -276,7 +316,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 - (XMPPClient *)xmpp_clientForAccount:(XMPPAccount *)account
 {
-    XMPPClient *client = [_clients objectForKey:account];
+    XMPPClient *client = [_clientsByAccount objectForKey:account];
     return client;
 }
 
@@ -303,7 +343,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.stanzaHandler = _dispatcher;
     [_dispatcher setConnection:client forJID:account.JID];
 
-    [_clients setObject:client forKey:account];
+    [_clientsByAccount setObject:client forKey:account];
+
+    XMPPNetworkReachability *reachability = [[XMPPNetworkReachability alloc] initWithQueue:_operationQueue];
+    reachability.delegate = self;
+    [_networkReachabilitiesByClient setObject:reachability forKey:client];
 
     DDLogDebug(@"Did create client %@ for account %@", client, account);
 
@@ -312,11 +356,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 - (void)xmpp_removeClientForAccount:(XMPPAccount *)account
 {
-    XMPPClient *client = [_clients objectForKey:account];
+    XMPPClient *client = [_clientsByAccount objectForKey:account];
     client.delegate = nil;
     client.delegateQueue = nil;
     account.connected = NO;
-    [_clients removeObjectForKey:account];
+    [_clientsByAccount removeObjectForKey:account];
     [_dispatcher removeConnection:client];
 
     DDLogDebug(@"Did remove client %@ for account %@", client, account);
@@ -432,45 +476,59 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 #pragma mark Reconnect
 
-- (void)xmpp_reconnectClientForAccount:(XMPPAccount *)account
+- (void)xmpp_reconnectClientForAccount:(XMPPAccount *)account error:(NSError *)error
 {
     if (account.suspended == NO) {
 
         NSUInteger maxConnectionAttempts = 10;
 
-        if (account.numberOfConnectionAttempts >= maxConnectionAttempts) {
-            [self xmpp_suspendAccounts:@[ account ]];
-        } else {
+        XMPPClient *client = [self xmpp_clientForAccount:account];
+        if (client == nil) {
+            client = [self xmpp_createClientForAccount:account];
+        }
 
-            XMPPClient *client = [self xmpp_clientForAccount:account];
-            if (client == nil) {
-                client = [self xmpp_createClientForAccount:account];
+        if ([[self class] isNetworkReachabilityError:error]) {
+            XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
+            NSString *hostname = [[self class] hostFromReachabilityError:error];
+            if (hostname == nil) {
+                hostname = account.JID.host;
             }
+            [reachability addHostname:hostname];
+            DDLogDebug(@"Start monitoring network reachability for host: %@", hostname);
+            account.needsReachabilityChange = [[reachability hostnames] count] > 0;
+        }
 
-            account.numberOfConnectionAttempts += 1;
+        if (account.needsReachabilityChange == NO) {
 
-            NSTimeInterval defaultAttemptTimeInterval = 1.0;
-            NSTimeInterval timeIntervalUntilNextAttempt = pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval;
+            if (account.numberOfConnectionAttempts >= maxConnectionAttempts) {
+                [self xmpp_suspendAccounts:@[ account ]];
+            } else {
 
-            DDLogInfo(@"Will try to reconnect client %@ for account %@ in %f seconds.", client, account, timeIntervalUntilNextAttempt);
+                account.numberOfConnectionAttempts += 1;
 
-            account.nextConnectionAttempt = [NSDate dateWithTimeIntervalSinceNow:timeIntervalUntilNextAttempt];
+                NSTimeInterval defaultAttemptTimeInterval = 1.0;
+                NSTimeInterval timeIntervalUntilNextAttempt = pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval;
 
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeIntervalUntilNextAttempt * NSEC_PER_SEC)), _operationQueue, ^{
-                account.nextConnectionAttempt = nil;
-                if (account.suspended) {
-                    DDLogDebug(@"Will not try to reconnect account %@, because the account has been suspended.", account);
-                } else {
+                DDLogInfo(@"Will try to reconnect client %@ for account %@ in %f seconds.", client, account, timeIntervalUntilNextAttempt);
 
-                    XMPPClient *client = [self xmpp_clientForAccount:account];
-                    if (client == nil) {
-                        client = [self xmpp_createClientForAccount:account];
+                account.nextConnectionAttempt = [NSDate dateWithTimeIntervalSinceNow:timeIntervalUntilNextAttempt];
+
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeIntervalUntilNextAttempt * NSEC_PER_SEC)), _operationQueue, ^{
+                    account.nextConnectionAttempt = nil;
+                    if (account.suspended) {
+                        DDLogDebug(@"Will not try to reconnect account %@, because the account has been suspended.", account);
+                    } else {
+
+                        XMPPClient *client = [self xmpp_clientForAccount:account];
+                        if (client == nil) {
+                            client = [self xmpp_createClientForAccount:account];
+                        }
+
+                        DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
+                        [client connect];
                     }
-
-                    DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
-                    [client connect];
-                }
-            });
+                });
+            }
         }
 
     } else {
@@ -491,6 +549,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         account.connected = YES;
         account.numberOfConnectionAttempts = 0;
         account.nextConnectionAttempt = nil;
+        account.needsReachabilityChange = NO;
+
+        XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
+        [reachability removeAllHostnames];
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
@@ -517,7 +580,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
         });
 
-        [self xmpp_reconnectClientForAccount:account];
+        [self xmpp_reconnectClientForAccount:account error:nil];
     }
 }
 
@@ -553,7 +616,40 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             });
         }
 
-        [self xmpp_reconnectClientForAccount:account];
+        [self xmpp_reconnectClientForAccount:account error:error];
+    }
+}
+
+#pragma mark XMPPNetworkReachabilityDelegate (called on operation queue)
+
+- (void)networkReachabilityDidChange:(XMPPNetworkReachability *)networkReachability
+{
+    XMPPClient *client = nil;
+    for (XMPPClient *c in [_networkReachabilitiesByClient keyEnumerator]) {
+        if ([_networkReachabilitiesByClient objectForKey:c] == networkReachability) {
+            client = c;
+            break;
+        }
+    }
+
+    XMPPAccount *account = [self xmpp_accountForClient:client];
+    if (account.suspended == NO &&
+        account.connected == NO) {
+
+        XMPPClient *client = [self xmpp_clientForAccount:account];
+        if (client == nil) {
+            client = [self xmpp_createClientForAccount:account];
+        }
+
+        for (NSString *hostname in networkReachability.hostnames) {
+            XMPPNetworkReachabilityStatus status = [networkReachability reachabilityStatusForHost:hostname];
+            if (status == XMPPNetworkReachabilityStatusReachableViaWiFi ||
+                status == XMPPNetworkReachabilityStatusReachableViaWWAN) {
+                DDLogDebug(@"Reconnect client %@ for account %@.", client, account);
+                [client connect];
+                break;
+            }
+        }
     }
 }
 
