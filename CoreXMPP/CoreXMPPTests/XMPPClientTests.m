@@ -28,7 +28,7 @@
 
 #pragma mark Tests
 
-- (void)testEstablishConnection
+- (void)testConnectToServer
 {
     NSDictionary *options = @{ XMPPClientOptionsResourceKey : @"bar" };
 
@@ -146,6 +146,44 @@
     [client disconnect];
 
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
+}
+
+- (void)testFailedConnection
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+    
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+    
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        
+        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"error"
+                                                        namespace:@"http://etherx.jabber.org/streams"
+                                                           prefix:@"stream"];
+        
+        [doc.root addElementWithName:@"host-unknown"
+                           namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
+                             content:nil];
+        
+        [stream receiveElement:doc.root];
+        [stream closeByPeer];
+    }];
+    
+    XCTestExpectation *failedConnectionExpectation = [self expectationWithDescription:@"Expect failed Connection"];
+    
+    [givenVoid([delegate client:client didFailWithError:anything()]) willDo:^id(NSInvocation *invocation) {
+        [failedConnectionExpectation fulfill];
+        return nil;
+    }];
+    
+    [client connect];
+    
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+    
+    [verifyCount(delegate, times(1)) client:client didFailWithError:anything()];
+    [verifyCount(delegate, never()) clientDidConnect:client];
+    [verifyCount(delegate, never()) clientDidDisconnect:client];
 }
 
 #pragma mark Stream Errors
