@@ -14,10 +14,9 @@ NSString *const XMPPStreamStubStreamDidSendElementNotification = @"XMPPStreamStu
 NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStreamNotificationElementKey";
 
 @interface XMPPStreamStub () {
-    dispatch_queue_t _operationQueue;
     XMPPStreamState _state;
     NSString *_streamId;
-
+    
     NSMutableArray *_onDidOpenCallbacks;
     NSMutableArray *_onDidCloseCallbacks;
     NSMutableArray *_onDidFailCallbacks;
@@ -36,9 +35,8 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     self = [super initWithHostname:hostname
                            options:options];
     if (self) {
-        _operationQueue = dispatch_queue_create("XMPPStreamStub", DISPATCH_QUEUE_SERIAL);
         _streamId = [[NSUUID UUID] UUIDString];
-
+        
         _onDidOpenCallbacks = [[NSMutableArray alloc] init];
         _onDidCloseCallbacks = [[NSMutableArray alloc] init];
         _onDidFailCallbacks = [[NSMutableArray alloc] init];
@@ -63,97 +61,78 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
 - (void)open
 {
-    dispatch_async(_operationQueue, ^{
-        NSAssert(_state == XMPPStreamStateClosed, @"Invalid State: Can only open a closed stream.");
-
-        _state = XMPPStreamStateOpening;
-
-        id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
-
-            _state = XMPPStreamStateOpen;
-
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
-                    [delegate stream:self didOpenToHost:self.hostname withStreamId:_streamId];
-                }
-            });
-
-            void (^_onDidOpenCallback)(XMPPStreamStub *) = [_onDidOpenCallbacks firstObject];
-            if (_onDidOpenCallback) {
-                [_onDidOpenCallbacks removeObjectAtIndex:0];
-                _onDidOpenCallback(self);
-            }
-
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidOpenNotification
-                                                                object:self];
-        });
+    NSAssert(_state == XMPPStreamStateClosed, @"Invalid State: Can only open a closed stream.");
+    
+    _state = XMPPStreamStateOpening;
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), [self xmpp_queue], ^{
+        
+        _state = XMPPStreamStateOpen;
+        
+        if ([self.delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
+            [self.delegate stream:self didOpenToHost:self.hostname withStreamId:_streamId];
+        }
+        
+        void (^_onDidOpenCallback)(XMPPStreamStub *) = [_onDidOpenCallbacks firstObject];
+        if (_onDidOpenCallback) {
+            [_onDidOpenCallbacks removeObjectAtIndex:0];
+            _onDidOpenCallback(self);
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidOpenNotification
+                                                            object:self];
     });
 }
 
 - (void)reopen
 {
-    dispatch_async(_operationQueue, ^{
-        NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only reopen a already opened stream.");
-
-        _state = XMPPStreamStateOpening;
-
-        id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
-
-            _state = XMPPStreamStateOpen;
-
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
-                    [delegate stream:self didOpenToHost:self.hostname withStreamId:_streamId];
-                }
-            });
-
-            void (^_onDidOpenCallback)(XMPPStreamStub *) = [_onDidOpenCallbacks firstObject];
-            if (_onDidOpenCallback) {
-                [_onDidOpenCallbacks removeObjectAtIndex:0];
-                _onDidOpenCallback(self);
-            }
-
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidOpenNotification
-                                                                object:self];
-        });
+    NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only reopen a already opened stream.");
+    
+    _state = XMPPStreamStateOpening;
+    
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), [self xmpp_queue], ^{
+        
+        _state = XMPPStreamStateOpen;
+        
+        if ([self.delegate respondsToSelector:@selector(stream:didOpenToHost:withStreamId:)]) {
+            [self.delegate stream:self didOpenToHost:self.hostname withStreamId:_streamId];
+        }
+        
+        void (^_onDidOpenCallback)(XMPPStreamStub *) = [_onDidOpenCallbacks firstObject];
+        if (_onDidOpenCallback) {
+            [_onDidOpenCallbacks removeObjectAtIndex:0];
+            _onDidOpenCallback(self);
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidOpenNotification
+                                                            object:self];
     });
 }
 
 - (void)close
 {
-    dispatch_async(_operationQueue, ^{
-        NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only close an open stream.");
-
-        _state = XMPPStreamStateClosing;
-
-        id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
-
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), _operationQueue, ^{
-
-            _state = XMPPStreamStateClosed;
-
-            dispatch_async(delegateQueue, ^{
-                if ([delegate respondsToSelector:@selector(streamDidClose:)]) {
-                    [delegate streamDidClose:self];
-                }
-            });
-
-            void (^_callback)(XMPPStreamStub *) = [_onDidCloseCallbacks firstObject];
-            if (_callback) {
-                [_onDidCloseCallbacks removeObjectAtIndex:0];
-                _callback(self);
-            }
-
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidCloseNotification
-                                                                object:self];
-        });
+    NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only close an open stream.");
+    
+    _state = XMPPStreamStateClosing;
+    
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), [self xmpp_queue], ^{
+        
+        _state = XMPPStreamStateClosed;
+        
+        if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
+            [self.delegate streamDidClose:self];
+        }
+        
+        void (^_callback)(XMPPStreamStub *) = [_onDidCloseCallbacks firstObject];
+        if (_callback) {
+            [_onDidCloseCallbacks removeObjectAtIndex:0];
+            _callback(self);
+        }
+        
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidCloseNotification
+                                                            object:self];
     });
 }
 
@@ -161,38 +140,29 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
 - (void)sendElement:(PXElement *)element
 {
-    dispatch_async(_operationQueue, ^{
-        NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only send an element if the stream is open.");
-
-        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidSendElementNotification
-                                                            object:self
-                                                          userInfo:@{XMPPStreamStubStreamNotificationElementKey : element}];
-
-        void (^_callback)(XMPPStreamStub *, PXElement *) = [_onDidSendElementCallbacks firstObject];
-        if (_callback) {
-            [_onDidSendElementCallbacks removeObjectAtIndex:0];
-            _callback(self, element);
-        }
-
-    });
+    NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only send an element if the stream is open.");
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidSendElementNotification
+                                                        object:self
+                                                      userInfo:@{XMPPStreamStubStreamNotificationElementKey : element}];
+    
+    void (^_callback)(XMPPStreamStub *, PXElement *) = [_onDidSendElementCallbacks firstObject];
+    if (_callback) {
+        [_onDidSendElementCallbacks removeObjectAtIndex:0];
+        _callback(self, element);
+    }
 }
 
 #pragma mark Receiving Element
 
 - (void)receiveElement:(PXElement *)element
 {
-    dispatch_async(_operationQueue, ^{
+    dispatch_async([self xmpp_queue], ^{
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only receive an element if the stream is open.");
-
-        id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
-
-        dispatch_async(delegateQueue, ^{
-            if ([delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-                [delegate stream:self didReceiveElement:element];
-            }
-        });
-
+        
+        if ([self.delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
+            [self.delegate stream:self didReceiveElement:element];
+        }
     });
 }
 
@@ -200,26 +170,34 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
 - (void)failWithError:(NSError *)error
 {
-    dispatch_async(_operationQueue, ^{
-
+    dispatch_async([self xmpp_queue], ^{
+        
         _state = XMPPStreamStateClosed;
+        
+        
+        if ([self.delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
+            [self.delegate stream:self didFailWithError:error];
+        }
+        
+        void (^_callback)(XMPPStreamStub *) = [_onDidFailCallbacks firstObject];
+        if (_callback) {
+            [_onDidFailCallbacks removeObjectAtIndex:0];
+            _callback(self);
+        }
+    });
+}
 
-        id<XMPPStreamDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.queue ?: dispatch_get_main_queue();
+#pragma mark Close By Peer
 
-        dispatch_async(delegateQueue, ^{
-            if ([delegate respondsToSelector:@selector(stream:didFailWithError:)]) {
-                [delegate stream:self didFailWithError:error];
-            }
-
-            dispatch_async(_operationQueue, ^{
-                void (^_callback)(XMPPStreamStub *) = [_onDidFailCallbacks firstObject];
-                if (_callback) {
-                    [_onDidFailCallbacks removeObjectAtIndex:0];
-                    _callback(self);
-                }
-            });
-        });
+- (void)closeByPeer
+{
+    dispatch_async([self xmpp_queue], ^{
+        
+        _state = XMPPStreamStateClosed;
+        
+        if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
+            [self.delegate streamDidClose:self];
+        }
     });
 }
 
@@ -228,37 +206,36 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 - (void)onDidOpen:(void (^)(XMPPStreamStub *stream))handler
 {
     if (handler) {
-        dispatch_async(_operationQueue, ^{
-            [_onDidOpenCallbacks addObject:handler];
-        });
+        [_onDidOpenCallbacks addObject:handler];
     }
 }
 
 - (void)onDidClose:(void (^)(XMPPStreamStub *stream))handler
 {
     if (handler) {
-        dispatch_async(_operationQueue, ^{
-            [_onDidCloseCallbacks addObject:handler];
-        });
+        [_onDidCloseCallbacks addObject:handler];
     }
 }
 
 - (void)onDidSendElement:(void (^)(XMPPStreamStub *stream, PXElement *element))handler
 {
     if (handler) {
-        dispatch_async(_operationQueue, ^{
-            [_onDidSendElementCallbacks addObject:handler];
-        });
+        [_onDidSendElementCallbacks addObject:handler];
     }
 }
 
 - (void)onDidFail:(void (^)(XMPPStreamStub *))handler
 {
     if (handler) {
-        dispatch_async(_operationQueue, ^{
-            [_onDidFailCallbacks addObject:handler];
-        });
+        [_onDidFailCallbacks addObject:handler];
     }
+}
+
+#pragma mark Queue
+
+- (dispatch_queue_t)xmpp_queue
+{
+    return self.queue ?: dispatch_get_main_queue();
 }
 
 @end

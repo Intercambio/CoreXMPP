@@ -240,15 +240,15 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         // Handle Stream Errors
 
+        _state = XMPPClientStateDisconnected;
+        
         NSError *error = [NSError streamErrorFromElement:element];
-
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
                 [delegate client:self didFailWithError:error];
             }
         });
-
-        _state = XMPPClientStateDisconnecting;
+        
         [_stream close];
 
     } else {
@@ -304,29 +304,32 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error
 {
-    _state = XMPPClientStateDisconnected;
-
-    id<XMPPClientDelegate> delegate = self.delegate;
-    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-
-    dispatch_async(delegateQueue, ^{
-        if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
-            [delegate client:self didFailWithError:error];
-        }
-    });
+    if (_state != XMPPClientStateDisconnected) {
+        _state = XMPPClientStateDisconnected;
+        
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
+                [delegate client:self didFailWithError:error];
+            }
+        });
+    }
 }
 
 - (void)streamDidClose:(XMPPStream *)stream
 {
-    _state = XMPPClientStateDisconnected;
-
-    id<XMPPClientDelegate> delegate = self.delegate;
-    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-    dispatch_async(delegateQueue, ^{
-        if ([delegate respondsToSelector:@selector(clientDidDisconnect:)]) {
-            [delegate clientDidDisconnect:self];
-        }
-    });
+    if (_state != XMPPClientStateDisconnected) {
+        _state = XMPPClientStateDisconnected;
+        
+        id<XMPPClientDelegate> delegate = self.delegate;
+        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(delegateQueue, ^{
+            if ([delegate respondsToSelector:@selector(clientDidDisconnect:)]) {
+                [delegate clientDidDisconnect:self];
+            }
+        });
+    }
 }
 
 #pragma mark XMPPStreamFeatureDelegate
