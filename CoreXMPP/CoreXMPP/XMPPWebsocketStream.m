@@ -9,6 +9,7 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <SocketRocket/SRWebSocket.h>
 
+#import "XMPPError.h"
 #import "XMPPWebsocketStream.h"
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
@@ -144,8 +145,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         NSString *errorMessage = @"Recevied unsupported framing document.";
 
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeInvalidState
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeInvalidState
                                          userInfo:userInfo];
         [self xmpp_handleError:error];
     }
@@ -160,8 +161,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         NSString *errorMessage = @"Received unexpected open frame.";
 
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeInvalidState
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeInvalidState
                                          userInfo:userInfo];
 
         [self xmpp_handleError:error];
@@ -188,8 +189,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         NSString *errorMessage = @"Received unexpected close frame.";
 
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeInvalidState
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeInvalidState
                                          userInfo:userInfo];
 
         [self xmpp_handleError:error];
@@ -336,8 +337,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         [_websocket open];
 
     } else {
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeDiscoveryError
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeDiscoveryError
                                          userInfo:nil];
         [self xmpp_handleError:error];
     }
@@ -357,8 +358,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     if (_state != XMPPStreamStateConnecting) {
         NSString *errorMessage = @"Expecting stream to be in state 'connection' while the connection is established.";
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeInvalidState
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeInvalidState
                                          userInfo:userInfo];
         [self xmpp_handleError:error];
     } else {
@@ -389,8 +390,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             NSString *errorMessage = @"Failed to parse received XML document.";
 
             NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-            NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                                 code:XMPPStreamErrorCodeParseError
+            NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                                 code:XMPPErrorCodeParseError
                                              userInfo:userInfo];
 
             [self xmpp_handleError:error];
@@ -401,8 +402,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         NSString *errorMessage = [NSString stringWithFormat:@"Received websocket message of wrong format. Expected UTF8 encoded string or data. Got `%@`", NSStringFromClass([message class])];
 
         NSDictionary *userInfo = @{NSLocalizedDescriptionKey : errorMessage};
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeMessageFormatError
+        NSError *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeMessageFormatError
                                          userInfo:userInfo];
 
         [self xmpp_handleError:error];

@@ -168,13 +168,13 @@
                        namespace:@"http://example.com"
                          content:@"… some data …"];
 
-    NSError *error = [XMPPClient streamErrorFromElement:doc.root];
+    NSError *error = [NSError streamErrorFromElement:doc.root];
 
     assertThat(error, notNilValue());
-    assertThat(error.domain, equalTo(XMPPClientStreamErrorDomain));
-    assertThatInteger(error.code, equalToInteger(XMPPClientStreamErrorCodeSystemShutdown));
+    assertThat(error.domain, equalTo(XMPPStreamErrorDomain));
+    assertThatInteger(error.code, equalToInteger(XMPPStreamErrorCodeSystemShutdown));
     assertThat([error localizedDescription], equalTo(@"Giving up!"));
-    assertThat([error.userInfo objectForKey:XMPPClientStreamErrorXMLDocumentKey], notNilValue());
+    assertThat([error.userInfo objectForKey:XMPPErrorXMLDocumentKey], notNilValue());
 }
 
 - (void)testXMLStreamErrors
@@ -217,7 +217,7 @@
 
     NSError *error = [captor value];
 
-    assertThat(error.domain, equalTo(XMPPClientStreamErrorDomain));
+    assertThat(error.domain, equalTo(XMPPStreamErrorDomain));
 }
 
 - (void)testUnderlyingStreamErrors

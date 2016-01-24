@@ -9,15 +9,6 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
-extern NSString *const XMPPStreamErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPStreamErrorCode) {
-    XMPPStreamErrorCodeInvalidState = 10,
-    XMPPStreamErrorCodeMessageFormatError = 20,
-    XMPPStreamErrorCodeParseError = 30,
-    XMPPStreamErrorCodeDiscoveryError = 40
-};
-
 typedef NS_ENUM(NSUInteger, XMPPStreamState) {
     XMPPStreamStateClosed = 0,
     XMPPStreamStateDiscovering,

@@ -9,23 +9,6 @@
 #import "XMPPStreamFeature.h"
 #import "SASLMechanism.h"
 
-extern NSString *const XMPPStreamFeatureSASLErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPStreamFeatureSASLErrorCode) {
-    XMPPStreamFeatureSASLErrorCodeUndefined,
-    XMPPStreamFeatureSASLErrorCodeAborted,
-    XMPPStreamFeatureSASLErrorCodeAccountDisabled,
-    XMPPStreamFeatureSASLErrorCodeCredentialsExpired,
-    XMPPStreamFeatureSASLErrorCodeEncryptionRequired,
-    XMPPStreamFeatureSASLErrorCodeIncorrectEncoding,
-    XMPPStreamFeatureSASLErrorCodeInvalidAuthzid,
-    XMPPStreamFeatureSASLErrorCodeInvalidMechanism,
-    XMPPStreamFeatureSASLErrorCodeMalformedRequest,
-    XMPPStreamFeatureSASLErrorCodeMechanismTooWeak,
-    XMPPStreamFeatureSASLErrorCodeNotAuthorized,
-    XMPPStreamFeatureSASLErrorCodeTemporaryAuthFailure
-};
-
 extern NSString *const XMPPStreamFeatureSASLNamespace;
 
 @protocol XMPPStreamFeatureDelegateSASL <XMPPStreamFeatureDelegate>

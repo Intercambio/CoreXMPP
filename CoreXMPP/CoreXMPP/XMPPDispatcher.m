@@ -8,12 +8,10 @@
 
 #import <PureXML/PureXML.h>
 
+#import "XMPPError.h"
 #import "XMPPJID.h"
-#import "XMPPStanza.h"
 #import "XMPPModule.h"
 #import "XMPPDispatcher.h"
-
-NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
 
 @interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;
@@ -254,7 +252,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                                                   NSString *requestID = [stanza valueForAttribute:@"id"];
 
                                                   if (from && requestID) {
-                                                      PXElement *response = [XMPPStanza IQResponseWithError:error];
+                                                      PXElement *response = [NSError IQResponseWithError:error];
 
                                                       [response setValue:from forAttribute:@"to"];
                                                       [response setValue:requestID forAttribute:@"id"];
@@ -281,7 +279,7 @@ NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
                                                                  code:XMPPStanzaErrorCodeItemNotFound
                                                              userInfo:nil];
 
-                            PXElement *response = [XMPPStanza IQResponseWithError:error];
+                            PXElement *response = [NSError IQResponseWithError:error];
 
                             [response setValue:from forAttribute:@"to"];
                             [response setValue:requestID forAttribute:@"id"];

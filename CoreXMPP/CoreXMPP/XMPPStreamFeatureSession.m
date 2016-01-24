@@ -119,7 +119,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     NSString *responseId = [iq valueForAttribute:@"id"];
 
     if (responseId && [responseId isEqualToString:_requestId]) {
-        NSError *error = [XMPPStanza errorFromStanza:iq];
+        NSError *error = [NSError errorFromStanza:iq];
 
         DDLogInfo(@"Host '%@' did reject new session with error: %@", _hostname, [error localizedDescription]);
 

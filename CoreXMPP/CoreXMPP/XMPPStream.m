@@ -8,8 +8,6 @@
 
 #import "XMPPStream.h"
 
-NSString *const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
-
 @implementation XMPPStream
 
 #pragma mark Life-cycle

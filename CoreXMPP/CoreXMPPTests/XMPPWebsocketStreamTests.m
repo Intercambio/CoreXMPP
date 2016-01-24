@@ -85,11 +85,11 @@
     [givenVoid([delegate stream:stream didReceiveElement:anything()]) willDo:^id(NSInvocation *invocation) {
 
         PXElement *element = [[invocation mkt_arguments] lastObject];
-        NSError *error = [XMPPClient streamErrorFromElement:element];
+        NSError *error = [NSError streamErrorFromElement:element];
 
         assertThat(error, notNilValue());
-        assertThat(error.domain, equalTo(XMPPClientStreamErrorDomain));
-        assertThatInteger(error.code, equalToInteger(XMPPClientStreamErrorCodeHostUnknown));
+        assertThat(error.domain, equalTo(XMPPStreamErrorDomain));
+        assertThatInteger(error.code, equalToInteger(XMPPStreamErrorCodeHostUnknown));
 
         // If the client detects an stream error, it will clsoe the stream. This should not result
         // into timing issues with the server (who will be the first closing the stream).

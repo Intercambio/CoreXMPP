@@ -8,6 +8,7 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
+#import "XMPPError.h"
 #import "XMPPWebsocketStream.h"
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureSASL.h"
@@ -19,8 +20,6 @@
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
-NSString *const XMPPClientStreamErrorDomain = @"XMPPClientStreamErrorDomain";
-NSString *const XMPPClientStreamErrorXMLDocumentKey = @"XMPPClientStreamErrorXMLDocument";
 NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
@@ -74,73 +73,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
     NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
     [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
-}
-
-#pragma mark Stream Errors
-
-+ (NSError *)streamErrorFromElement:(PXElement *)element
-{
-    if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
-        [element.name isEqualToString:@"error"]) {
-
-        NSMutableArray *children = [[NSMutableArray alloc] init];
-        [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
-            [children addObject:element];
-        }];
-
-        NSString *errorDomain = XMPPClientStreamErrorDomain;
-        __block NSInteger errorCode = XMPPClientStreamErrorCodeUndefinedCondition;
-        NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
-
-        PXDocument *errorDocument = [[PXDocument alloc] initWithElement:element];
-        [userInfo setObject:errorDocument forKey:XMPPClientStreamErrorXMLDocumentKey];
-
-        PXElement *errorElement = [children firstObject];
-        if ([errorElement.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-streams"]) {
-
-            NSDictionary *errorCodes = @{ @"bad-format" : @(XMPPClientStreamErrorCodeBadFormat),
-                                          @"bad-namespace-prefix" : @(XMPPClientStreamErrorCodeBadNamespacePrefix),
-                                          @"conflict" : @(XMPPClientStreamErrorCodeConflict),
-                                          @"connection-timeout" : @(XMPPClientStreamErrorCodeConnectionTimeout),
-                                          @"host-gone" : @(XMPPClientStreamErrorCodeHostGone),
-                                          @"host-unknown" : @(XMPPClientStreamErrorCodeHostUnknown),
-                                          @"improper-addressing" : @(XMPPClientStreamErrorCodeImproperAddressing),
-                                          @"internal-server-error" : @(XMPPClientStreamErrorCodeInternalServerError),
-                                          @"invalid-from" : @(XMPPClientStreamErrorCodeInvalidFrom),
-                                          @"invalid-namespace" : @(XMPPClientStreamErrorCodeInvalidNamespace),
-                                          @"invalid-xml" : @(XMPPClientStreamErrorCodeInvalidXML),
-                                          @"not-authorized" : @(XMPPClientStreamErrorCodeNotAuthorized),
-                                          @"not-well-formed" : @(XMPPClientStreamErrorCodeNotWellFormed),
-                                          @"policy-violation" : @(XMPPClientStreamErrorCodePolicyViolation),
-                                          @"remote-connection-failed" : @(XMPPClientStreamErrorCodeRemoteConnectionFailed),
-                                          @"reset" : @(XMPPClientStreamErrorCodeReset),
-                                          @"resource-constraint" : @(XMPPClientStreamErrorCodeResourceConstraint),
-                                          @"restricted-xml" : @(XMPPClientStreamErrorCodeRestrictedXML),
-                                          @"see-other-host" : @(XMPPClientStreamErrorCodeSeeOtherHost),
-                                          @"system-shutdown" : @(XMPPClientStreamErrorCodeSystemShutdown),
-                                          @"undefined-condition" : @(XMPPClientStreamErrorCodeUndefinedCondition),
-                                          @"unsupported-encoding" : @(XMPPClientStreamErrorCodeUnsupportedEncoding),
-                                          @"unsupported-feature" : @(XMPPClientStreamErrorCodeUnsupportedFeature),
-                                          @"unsupported-stanza-type" : @(XMPPClientStreamErrorCodeUnsupportedStanzaType),
-                                          @"unsupported-version" : @(XMPPClientStreamErrorCodeUnsupportedVersion) };
-
-            errorCode = [errorCodes[errorElement.name] integerValue] ?: XMPPClientStreamErrorCodeUndefinedCondition;
-        }
-
-        if ([children count] >= 2) {
-            PXElement *errorText = [children objectAtIndex:1];
-            if ([errorText.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-streams"] &&
-                [errorText.name isEqualToString:@"text"]) {
-                [userInfo setObject:errorText.stringValue forKey:NSLocalizedDescriptionKey];
-            }
-        }
-
-        return [NSError errorWithDomain:errorDomain
-                                   code:errorCode
-                               userInfo:userInfo];
-    }
-
-    return nil;
 }
 
 #pragma mark Life-cycle
@@ -308,7 +240,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         // Handle Stream Errors
 
-        NSError *error = [[self class] streamErrorFromElement:element];
+        NSError *error = [NSError streamErrorFromElement:element];
 
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {

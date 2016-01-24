@@ -8,16 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-extern NSString *const XMPPDispatcherErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
-    XMPPDispatcherErrorCodeTimeout,
-    XMPPDispatcherErrorCodeNoSender,
-    XMPPDispatcherErrorCodeNoRoute,
-    XMPPDispatcherErrorCodeNotConnected,
-    XMPPDispatcherErrorCodeInvalidStanza
-};
-
 @class PXQName;
 @class PXElement;
 @class XMPPJID;

@@ -316,8 +316,8 @@
     // Let the stream fail
     //
 
-    NSError *error = [NSError errorWithDomain:XMPPClientStreamErrorDomain
-                                         code:XMPPClientStreamErrorCodeInternalServerError
+    NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
+                                         code:XMPPStreamErrorCodeInternalServerError
                                      userInfo:nil];
     [stream failWithError:error];
 
@@ -351,8 +351,8 @@
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
 
     [stream onDidOpen:^(XMPPStreamStub *stream) {
-        NSError *error = [NSError errorWithDomain:XMPPClientStreamErrorDomain
-                                             code:XMPPClientStreamErrorCodeInternalServerError
+        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
+                                             code:XMPPStreamErrorCodeInternalServerError
                                          userInfo:nil];
         [stream failWithError:error];
     }];

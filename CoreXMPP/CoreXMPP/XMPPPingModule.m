@@ -8,8 +8,8 @@
 
 #import <PureXML/PureXML.h>
 
+#import "XMPPError.h"
 #import "XMPPJID.h"
-#import "XMPPStanza.h"
 #import "XMPPServiceManager.h"
 
 #import "XMPPPingModule.h"
@@ -69,7 +69,7 @@
                                               if ([type isEqualToString:@"result"]) {
                                                   completionHandler(YES, nil);
                                               } else if ([type isEqualToString:@"error"]) {
-                                                  NSError *error = [XMPPStanza errorFromStanza:response];
+                                                  NSError *error = [NSError errorFromStanza:response];
                                                   completionHandler(NO, error);
                                               }
                                           }

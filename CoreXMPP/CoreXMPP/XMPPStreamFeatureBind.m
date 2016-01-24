@@ -8,7 +8,7 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-#import "XMPPStanza.h"
+#import "XMPPError.h"
 
 #import "XMPPStreamFeatureBind.h"
 
@@ -170,7 +170,7 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 
     if (responseId && [responseId isEqualToString:_requestId]) {
 
-        NSError *error = [XMPPStanza errorFromStanza:iq];
+        NSError *error = [NSError errorFromStanza:iq];
 
         DDLogInfo(@"Host '%@' did reject to bind to resource with error: %@", _hostname, [error localizedDescription]);
 

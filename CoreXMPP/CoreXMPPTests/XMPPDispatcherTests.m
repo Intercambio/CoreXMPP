@@ -328,7 +328,7 @@
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
     [connection onHandleStanza:^(PXElement *message, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(message, equalTo(PXQN(@"jabber:client", @"iq")));
-        NSError *error = [XMPPStanza errorFromStanza:message];
+        NSError *error = [NSError errorFromStanza:message];
         assertThat(error.domain, equalTo(XMPPStanzaErrorDomain));
         assertThatInteger(error.code, equalToInteger(XMPPStanzaErrorCodeItemNotFound));
         [expectation fulfill];

@@ -16,11 +16,11 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <CoreXMPP/PublicHeader.h>
 
+// XMPP Error
+#import <CoreXMPP/XMPPError.h>
+
 // XMPP JID
 #import <CoreXMPP/XMPPJID.h>
-
-// XMPP Stanza
-#import <CoreXMPP/XMPPStanza.h>
 
 // XMPP Service Manager
 #import <CoreXMPP/XMPPServiceManager.h>
