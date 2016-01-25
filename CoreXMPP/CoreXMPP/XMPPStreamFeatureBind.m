@@ -109,27 +109,40 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 
     DDLogInfo(@"Requesting '%@' to bind the client to the resource: %@", _hostname, preferredResourceName);
 
-    [self.delegate streamFeature:self handleElement:iq];
+    [self.stanzaHandler handleStanza:iq
+                          completion:^(NSError *error){
+
+                          }];
 }
 
-- (void)handleElement:(PXElement *)element
-{
-    if ([element.namespace isEqualToString:@"jabber:client"] &&
-        [element.name isEqualToString:@"iq"]) {
+#pragma mark XMPPStanzaHandler
 
-        NSString *type = [element valueForAttribute:@"type"];
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+{
+    if ([stanza.namespace isEqualToString:@"jabber:client"] &&
+        [stanza.name isEqualToString:@"iq"]) {
+
+        NSString *type = [stanza valueForAttribute:@"type"];
 
         if ([type isEqualToString:@"result"]) {
-            [self handleIQResult:element];
+            [self handleIQResult:stanza completion:completion];
         } else if ([type isEqualToString:@"error"]) {
-            [self handleIQError:element];
+            [self handleIQError:stanza completion:completion];
+        } else {
+            if (completion) {
+                completion(nil);
+            }
+        }
+    } else {
+        if (completion) {
+            completion(nil);
         }
     }
 }
 
 #pragma mark -
 
-- (void)handleIQResult:(PXElement *)iq
+- (void)handleIQResult:(PXElement *)iq completion:(void (^)(NSError *))completion
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -162,9 +175,13 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
         }
         _requestId = nil;
     }
+
+    if (completion) {
+        completion(nil);
+    }
 }
 
-- (void)handleIQError:(PXElement *)iq
+- (void)handleIQError:(PXElement *)iq completion:(void (^)(NSError *))completion
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -176,6 +193,10 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;
+    }
+
+    if (completion) {
+        completion(nil);
     }
 }
 

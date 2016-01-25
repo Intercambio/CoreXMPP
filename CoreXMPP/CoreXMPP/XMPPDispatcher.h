@@ -8,13 +8,11 @@
 
 #import <Foundation/Foundation.h>
 
+#import "XMPPStanzaHandler.h"
+
 @class PXQName;
 @class PXElement;
 @class XMPPJID;
-
-@protocol XMPPStanzaHandler <NSObject>
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
-@end
 
 @protocol XMPPConnection <XMPPStanzaHandler>
 @property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;

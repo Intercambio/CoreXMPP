@@ -22,6 +22,9 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 // XMPP JID
 #import <CoreXMPP/XMPPJID.h>
 
+// Protocols
+#import <CoreXMPP/XMPPStanzaHandler.h>
+
 // XMPP Service Manager
 #import <CoreXMPP/XMPPServiceManager.h>
 #import <CoreXMPP/XMPPAccount.h>

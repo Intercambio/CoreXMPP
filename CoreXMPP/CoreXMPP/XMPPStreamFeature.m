@@ -51,8 +51,12 @@
 {
 }
 
-- (void)handleElement:(PXElement *)element
+#pragma mark XMPPStanzaHandler
+
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
+    if (completion)
+        completion(nil);
 }
 
 @end
