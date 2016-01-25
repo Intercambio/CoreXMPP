@@ -24,4 +24,11 @@
     [_stream sendElement:stanza];
 }
 
+- (void)processPendingStanzas:(void (^)(NSError *))completion
+{
+    if (completion) {
+        completion(nil);
+    }
+}
+
 @end

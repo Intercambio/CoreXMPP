@@ -63,6 +63,15 @@
     });
 }
 
+- (void)processPendingStanzas:(void (^)(NSError *))completion
+{
+    dispatch_async(_operationQueue, ^{
+        if (completion) {
+            completion(nil);
+        }
+    });
+}
+
 #pragma mark -
 
 - (void)onHandleStanza:(void (^)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler))callback;

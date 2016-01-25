@@ -336,6 +336,15 @@
     });
 }
 
+- (void)processPendingStanzas:(void (^)(NSError *))completion
+{
+    dispatch_async(_operationQueue, ^{
+        if (completion) {
+            completion(nil);
+        }
+    });
+}
+
 #pragma mark XMPPMessageHandler
 
 - (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion

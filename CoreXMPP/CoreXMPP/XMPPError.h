@@ -117,6 +117,8 @@ typedef NS_ENUM(NSInteger, XMPPStanzaErrorCode) {
 
 @interface NSError (XMPP)
 + (NSError *)streamErrorFromElement:(PXElement *)element;
++ (NSInteger)stanzaErrorCodeWithName:(NSString *)name;
 + (NSError *)errorFromStanza:(PXElement *)element;
++ (NSError *)errorFromElement:(PXElement *)errorElement;
 + (PXElement *)IQResponseWithError:(NSError *)error;
 @end

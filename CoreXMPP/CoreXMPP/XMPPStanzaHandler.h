@@ -12,4 +12,5 @@
 
 @protocol XMPPStanzaHandler <NSObject>
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
+- (void)processPendingStanzas:(void (^)(NSError *error))completion;
 @end

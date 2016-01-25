@@ -115,6 +115,50 @@ NSString *const XMPPErrorXMLDocumentKey = @"XMPPErrorXMLDocumentKey";
               @"unexpected-request" : @(XMPPStanzaErrorCodeUnexpectedRequest) };
 }
 
++ (NSInteger)stanzaErrorCodeWithName:(NSString *)name
+{
+    NSNumber *_code = [[self xmpp_stanzaErrorCodesByErrorName] objectForKey:name];
+    return _code ? [_code integerValue] : XMPPStanzaErrorCodeUndefinedCondition;
+}
+
++ (NSError *)errorFromElement:(PXElement *)errorElement
+{
+    if (errorElement) {
+
+        NSMutableArray *children = [[NSMutableArray alloc] init];
+        [errorElement enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+            [children addObject:element];
+        }];
+
+        NSString *errorDomain = XMPPStanzaErrorDomain;
+        __block NSInteger errorCode = XMPPStanzaErrorCodeUndefinedCondition;
+        NSMutableDictionary *userInfo = [[NSMutableDictionary alloc] init];
+
+        PXElement *definedCondition = [children firstObject];
+        if ([definedCondition.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-stanzas"]) {
+
+            NSDictionary *errorCodes = [self xmpp_stanzaErrorCodesByErrorName];
+
+            errorCode = [errorCodes[definedCondition.name] integerValue] ?: XMPPStanzaErrorCodeUndefinedCondition;
+        }
+
+        if ([children count] >= 2) {
+            PXElement *errorText = [children objectAtIndex:1];
+            if ([errorText.namespace isEqualToString:@"urn:ietf:params:xml:ns:xmpp-stanzas"] &&
+                [errorText.name isEqualToString:@"text"]) {
+                [userInfo setObject:errorText.stringValue forKey:NSLocalizedDescriptionKey];
+            }
+        }
+
+        return [NSError errorWithDomain:errorDomain
+                                   code:errorCode
+                               userInfo:userInfo];
+
+    } else {
+        return nil;
+    }
+}
+
 + (NSError *)errorFromStanza:(PXElement *)element
 {
     __block PXElement *errorElement = nil;

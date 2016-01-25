@@ -96,4 +96,10 @@
         completion(nil);
 }
 
+- (void)processPendingStanzas:(void (^)(NSError *))completion
+{
+    if (completion)
+        completion(nil);
+}
+
 @end
