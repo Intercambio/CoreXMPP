@@ -10,6 +10,32 @@
 
 @implementation XMPPStreamFeature
 
+#pragma mark Registered Stream Features
+
++ (NSMutableDictionary *)xmpp_registeredStreamFeatures
+{
+    static NSMutableDictionary *registeredStreamFeatures;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        registeredStreamFeatures = [[NSMutableDictionary alloc] init];
+    });
+    return registeredStreamFeatures;
+}
+
++ (NSDictionary *)registeredStreamFeatures
+{
+    return [self xmpp_registeredStreamFeatures];
+}
+
++ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName
+{
+    NSParameterAssert(featureClass);
+    NSParameterAssert(streamFeatureQName);
+
+    NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
+    [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
+}
+
 #pragma mark Feature Name & Namespace
 
 + (NSString *)name
@@ -23,6 +49,17 @@
 }
 
 #pragma mark Life-cycle
+
++ (instancetype)streamFeatureWithConfiguration:(PXDocument *)configuration
+{
+    Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:configuration.root.qualifiedName];
+    if (featureClass) {
+        XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithConfiguration:configuration];
+        return feature;
+    } else {
+        return nil;
+    }
+}
 
 - (id)initWithConfiguration:(PXDocument *)configuration
 {

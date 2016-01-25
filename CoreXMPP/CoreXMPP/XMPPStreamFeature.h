@@ -20,11 +20,16 @@
 
 @interface XMPPStreamFeature : NSObject <XMPPStanzaHandler>
 
+#pragma mark Registered Stream Features
++ (NSDictionary *)registeredStreamFeatures;
++ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
+
 #pragma mark Feature Name & Namespace
 + (NSString *)name;
 + (NSString *) namespace;
 
 #pragma mark Life-cycle
++ (instancetype)streamFeatureWithConfiguration:(PXDocument *)configuration;
 - (id)initWithConfiguration:(PXDocument *)configuration;
 
 #pragma mark Feature Configuration

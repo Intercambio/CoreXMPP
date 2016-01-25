@@ -40,10 +40,6 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 @interface XMPPClient : NSObject <XMPPConnection>
 
-#pragma mark Registered Stream Features
-+ (NSDictionary *)registeredStreamFeatures;
-+ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
-
 #pragma mark Life-cycle
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;

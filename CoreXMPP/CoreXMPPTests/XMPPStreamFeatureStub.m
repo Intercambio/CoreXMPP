@@ -18,7 +18,7 @@
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureStub class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureStub class] forStreamFeatureQName:QName];
 }
 
 #pragma mark Feature Name & Namespace

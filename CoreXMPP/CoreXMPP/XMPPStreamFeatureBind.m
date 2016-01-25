@@ -28,7 +28,7 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureBind name] namespace:[XMPPStreamFeatureBind namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureBind class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureBind class] forStreamFeatureQName:QName];
 }
 
 #pragma mark Logging

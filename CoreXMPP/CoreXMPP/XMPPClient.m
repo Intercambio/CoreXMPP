@@ -51,32 +51,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     ddLogLevel = logLevel;
 }
 
-#pragma mark Registered Stream Features
-
-+ (NSMutableDictionary *)xmpp_registeredStreamFeatures
-{
-    static NSMutableDictionary *registeredStreamFeatures;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        registeredStreamFeatures = [[NSMutableDictionary alloc] init];
-    });
-    return registeredStreamFeatures;
-}
-
-+ (NSDictionary *)registeredStreamFeatures
-{
-    return [self xmpp_registeredStreamFeatures];
-}
-
-+ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName
-{
-    NSParameterAssert(featureClass);
-    NSParameterAssert(streamFeatureQName);
-
-    NSMutableDictionary *registeredStreamFeatures = [self xmpp_registeredStreamFeatures];
-    [registeredStreamFeatures setObject:featureClass forKey:streamFeatureQName];
-}
-
 #pragma mark Life-cycle
 
 - (instancetype)initWithHostname:(NSString *)hostname
@@ -150,9 +124,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     if (configuration) {
         [_featureConfigurations removeObjectAtIndex:0];
 
-        Class featureClass = [[[self class] registeredStreamFeatures] objectForKey:configuration.root.qualifiedName];
-        if (featureClass) {
-            XMPPStreamFeature *feature = (XMPPStreamFeature *)[[featureClass alloc] initWithConfiguration:configuration];
+        XMPPStreamFeature *feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
+        if (feature) {
 
             // Begin the negotiation of the feature
 

@@ -64,7 +64,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSession name] namespace:[XMPPStreamFeatureSession namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureSession class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureSession class] forStreamFeatureQName:QName];
 }
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
