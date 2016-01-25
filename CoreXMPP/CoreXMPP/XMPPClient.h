@@ -10,6 +10,7 @@
 #import <PureXML/PureXML.h>
 
 #import "XMPPDispatcher.h"
+#import "XMPPClientStreamManagement.h"
 
 extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
@@ -58,6 +59,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark Stream Features
 @property (nonatomic, readonly) NSArray *negotiatedFeatures;
+
+#pragma mark Stream Management
+@property (nonatomic, readonly) id<XMPPClientStreamManagement> streamManagement;
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;

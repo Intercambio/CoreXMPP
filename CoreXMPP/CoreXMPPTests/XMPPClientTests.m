@@ -6,8 +6,6 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
-
 #import "XMPPTestCase.h"
 
 @interface XMPPClientTests : XMPPTestCase

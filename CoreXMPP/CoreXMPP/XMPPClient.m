@@ -29,8 +29,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 @interface XMPPClient () <XMPPStreamDelegate,
                           XMPPStreamFeatureDelegate,
                           XMPPStreamFeatureDelegateSASL,
-                          XMPPStreamFeatureDelegateBind,
-                          XMPPStreamFeatureDelegateStreamManagement> {
+                          XMPPStreamFeatureDelegateBind> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
     XMPPWebsocketStream *_stream;
@@ -111,6 +110,14 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             });
         }];
     });
+}
+
+#pragma mark Stream Management
+
+- (BOOL)isStreamManagementEnabled
+{
+    XMPPStreamFeature *feature = [self xmpp_negotiatedFeaturesWithQName:PXQN(@"urn:xmpp:sm:3", @"sm")];
+    return feature != nil;
 }
 
 #pragma mark Feature Negotiation
@@ -209,6 +216,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         NSError *error = nil;
         if (_state == XMPPClientStateEstablished) {
             [_stream sendElement:stanza];
+            [_streamManagement didSentStanza:stanza];
         } else {
             error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                         code:XMPPDispatcherErrorCodeNotConnected
@@ -296,11 +304,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
                                           if (error) {
                                               DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
                                           } else {
-                                              XMPPStreamFeature *feature = [self xmpp_negotiatedFeaturesWithQName:PXQN(@"urn:xmpp:sm:3", @"sm")];
-                                              if ([feature isKindOfClass:[XMPPStreamFeatureStreamManagement class]]) {
-                                                  XMPPStreamFeatureStreamManagement *sm = (XMPPStreamFeatureStreamManagement *)feature;
-                                                  sm.numberOfReceivedStanzas += 1;
-                                              }
+                                              [_streamManagement didHandleReceviedStanza:element];
                                           }
                                       });
                                   }];
@@ -380,8 +384,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         DDLogInfo(@"Client '%@' succeed negotiation of feature: (%@, %@)", self, [[streamFeature class] namespace], [[streamFeature class] name]);
 
         _negotiatedFeatures = [_negotiatedFeatures arrayByAddingObject:streamFeature];
-
         _currentFeature = nil;
+
+        if ([streamFeature conformsToProtocol:@protocol(XMPPClientStreamManagement)]) {
+            _streamManagement = (id<XMPPClientStreamManagement>)streamFeature;
+        }
 
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();

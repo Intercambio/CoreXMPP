@@ -15,6 +15,7 @@
 #import <OCMockito/OCMockito.h>
 
 #import <OHHTTPStubs/OHHTTPStubs.h>
+#import <CocoaLumberjack/CocoaLumberjack.h>
 
 #import <CoreXMPP/CoreXMPP.h>
 

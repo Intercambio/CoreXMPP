@@ -7,16 +7,8 @@
 //
 
 #import "XMPPStreamFeature.h"
+#import "XMPPClientStreamManagement.h"
 
-@protocol XMPPStreamFeatureDelegateStreamManagement <XMPPStreamFeatureDelegate>
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didAcknowledgeStanzas:(NSUInteger)numberOfAcknowledgedStanzas;
-@end
-
-@interface XMPPStreamFeatureStreamManagement : XMPPStreamFeature
-
-#pragma mark Acknowledgement
-@property (atomic, readwrite) NSUInteger numberOfReceivedStanzas;
-@property (atomic, readonly) NSUInteger numberOfAcknowledgedStanzas;
-- (void)requestAcknowledgement;
+@interface XMPPStreamFeatureStreamManagement : XMPPStreamFeature <XMPPClientStreamManagement>
 
 @end
