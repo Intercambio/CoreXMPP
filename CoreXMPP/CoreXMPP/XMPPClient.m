@@ -26,16 +26,15 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
-@interface XMPPClient () <XMPPStreamDelegate,
-                          XMPPStreamFeatureDelegate,
-                          XMPPStreamFeatureDelegateSASL,
-                          XMPPStreamFeatureDelegateBind> {
+@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
     XMPPWebsocketStream *_stream;
     XMPPStreamFeature *_currentFeature;
-    NSMutableArray *_featureConfigurations;
+    NSMutableDictionary *_featureConfigurations;
+    NSMutableArray *_preferredFeatures;
     id<XMPPStanzaHandler> _streamFeatureStanzaHandler;
+    XMPPStreamFeature<XMPPClientStreamManagement> *_streamManagement;
 }
 
 @end
@@ -57,6 +56,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 #pragma mark Life-cycle
 
 @synthesize stanzaHandler = _stanzaHandler;
+@synthesize streamManagement = _streamManagement;
 
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options
@@ -140,20 +140,20 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     dispatch_async(_operationQueue, ^{
 
         DDLogInfo(@"Suspending: %@", self);
-
-        for (XMPPStreamFeature *feature in _negotiatedFeatures) {
-            feature.stanzaHandler = nil;
-        }
-
-        _state = XMPPClientStateDisconnected;
-        _stream.delegate = nil;
-        _stream = nil;
-        _currentFeature = nil;
-        _featureConfigurations = nil;
-
-        if (completion) {
-            completion(nil);
-        }
+        
+        _state = XMPPClientStateDisconnecting;
+        [_stanzaHandler processPendingStanzas:^(NSError *error) {
+            dispatch_async(_operationQueue, ^{
+                [_streamManagement sendAcknowledgement];
+                [_stream suspend];
+                if (_streamManagement.resumable == NO) {
+                    _streamManagement = nil;
+                }
+                if (completion) {
+                    completion(nil);
+                }
+            });
+        }];
     });
 }
 
@@ -170,7 +170,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             // The stanza can be handled if the connection to the server is established
             // or if the client supports stream management (and can resend the stanza later).
 
-            if (_stream) {
+            if (_state == XMPPClientStateEstablished) {
                 [_stream sendElement:stanza];
             } else {
                 DDLogDebug(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
@@ -207,23 +207,81 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 - (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
 {
-    NSMutableArray *featureConfigurations = [[NSMutableArray alloc] init];
+    DDLogInfo(@"Client '%@' updating features: %@", self, features.document);
+    
+    NSMutableDictionary *featureConfigurations = [[NSMutableDictionary alloc] init];
+    
     [features enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
         PXDocument *configuration = [[PXDocument alloc] initWithElement:element];
-        [featureConfigurations addObject:configuration];
+        [featureConfigurations setObject:configuration forKey:configuration.root.qualifiedName];
     }];
+    
     _featureConfigurations = featureConfigurations;
+    _preferredFeatures = [[NSMutableArray alloc] init];
+    
+    if (_streamManagement.resumable) {
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
+        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
+    } else {
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-bind", @"bind")];
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-session", @"session")];
+        [featureConfigurations enumerateKeysAndObjectsUsingBlock:^(PXQName *name, PXDocument *configuration, BOOL *stop) {
+            if (![name isEqual:PXQN(@"urn:xmpp:sm:3", @"sm")] &&
+                ![_preferredFeatures containsObject:name]) {
+                [_preferredFeatures addObject:name];
+            }
+        }];
+        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
+    }
+}
+
+- (XMPPStreamFeature *)xmpp_featureWithQName:(PXQName *)QName
+{
+    for (XMPPStreamFeature *feature in _negotiatedFeatures) {
+        if ([[[feature class] name] isEqualToString:QName.name] &&
+            [[[feature class] namespace] isEqualToString:QName.namespace] ) {
+            return feature;
+        }
+    }
+    return nil;
+}
+
+- (PXDocument *)xmpp_nextFeatureConfiguration
+{
+    if ([_preferredFeatures count] > 0) {
+        
+        PXQName *featureName = [_preferredFeatures firstObject];
+        PXDocument *configuration = _featureConfigurations[featureName];
+        
+        [_preferredFeatures removeObject:featureName];
+        
+        if (configuration) {
+            return configuration;
+        } else {
+            return [self xmpp_nextFeatureConfiguration];
+        }
+    } else {
+        return nil;
+    }
 }
 
 - (void)xmpp_negotiateNextFeature
 {
     _state = XMPPClientStateNegotiating;
 
-    PXDocument *configuration = [_featureConfigurations firstObject];
+    PXDocument *configuration = [self xmpp_nextFeatureConfiguration];
     if (configuration) {
-        [_featureConfigurations removeObjectAtIndex:0];
-
-        XMPPStreamFeature *feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
+        
+        XMPPStreamFeature *feature = nil;
+        
+        if (_streamManagement.resumable && [configuration.root.qualifiedName isEqual:PXQN(@"urn:xmpp:sm:3", @"sm")]) {
+            // Reuse previous stream management feature
+            feature = _streamManagement;
+        } else {
+            feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
+        }
+        
         if (feature) {
 
             // Begin the negotiation of the feature
@@ -244,7 +302,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
             [self xmpp_negotiateNextFeature];
         }
-
+        
     } else {
 
         // No features left to negotiate
@@ -424,7 +482,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _currentFeature = nil;
 
         if ([streamFeature conformsToProtocol:@protocol(XMPPClientStreamManagement)]) {
-            _streamManagement = (id<XMPPClientStreamManagement>)streamFeature;
+            _streamManagement = (XMPPStreamFeature<XMPPClientStreamManagement> *)streamFeature;
         }
 
         id<XMPPClientDelegate> delegate = self.delegate;
@@ -437,6 +495,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         if (streamFeature.needsRestart) {
             _state = XMPPClientStateConnecting;
+            DDLogInfo(@"Client '%@' resetting stream.", self);
             [_stream reopen];
         } else {
             [self xmpp_negotiateNextFeature];
@@ -452,17 +511,27 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         _currentFeature.delegate = nil;
         _currentFeature = nil;
-
-        id<XMPPClientDelegate> delegate = self.delegate;
-        dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
-        dispatch_async(delegateQueue, ^{
-            if ([delegate respondsToSelector:@selector(client:didFailToNegotiateFeature:withError:)]) {
-                [delegate client:self didFailToNegotiateFeature:streamFeature withError:error];
+        
+        if (streamFeature.mandatory == NO) {
+            
+            if (streamFeature == _streamManagement) {
+                _streamManagement = nil;
             }
-        });
-
-        _state = XMPPClientStateDisconnecting;
-        [_stream close];
+            
+            [self xmpp_negotiateNextFeature];
+            
+        } else {
+            id<XMPPClientDelegate> delegate = self.delegate;
+            dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+            dispatch_async(delegateQueue, ^{
+                if ([delegate respondsToSelector:@selector(client:didFailToNegotiateFeature:withError:)]) {
+                    [delegate client:self didFailToNegotiateFeature:streamFeature withError:error];
+                }
+            });
+            
+            _state = XMPPClientStateDisconnecting;
+            [_stream close];
+        }
     }
 }
 

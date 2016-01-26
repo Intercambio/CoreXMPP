@@ -117,7 +117,7 @@
               completion:^(NSError *error) {
                   [expectMessageAck fulfill];
               }];
-    [self waitForExpectationsWithTimeout:5.0 handler:nil];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
     //
     // Disconnect
@@ -132,6 +132,89 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
+- (void)testResumeClient
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:nil];
+
+    id<XMPPClientDelegate> delegate = nil;
+    
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    client.SASLDelegate = SASLDelegate;
+
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    client.stanzaHandler = stanzaHandler;
+    
+    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+            if (_completion) {
+                _completion(nil);
+            }
+        });
+        return nil;
+    }];
+
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        return nil;
+    }];
+
+    //
+    // Connect
+    //
+
+    delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+    
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect:^(NSError *error) {
+        assertThat(error, nilValue());
+    }];
+    [self waitForExpectationsWithTimeout:100.0 handler:nil];
+    
+    assertThatBool(client.streamManagement.resumable, isTrue());
+
+    //
+    // Suspend
+    //
+
+    XCTestExpectation *waitForSuspend = [self expectationWithDescription:@"Suspend"];
+    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForSuspend fulfill];
+        return nil;
+    }];
+    [client suspend:^(NSError *error) {
+        assertThat(error, nilValue());
+    }];
+    [self waitForExpectationsWithTimeout:100.0 handler:nil];
+
+    //
+    // Resume
+    //
+
+    delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+    
+    waitForConnection = [self expectationWithDescription:@"Resume"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
+    }];
+    [client connect:^(NSError *error) {
+        assertThat(error, nilValue());
+    }];
+    [self waitForExpectationsWithTimeout:100.0 handler:nil];
+    
+    assertThatBool(client.streamManagement.resumable, isTrue());
+}
+
+#pragma mark -
 #pragma mark Connection
 
 - (void)testConnectClient
@@ -528,20 +611,21 @@
     }];
 
     //
-    // Connect (failure; stream will close)
+    // Connect
     //
-
-    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForStreamClose fulfill];
+    
+    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
+        [waitForConnection fulfill];
+        return nil;
     }];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
-    PXQName *featureQName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
+    [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
 
-    [verifyCount(delegate, times(1)) client:client didFailToNegotiateFeature:anything() withError:anything()];
-    [verifyCount(delegate, never()) client:client didNegotiateFeature:equalTo(featureQName)];
+    [verifyCount(delegate, never()) client:client didFailToNegotiateFeature:anything() withError:anything()];
+    [verifyCount(delegate, never()) client:client didNegotiateFeature:anything()];
 }
 
 - (void)testMandatoryFeatureWithoutRestart

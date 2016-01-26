@@ -420,6 +420,13 @@
                                                                prefix:@"stream"];
             [stream receiveElement:doc.root];
         }];
+        
+        [stream onDidOpen:^(XMPPStreamStub *stream) {
+            PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
+                                                            namespace:@"http://etherx.jabber.org/streams"
+                                                               prefix:@"stream"];
+            [stream receiveElement:doc.root];
+        }];
 
         return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{XMPPClientOptionsStreamKey : stream}];
     };
@@ -455,8 +462,6 @@
     [serviceManager suspend];
 
     assertThatBool(serviceManager.suspended, isTrue());
-
-    assertThatBool(account.connected, isFalse());
 
     [serviceManager resume];
 
