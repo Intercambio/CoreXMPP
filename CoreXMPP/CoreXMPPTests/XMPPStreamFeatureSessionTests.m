@@ -31,13 +31,17 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    feature.stanzaHandler = stanzaHandler;
+
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([delegate streamFeature:feature handleElement:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] lastObject];
+        PXElement *iq = [[invocation mkt_arguments] firstObject];
+        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -59,8 +63,12 @@
             [iq setValue:@"result" forAttribute:@"type"];
             [iq setValue:requestId forAttribute:@"id"];
 
-            [feature handleElement:iq];
+            [feature handleStanza:iq completion:nil];
         });
+
+        if (_completion) {
+            _completion(nil);
+        }
 
         return nil;
     }];
@@ -89,13 +97,18 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    feature.stanzaHandler = stanzaHandler;
+
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([delegate streamFeature:feature handleElement:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] lastObject];
+        PXElement *iq = [[invocation mkt_arguments] firstObject];
+        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+
         NSString *requestId = [iq valueForAttribute:@"id"];
 
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -109,8 +122,12 @@
             [error setValue:@"auth" forAttribute:@"type"];
             [error addElementWithName:@"forbidden" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
 
-            [feature handleElement:iq];
+            [feature handleStanza:iq completion:nil];
         });
+
+        if (_completion) {
+            _completion(nil);
+        }
 
         return nil;
     }];

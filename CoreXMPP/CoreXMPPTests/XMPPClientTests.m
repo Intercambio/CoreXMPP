@@ -78,15 +78,29 @@
 
               }];
 
+    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+            if (_completion) {
+                _completion(nil);
+            }
+        });
+        return nil;
+    }];
+
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
     [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
-
         PXElement *pong = [[invocation mkt_arguments] firstObject];
-        if ([pong isKindOfClass:[PXElement class]] &&
-            [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
-            [waitForPong fulfill];
-        }
-
+        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (_completion) {
+                _completion(nil);
+            }
+            if ([pong isKindOfClass:[PXElement class]] &&
+                [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
+                [waitForPong fulfill];
+            }
+        });
         return nil;
     }];
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
@@ -113,6 +127,19 @@
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
+
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    client.stanzaHandler = stanzaHandler;
+
+    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+            if (_completion) {
+                _completion(nil);
+            }
+        });
+        return nil;
+    }];
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
@@ -944,6 +971,16 @@
     id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
     client.stanzaHandler = stanzaHandler;
 
+    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+            if (_completion) {
+                _completion(nil);
+            }
+        });
+        return nil;
+    }];
+
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
@@ -1055,6 +1092,19 @@
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
+
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    client.stanzaHandler = stanzaHandler;
+
+    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+            if (_completion) {
+                _completion(nil);
+            }
+        });
+        return nil;
+    }];
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"

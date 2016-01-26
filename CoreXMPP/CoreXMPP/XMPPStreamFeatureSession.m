@@ -64,7 +64,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSession name] namespace:[XMPPStreamFeatureSession namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureSession class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureSession class] forStreamFeatureQName:QName];
 }
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
@@ -81,27 +81,40 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     [iq setValue:_requestId forAttribute:@"id"];
     [iq addElementWithName:@"session" namespace:XMPPStreamFeatureSessionNamespace content:nil];
 
-    [self.delegate streamFeature:self handleElement:iq];
+    [self.stanzaHandler handleStanza:iq
+                          completion:^(NSError *error){
+
+                          }];
 }
 
-- (void)handleElement:(PXElement *)element
-{
-    if ([element.namespace isEqualToString:@"jabber:client"] &&
-        [element.name isEqualToString:@"iq"]) {
+#pragma mark XMPPStanzaHandler
 
-        NSString *type = [element valueForAttribute:@"type"];
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+{
+    if ([stanza.namespace isEqualToString:@"jabber:client"] &&
+        [stanza.name isEqualToString:@"iq"]) {
+
+        NSString *type = [stanza valueForAttribute:@"type"];
 
         if ([type isEqualToString:@"result"]) {
-            [self handleIQResult:element];
+            [self handleIQResult:stanza completion:completion];
         } else if ([type isEqualToString:@"error"]) {
-            [self handleIQError:element];
+            [self handleIQError:stanza completion:completion];
+        } else {
+            if (completion) {
+                completion(nil);
+            }
+        }
+    } else {
+        if (completion) {
+            completion(nil);
         }
     }
 }
 
 #pragma mark -
 
-- (void)handleIQResult:(PXElement *)iq
+- (void)handleIQResult:(PXElement *)iq completion:(void (^)(NSError *))completion
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -111,10 +124,14 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
         [self.delegate streamFeatureDidSucceedNegotiation:self];
         _requestId = nil;
+
+        if (completion) {
+            completion(nil);
+        }
     }
 }
 
-- (void)handleIQError:(PXElement *)iq
+- (void)handleIQError:(PXElement *)iq completion:(void (^)(NSError *))completion
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -125,6 +142,10 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;
+
+        if (completion) {
+            completion(nil);
+        }
     }
 }
 

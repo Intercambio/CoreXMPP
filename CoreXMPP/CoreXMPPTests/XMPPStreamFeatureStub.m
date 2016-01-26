@@ -18,7 +18,7 @@
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureStub class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureStub class] forStreamFeatureQName:QName];
 }
 
 #pragma mark Feature Name & Namespace
@@ -50,24 +50,27 @@
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
-    id<XMPPStreamFeatureDelegate> delegate = (id<XMPPStreamFeatureDelegate>)self.delegate;
-
-    PXDocument *request = [[PXDocument alloc] initWithElementName:@"begin" namespace:@"http://example.com/" prefix:nil];
-
-    if ([delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-        [delegate streamFeature:self handleElement:request.root];
-    }
+    PXDocument *request = [[PXDocument alloc] initWithElementName:@"begin"
+                                                        namespace:@"http://example.com/"
+                                                           prefix:nil];
+    [self.stanzaHandler handleStanza:request.root completion:nil];
 }
 
-- (void)handleElement:(PXElement *)element
+#pragma mark XMPPStanzaHandler
+
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
-    if ([element.namespace isEqualToString:@"http://example.com/"]) {
-        if ([element.name isEqualToString:@"success"]) {
+    if ([stanza.namespace isEqualToString:@"http://example.com/"]) {
+        if ([stanza.name isEqualToString:@"success"]) {
             [self xmpp_handleSuccess];
-        } else if ([element.name isEqualToString:@"failure"]) {
+        } else if ([stanza.name isEqualToString:@"failure"]) {
             NSError *error = [NSError errorWithDomain:@"XMPPStreamFeatureStub" code:10 userInfo:nil];
             [self xmpp_handleFailureWithError:error];
         }
+    }
+
+    if (completion) {
+        completion(nil);
     }
 }
 

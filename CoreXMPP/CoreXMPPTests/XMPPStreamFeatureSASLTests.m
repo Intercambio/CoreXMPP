@@ -98,6 +98,9 @@
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
 
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    feature.stanzaHandler = stanzaHandler;
+
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
     [given([delegate SASLMechanismForStreamFeature:feature supportedMechanisms:anything()]) willReturn:mechanism];
@@ -106,11 +109,10 @@
     // element contains the base64 encoded credentials, the 'server' response
     // with a "success" element.
 
-    [givenVoid([delegate streamFeature:feature handleElement:anything()]) willDo:^id(NSInvocation *invocation) {
-        NSArray *arguments = [invocation mkt_arguments];
+    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        XMPPStreamFeatureSASL *feature = [arguments firstObject];
-        PXElement *element = [arguments lastObject];
+        PXElement *element = [[invocation mkt_arguments] firstObject];
+        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
 
         //
         // validate the request
@@ -132,7 +134,11 @@
                                                              namespace:XMPPStreamFeatureSASLNamespace
                                                                 prefix:nil];
 
-        [feature handleElement:response.root];
+        [feature handleStanza:response.root completion:nil];
+
+        if (_completion) {
+            _completion(nil);
+        }
 
         return nil;
     }];
@@ -151,9 +157,9 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
-    [verifyCount(delegate, times(1)) streamFeature:feature handleElement:anything()];
     [verifyCount(delegate, times(1)) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, never()) streamFeature:feature didFailNegotiationWithError:anything()];
+    [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
 }
 
 - (void)testFailedNegotiation
@@ -178,6 +184,9 @@
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
 
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    feature.stanzaHandler = stanzaHandler;
+
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
     [given([delegate SASLMechanismForStreamFeature:feature supportedMechanisms:anything()]) willReturn:mechanism];
@@ -186,10 +195,9 @@
     // In this case the credentials are treated as invalid and the 'server'
     // response with an "failure" with the error 'not-authorized'.
 
-    [givenVoid([delegate streamFeature:feature handleElement:anything()]) willDo:^id(NSInvocation *invocation) {
-        NSArray *arguments = [invocation mkt_arguments];
+    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        XMPPStreamFeatureSASL *feature = [arguments firstObject];
+        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
 
         //
         // post the response
@@ -203,7 +211,11 @@
                                 namespace:XMPPStreamFeatureSASLNamespace
                                   content:nil];
 
-        [feature handleElement:response.root];
+        [feature handleStanza:response.root completion:nil];
+
+        if (_completion) {
+            _completion(nil);
+        }
 
         return nil;
     }];
@@ -229,9 +241,9 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
-    [verifyCount(delegate, times(1)) streamFeature:feature handleElement:anything()];
     [verifyCount(delegate, never()) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
+    [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
 }
 
 - (void)testAbortedNegotiation
@@ -255,6 +267,9 @@
 
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
+
+    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    feature.stanzaHandler = stanzaHandler;
 
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
@@ -281,9 +296,10 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
-    [verifyCount(delegate, never()) streamFeature:feature handleElement:anything()];
     [verifyCount(delegate, never()) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
+
+    [verifyCount(stanzaHandler, never()) handleStanza:anything() completion:anything()];
 }
 
 #pragma mark -

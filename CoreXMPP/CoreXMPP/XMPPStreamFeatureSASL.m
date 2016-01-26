@@ -28,7 +28,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 + (void)load
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSASL name] namespace:[XMPPStreamFeatureSASL namespace]];
-    [XMPPClient registerStreamFeatureClass:[XMPPStreamFeatureSASL class] forStreamFeatureQName:QName];
+    [self registerStreamFeatureClass:[XMPPStreamFeatureSASL class] forStreamFeatureQName:QName];
 }
 
 #pragma mark Logging
@@ -191,14 +191,13 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                                             [request.root setStringValue:initialResponseString];
                                                         }
 
-                                                        if ([self.delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                                                            [self.delegate streamFeature:self handleElement:request.root];
-                                                        }
-                                                    }
+                                                        [self.stanzaHandler handleStanza:request.root
+                                                                              completion:^(NSError *error){
 
+                                                                              }];
+                                                    }
                                                 });
                                             }];
-
     } else {
 
         DDLogError(@"Delegate does not provide a SASL mechanism for the provided mechansims (%@).", [self.mechanisms componentsJoinedByString:@", "]);
@@ -212,27 +211,29 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
     }
 }
 
-- (void)handleElement:(PXElement *)element
-{
-    if ([element.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
+#pragma mark XMPPStanzaHandler
 
-        if ([element.name isEqualToString:@"success"]) {
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion
+{
+    if ([stanza.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
+
+        if ([stanza.name isEqualToString:@"success"]) {
 
             DDLogInfo(@"Did authenticated against host '%@'.", _hostname);
 
             [self xmpp_handleSuccess];
 
-        } else if ([element.name isEqualToString:@"failure"]) {
+        } else if ([stanza.name isEqualToString:@"failure"]) {
 
-            NSError *error = [[self class] errorFromElement:element];
+            NSError *error = [[self class] errorFromElement:stanza];
 
             DDLogWarn(@"Did fail to authenticated against host '%@' with error: %@", _hostname, [error localizedDescription]);
 
             [self xmpp_handleFailureWithError:error];
 
-        } else if ([element.name isEqualToString:@"challenge"]) {
+        } else if ([stanza.name isEqualToString:@"challenge"]) {
 
-            NSString *challengeString = element.stringValue;
+            NSString *challengeString = stanza.stringValue;
             NSData *challengeData = [challengeString length] > 0 ? [[NSData alloc] initWithBase64EncodedString:challengeString options:0] : nil;
 
             dispatch_queue_t queue = self.queue ?: dispatch_get_main_queue();
@@ -258,12 +259,17 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                     }
                                 }
 
-                                if ([self.delegate respondsToSelector:@selector(streamFeature:handleElement:)]) {
-                                    [self.delegate streamFeature:self handleElement:response.root];
-                                }
+                                [self.stanzaHandler handleStanza:response.root
+                                                      completion:^(NSError *error){
+
+                                                      }];
                             });
                         }];
         }
+    }
+
+    if (completion) {
+        completion(nil);
     }
 }
 

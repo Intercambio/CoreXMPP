@@ -9,38 +9,42 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+#import "XMPPStanzaHandler.h"
+
 @class XMPPStreamFeature;
 
 @protocol XMPPStreamFeatureDelegate <NSObject>
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature;
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error;
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature handleElement:(PXElement *)element;
 @end
 
-@interface XMPPStreamFeature : NSObject
+@interface XMPPStreamFeature : NSObject <XMPPStanzaHandler>
+
+#pragma mark Registered Stream Features
++ (NSDictionary *)registeredStreamFeatures;
++ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
 
 #pragma mark Feature Name & Namespace
 + (NSString *)name;
 + (NSString *) namespace;
 
 #pragma mark Life-cycle
++ (instancetype)streamFeatureWithConfiguration:(PXDocument *)configuration;
 - (id)initWithConfiguration:(PXDocument *)configuration;
 
 #pragma mark Feature Configuration
 @property (nonatomic, readonly) PXDocument *configuration;
+@property (nonatomic, readonly, getter=isMandatory) BOOL mandatory;
+@property (nonatomic, readonly) BOOL needsRestart;
 
 #pragma mark Operation Queue
 @property (nonatomic, strong) dispatch_queue_t queue;
 
-#pragma mark Delegate
+#pragma mark Delegate & Stanza Handler
 @property (nonatomic, weak) id<XMPPStreamFeatureDelegate> delegate;
-
-#pragma mark Feature Properties
-@property (nonatomic, readonly, getter=isMandatory) BOOL mandatory;
-@property (nonatomic, readonly) BOOL needsRestart;
+@property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;
 
 #pragma mark Negotiate Feature
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options;
-- (void)handleElement:(PXElement *)element;
 
 @end
