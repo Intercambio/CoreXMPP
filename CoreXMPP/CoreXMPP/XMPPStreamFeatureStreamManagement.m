@@ -285,10 +285,10 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                 }
             }
 
-            DDLogInfo(@"Server acknowledged (%ld) stanzas. (%ld) stanzas still unacknowledged.", numberOfAcknowledgedStanzas, [_unacknowledgedStanzas count]);
-
             _unacknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(diff, [_unacknowledgedStanzas count] - diff)];
             _numberOfAcknowledgedStanzas = numberOfAcknowledgedStanzas;
+            
+            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", _numberOfAcknowledgedStanzas, _numberOfSentStanzas);
         }
     }
 }
