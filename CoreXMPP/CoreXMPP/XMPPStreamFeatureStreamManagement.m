@@ -23,7 +23,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 @interface XMPPStreamFeatureStreamManagement () {
     BOOL _enabled;
-    NSString *_previd;
+    BOOL _resumable;
     NSString *_id;
     NSUInteger _numberOfReceivedStanzas;
     NSUInteger _numberOfSentStanzas;
@@ -80,25 +80,19 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
-    _previd = _id;
-
     DDLogInfo(@"Negotiating stream management for host '%@'.", hostname);
-    PXDocument *request = [[PXDocument alloc] initWithElementName:@"enable"
-                                                        namespace:[XMPPStreamFeatureStreamManagement namespace]
-                                                           prefix:nil];
-    [request.root setValue:@"true" forAttribute:@"resume"];
 
-    [self.stanzaHandler handleStanza:request.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to enable stream management with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    if (_id && _resumable) {
+        [self xmpp_resume];
+    } else {
+        [self xmpp_enable];
+    }
 }
 
 #pragma mark XMPPClientStreamManagement
 
 @synthesize enabled = _enabled;
+@synthesize resumable = _resumable;
 @synthesize numberOfReceivedStanzas = _numberOfReceivedStanzas;
 @synthesize numberOfSentStanzas = _numberOfSentStanzas;
 @synthesize numberOfAcknowledgedStanzas = _numberOfAcknowledgedStanzas;
@@ -181,24 +175,21 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
         if ([stanza.name isEqualToString:@"enabled"]) {
 
             _id = [stanza valueForAttribute:@"id"];
-            BOOL resume = [[stanza valueForAttribute:@"resume"] boolValue];
-
-            if (resume && _previd) {
-                [self xmpp_resume];
-            } else {
-                _enabled = YES;
-                _numberOfSentStanzas = 0;
-                _numberOfReceivedStanzas = 0;
-                _numberOfAcknowledgedStanzas = 0;
-                _unacknowledgedStanzas = @[];
-
-                [self.delegate streamFeatureDidSucceedNegotiation:self];
-            }
+            _resumable = [[stanza valueForAttribute:@"resume"] boolValue];
+            
+            _enabled = YES;
+            
+            _numberOfSentStanzas = 0;
+            _numberOfReceivedStanzas = 0;
+            _numberOfAcknowledgedStanzas = 0;
+            _unacknowledgedStanzas = @[];
+            
+            [self.delegate streamFeatureDidSucceedNegotiation:self];
+        
         } else if ([stanza.name isEqualToString:@"resumed"]) {
-
+            
             NSString *previd = [stanza valueForAttribute:@"previd"];
-
-            if ([previd isEqualToString:_previd]) {
+            if ([previd isEqualToString:_id]) {
                 NSString *value = [stanza valueForAttribute:@"h"];
                 if (value) {
                     NSUInteger h = [value integerValue];
@@ -207,7 +198,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                 }
                 [self.delegate streamFeatureDidSucceedNegotiation:self];
             } else {
-                NSString *errorMessage = [NSString stringWithFormat:@"Failed to resume stream. Server responded with previd == '%@', but the previd should be '%@'.", previd, _previd];
+                NSString *errorMessage = [NSString stringWithFormat:@"Failed to resume stream. Server responded with previd == '%@', but the previd should be '%@'.", previd, _id];
                 NSError *error = [NSError errorWithDomain:XMPPErrorDomain
                                                      code:XMPPErrorCodeInvalidState
                                                  userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
@@ -242,12 +233,27 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 #pragma mark -
 
+- (void)xmpp_enable
+{
+    PXDocument *request = [[PXDocument alloc] initWithElementName:@"enable"
+                                                        namespace:[XMPPStreamFeatureStreamManagement namespace]
+                                                           prefix:nil];
+    [request.root setValue:@"true" forAttribute:@"resume"];
+    
+    [self.stanzaHandler handleStanza:request.root
+                          completion:^(NSError *error) {
+                              if (error) {
+                                  DDLogError(@"Failed to enable stream management with error: %@", [error localizedDescription]);
+                              }
+                          }];
+}
+
 - (void)xmpp_resume
 {
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"resume"
                                                         namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                            prefix:nil];
-    [request.root setValue:_previd forAttribute:@"previd"];
+    [request.root setValue:_id forAttribute:@"previd"];
     [request.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
 
     [self.stanzaHandler handleStanza:request.root

@@ -11,6 +11,7 @@
 @protocol XMPPClientStreamManagement <NSObject>
 
 @property (nonatomic, readonly, getter=isEnabled) BOOL enabled;
+@property (nonatomic, readonly, getter=isResumable) BOOL resumable;
 @property (nonatomic, readonly) NSUInteger numberOfReceivedStanzas;
 @property (nonatomic, readonly) NSUInteger numberOfSentStanzas;
 @property (nonatomic, readonly) NSUInteger numberOfAcknowledgedStanzas;

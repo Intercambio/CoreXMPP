@@ -286,6 +286,7 @@
 
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
+    assertThatBool(sm.resumable, isTrue());
     assertThatInteger(sm.numberOfSentStanzas, equalToInteger(0));
     assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
 
@@ -342,25 +343,7 @@
     //
     // Prepare Resume
     //
-
-    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
-
-        assertThat(stanza.name, equalTo(@"enable"));
-        assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
-        assertThatBool([[stanza valueForAttribute:@"resume"] boolValue], isTrue());
-
-        dispatch_async(dispatch_get_main_queue(), ^{
-            PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
-            [response.root setValue:@"b" forAttribute:@"id"];
-            [response.root setValue:@"true" forAttribute:@"resume"];
-            [responseHandler handleStanza:response.root completion:nil];
-        });
-
-        if (completion) {
-            completion(nil);
-        }
-    }];
-
+    
     [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
 
         assertThat(stanza.name, equalTo(@"resume"));
@@ -380,16 +363,16 @@
         }
     }];
 
-    __block BOOL didResendStanza = NO;
-
+    XCTestExpectation *expectResending = [self expectationWithDescription:@"Resending Stanzas"];
     [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
 
         assertThat(stanza, equalTo(stanza_3.root));
-        didResendStanza = YES;
 
         if (completion) {
             completion(nil);
         }
+        
+        [expectResending fulfill];
     }];
 
     //
@@ -406,8 +389,6 @@
     }];
     [feature beginNegotiationWithHostname:@"localhost" options:nil];
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
-
-    assertThatBool(didResendStanza, isTrue());
 }
 
 - (void)_testClient_ReceviedStanzas
