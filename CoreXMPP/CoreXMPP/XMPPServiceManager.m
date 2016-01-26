@@ -32,7 +32,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 @interface XMPPServiceManager () <XMPPClientDelegate, XMPPNetworkReachabilityDelegate> {
     dispatch_queue_t _operationQueue;
-    BOOL _suspended;
     NSMutableArray *_accounts;
     NSMapTable *_clientsByAccount;
     NSMapTable *_networkReachabilitiesByClient;
@@ -160,22 +159,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 }
 
 #pragma mark Managing Service Manager
-
-- (BOOL)isSuspended
-{
-    __block BOOL suspended;
-    dispatch_sync(_operationQueue, ^{
-        suspended = _suspended;
-    });
-    return suspended;
-}
-
-- (void)suspend
-{
-    dispatch_sync(_operationQueue, ^{
-        [self xmpp_suspend];
-    });
-}
 
 - (void)resume
 {
@@ -421,16 +404,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 #pragma mark Suspend & Resume
 
-- (void)xmpp_suspend
-{
-    for (XMPPAccount *account in [self xmpp_accounts]) {
-        [self xmpp_removeClientForAccount:account];
-    }
-    _suspended = YES;
-
-    DDLogInfo(@"Did suspend service manager: %@", self);
-}
-
 - (void)xmpp_resume
 {
     for (XMPPAccount *account in [self xmpp_accounts]) {
@@ -439,10 +412,13 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
             }
-            [client connect];
+            if (client.state != XMPPClientStateConnected) {
+                [client connect];
+            } else {
+                [client exchangeAcknowledgement];
+            }
         }
     }
-    _suspended = NO;
 
     DDLogInfo(@"Did resume service manager: %@", self);
 }
