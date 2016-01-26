@@ -11,12 +11,13 @@
 @protocol XMPPClientStreamManagement <NSObject>
 
 @property (nonatomic, readonly, getter=isEnabled) BOOL enabled;
+@property (nonatomic, readonly, getter=isResumable) BOOL resumable;
 @property (nonatomic, readonly) NSUInteger numberOfReceivedStanzas;
-@property (nonatomic, readonly) NSUInteger numberOfSendStanzas;
+@property (nonatomic, readonly) NSUInteger numberOfSentStanzas;
 @property (nonatomic, readonly) NSUInteger numberOfAcknowledgedStanzas;
 @property (nonatomic, readonly) NSArray *unacknowledgedStanzas;
 
-- (void)didSentStanza:(PXElement *)stanza;
+- (void)didSentStanza:(PXElement *)stanza acknowledgement:(void (^)(NSError *error))acknowledgement;
 - (void)didHandleReceviedStanza:(PXElement *)stanza;
 
 - (void)requestAcknowledgement;

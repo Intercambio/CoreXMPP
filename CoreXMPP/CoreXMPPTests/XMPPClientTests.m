@@ -54,13 +54,11 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
-    [self waitForExpectationsWithTimeout:5.0 handler:nil];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
     //
     // Ping .o0o. Pong
@@ -106,27 +104,39 @@
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
 
     //
+    // Send Message
+    //
+
+    PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
+    [messageDocument.root setValue:@"localhost" forAttribute:@"to"];
+
+    XCTestExpectation *expectMessageAck = [self expectationWithDescription:@"Expect Ack"];
+    [client handleStanza:messageDocument.root
+              completion:^(NSError *error) {
+                  [expectMessageAck fulfill];
+              }];
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+
+    //
     // Disconnect
     //
 
-    XCTestExpectation *waitForDisconnect = [self expectationWithDescription:@"Disconnect"];
-    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForDisconnect fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client disconnect];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }
 
-#pragma mark Connection
-
-- (void)testConnectClient
+- (void)testResumeClient
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:nil];
 
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
+    id<XMPPClientDelegate> delegate = nil;
+
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    client.SASLDelegate = SASLDelegate;
 
     id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
     client.stanzaHandler = stanzaHandler;
@@ -141,6 +151,63 @@
         return nil;
     }];
 
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        return nil;
+    }];
+
+    //
+    // Connect
+    //
+
+    delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Suspend
+    //
+
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
+    [client suspend];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Resume
+    //
+
+    delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateEstablished)];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+}
+
+#pragma mark -
+#pragma mark Connection
+
+- (void)testConnectClient
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
+    client.stanzaHandler = stanzaHandler;
+
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
         // Send an empty feature element from the receiving entity to
@@ -152,36 +219,47 @@
         [stream receiveElement:doc.root];
     }];
 
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
+    //
+    // Connect & Disconnect
+    //
 
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
-
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
-
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
-    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
-
-    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
-        [expectDisconnect fulfill];
-        return nil;
-    }];
-
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client disconnect];
-
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify
+    //
+
+    [verifyCount(delegate, times(1)) clientDidConnect:client];
+    [verifyCount(delegate, times(1)) clientDidDisconnect:client];
+
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateEstablished) forArgument:1] client:client didChangeState:XMPPClientStateEstablished];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateNegotiating) forArgument:1] client:client didChangeState:XMPPClientStateNegotiating];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnected) forArgument:1] client:client didChangeState:XMPPClientStateConnected];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnecting) forArgument:1] client:client didChangeState:XMPPClientStateDisconnecting];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
 }
 
-- (void)testFailedConnection
+- (void)testFailedConnectionWithXMPPStreamError
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
                                                       options:@{XMPPClientOptionsStreamKey : self.stream}];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
+
+    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
+    client.stanzaHandler = stanzaHandler;
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
@@ -197,20 +275,76 @@
         [stream closeByPeer];
     }];
 
-    XCTestExpectation *failedConnectionExpectation = [self expectationWithDescription:@"Expect failed Connection"];
+    //
+    // Connect (with stream error)
+    //
 
-    [givenVoid([delegate client:client didFailWithError:anything()]) willDo:^id(NSInvocation *invocation) {
-        [failedConnectionExpectation fulfill];
-        return nil;
-    }];
-
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client connect];
-
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
-    [verifyCount(delegate, times(1)) client:client didFailWithError:anything()];
+    //
+    // Verify
+    //
+
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
+
     [verifyCount(delegate, never()) clientDidConnect:client];
     [verifyCount(delegate, never()) clientDidDisconnect:client];
+
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verify(delegate) client:client didFailWithError:(id)captor];
+
+    NSError *error = [captor value];
+    assertThat(error.domain, equalTo(XMPPStreamErrorDomain));
+    assertThatInteger(error.code, equalToInteger(XMPPStreamErrorCodeHostUnknown));
+}
+
+- (void)testFailedConnectionWithError
+{
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    //
+    // Send Features (after stream did open)
+    //
+
+    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
+        NSError *error = [NSError errorWithDomain:@"testUnderlyingStreamErrors" code:123 userInfo:nil];
+        [stream failWithError:error];
+    }];
+
+    //
+    // Connect (with error)
+    //
+
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
+    [client connect];
+    [self waitForExpectationsWithTimeout:2.0 handler:nil];
+
+    //
+    // Verify Error
+    //
+
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
+    [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
+
+    [verifyCount(delegate, never()) clientDidConnect:client];
+    [verifyCount(delegate, never()) clientDidDisconnect:client];
+
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verify(delegate) client:client didFailWithError:(id)captor];
+
+    NSError *error = [captor value];
+    assertThat(error.domain, equalTo(@"testUnderlyingStreamErrors"));
 }
 
 #pragma mark Stream Errors
@@ -240,85 +374,6 @@
     assertThatInteger(error.code, equalToInteger(XMPPStreamErrorCodeSystemShutdown));
     assertThat([error localizedDescription], equalTo(@"Giving up!"));
     assertThat([error.userInfo objectForKey:XMPPErrorXMLDocumentKey], notNilValue());
-}
-
-- (void)testXMLStreamErrors
-{
-    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
-
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
-
-    //
-    // Send Features (after stream did open)
-    //
-
-    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"error"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-
-        [doc.root addElementWithName:@"system-shutdown"
-                           namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
-                             content:nil];
-
-        [stream receiveElement:doc.root];
-    }];
-
-    XCTestExpectation *waitForClose = [self expectationWithDescription:@"Expecting stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForClose fulfill];
-    }];
-    [client connect];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    //
-    // Verify Error
-    //
-
-    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
-    [verify(delegate) client:client didFailWithError:(id)captor];
-
-    NSError *error = [captor value];
-
-    assertThat(error.domain, equalTo(XMPPStreamErrorDomain));
-}
-
-- (void)testUnderlyingStreamErrors
-{
-    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
-
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
-
-    //
-    // Send Features (after stream did open)
-    //
-
-    [self.stream onDidOpen:^(XMPPStreamStub *stream) {
-        NSError *error = [NSError errorWithDomain:@"testUnderlyingStreamErrors" code:123 userInfo:nil];
-        [stream failWithError:error];
-    }];
-
-    XCTestExpectation *waitForClose = [self expectationWithDescription:@"Expecting stream to close"];
-    [self.stream onDidFail:^(XMPPStreamStub *stream) {
-        [waitForClose fulfill];
-    }];
-    [client connect];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    //
-    // Verify Error
-    //
-
-    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
-    [verify(delegate) client:client didFailWithError:(id)captor];
-
-    NSError *error = [captor value];
-
-    assertThat(error.domain, equalTo(@"testUnderlyingStreamErrors"));
 }
 
 #pragma mark General Feature Negotiation
@@ -371,11 +426,9 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -383,9 +436,10 @@
     // Verify Negotiation
     //
 
-    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:(id)captor];
 
-    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    XMPPStreamFeature *feature = [captor value];
     assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
     assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
@@ -450,11 +504,9 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -462,9 +514,10 @@
     // Verify Negotiation
     //
 
-    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:(id)captor];
 
-    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    XMPPStreamFeature *feature = [captor value];
     assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
     assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
@@ -514,20 +567,17 @@
     }];
 
     //
-    // Connect (failure; stream will close)
+    // Connect
     //
 
-    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForStreamClose fulfill];
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateEstablished)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
-    PXQName *featureQName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStub name] namespace:[XMPPStreamFeatureStub namespace]];
-
-    [verifyCount(delegate, times(1)) client:client didFailToNegotiateFeature:anything() withError:anything()];
-    [verifyCount(delegate, never()) client:client didNegotiateFeature:equalTo(featureQName)];
+    [verifyCount(delegate, never()) client:client didFailToNegotiateFeature:anything() withError:anything()];
+    [verifyCount(delegate, never()) client:client didNegotiateFeature:anything()];
 }
 
 - (void)testMandatoryFeatureWithoutRestart
@@ -578,11 +628,9 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -590,9 +638,10 @@
     // Verify Negotiation
     //
 
-    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:(id)captor];
 
-    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    XMPPStreamFeature *feature = [captor value];
     assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
     assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
@@ -657,11 +706,9 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -669,9 +716,10 @@
     // Verify Negotiation
     //
 
-    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:anything()];
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, times(1)) client:client didNegotiateFeature:(id)captor];
 
-    XMPPStreamFeature *feature = [client.negotiatedFeatures firstObject];
+    XMPPStreamFeature *feature = [captor value];
     assertThat([[feature class] name], equalTo([XMPPStreamFeatureStub name]));
     assertThat([[feature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
@@ -724,10 +772,9 @@
     // Connect (failure; stream will close)
     //
 
-    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForStreamClose fulfill];
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -832,11 +879,9 @@
     // Connect
     //
 
-    XCTestExpectation *waitForConnection = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [waitForConnection fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -844,13 +889,14 @@
     // Verify Negotiated Features
     //
 
-    [verifyCount(delegate, times(2)) client:client didNegotiateFeature:anything()];
+    HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, times(2)) client:client didNegotiateFeature:(id)captor];
 
-    XMPPStreamFeature *SASLFeature = [client.negotiatedFeatures firstObject];
+    XMPPStreamFeature *SASLFeature = [[captor allValues] firstObject];
     assertThat([[SASLFeature class] name], equalTo([XMPPStreamFeatureSASL name]));
     assertThat([[SASLFeature class] namespace], equalTo([XMPPStreamFeatureSASL namespace]));
 
-    XMPPStreamFeature *TESTFeature = [client.negotiatedFeatures lastObject];
+    XMPPStreamFeature *TESTFeature = [[captor allValues] lastObject];
     assertThat([[TESTFeature class] name], equalTo([XMPPStreamFeatureStub name]));
     assertThat([[TESTFeature class] namespace], equalTo([XMPPStreamFeatureStub namespace]));
 }
@@ -897,10 +943,9 @@
     // Connect (failure; stream will close)
     //
 
-    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForStreamClose fulfill];
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -944,10 +989,9 @@
     // Connect (failure; stream will close)
     //
 
-    XCTestExpectation *waitForStreamClose = [self expectationWithDescription:@"Expect Stream to close"];
-    [self.stream onDidClose:^(XMPPStreamStub *stream) {
-        [waitForStreamClose fulfill];
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -992,11 +1036,9 @@
     // Connect Client
     //
 
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -1028,11 +1070,9 @@
     // Disconnect Client
     //
 
-    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
-    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
-        [expectDisconnect fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client disconnect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -1117,11 +1157,9 @@
     // Connect Client
     //
 
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateConnected)];
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -1154,11 +1192,9 @@
     // Disconnect Client
     //
 
-    XCTestExpectation *expectDisconnect = [self expectationWithDescription:@"Expect client to disconnect"];
-    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *invocation) {
-        [expectDisconnect fulfill];
-        return nil;
-    }];
+    [self keyValueObservingExpectationForObject:client
+                                        keyPath:@"state"
+                                  expectedValue:@(XMPPClientStateDisconnected)];
     [client disconnect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }

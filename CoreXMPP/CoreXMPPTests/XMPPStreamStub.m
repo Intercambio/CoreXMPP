@@ -134,6 +134,15 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     });
 }
 
+- (void)suspend
+{
+    _state = XMPPStreamStateClosed;
+
+    if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
+        [self.delegate streamDidClose:self];
+    }
+}
+
 #pragma mark Sending Element
 
 - (void)sendElement:(PXElement *)element

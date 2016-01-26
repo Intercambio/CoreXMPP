@@ -49,8 +49,6 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
 #pragma mark Managing Service Manager
-@property (nonatomic, readonly, getter=isSuspended) BOOL suspended;
-- (void)suspend;
 - (void)resume;
 
 #pragma mark Managing Accounts

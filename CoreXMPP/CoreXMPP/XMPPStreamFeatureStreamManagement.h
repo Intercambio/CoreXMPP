@@ -9,6 +9,11 @@
 #import "XMPPStreamFeature.h"
 #import "XMPPClientStreamManagement.h"
 
+@protocol XMPPStreamFeatureDelegateStreamManagement <XMPPStreamFeatureDelegate>
+@optional
+- (id<XMPPClientStreamManagement>)previousStreamManagementForStreamFeature:(XMPPStreamFeature *)streamFeature;
+@end
+
 @interface XMPPStreamFeatureStreamManagement : XMPPStreamFeature <XMPPClientStreamManagement>
 
 @end
