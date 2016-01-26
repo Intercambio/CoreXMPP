@@ -6,6 +6,7 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPError.h"
 #import "XMPPStreamStanzaHandlerProxy.h"
 
 @implementation XMPPStreamStanzaHandlerProxy
@@ -21,7 +22,19 @@
 
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
-    [_stream sendElement:stanza];
+    if (_stream.state != XMPPStreamStateOpen) {
+        if (completion) {
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeNotConnected
+                                             userInfo:nil];
+            completion(error);
+        }
+    } else {
+        [_stream sendElement:stanza];
+        if (completion) {
+            completion(nil);
+        }
+    }
 }
 
 - (void)processPendingStanzas:(void (^)(NSError *))completion
