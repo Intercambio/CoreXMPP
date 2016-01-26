@@ -44,9 +44,23 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
 @implementation XMPPServiceManager
 
++ (BOOL)shouldReconnectImmediately:(NSError *)error
+{
+    if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
+        switch (error.code) {
+        case 57: // Socket is not connected
+            return YES;
+
+        default:
+            break;
+        }
+    }
+
+    return NO;
+}
+
 + (BOOL)isTemporalError:(NSError *)error
 {
-#warning TODO: decide on the error, if it is temporal or not.
     return error != nil;
 }
 
@@ -509,7 +523,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
             XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
 
-            if (error == nil) {
+            if (error == nil || [[self class] shouldReconnectImmediately:error]) {
 
                 DDLogInfo(@"Client has been disconnected without an error. Just reconnecting immediately.");
 
