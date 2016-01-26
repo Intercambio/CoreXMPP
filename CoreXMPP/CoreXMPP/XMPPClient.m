@@ -102,50 +102,70 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (void)connect
 {
     dispatch_async(_operationQueue, ^{
-        NSAssert(self.state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
+        if (self.state != XMPPClientStateDisconnected) {
+            DDLogWarn(@"Invalid State: Can only connect a disconnected client: %@", self);
+        } else {
+            DDLogInfo(@"Connecting: '%@'.", self.hostname);
 
-        DDLogInfo(@"Connecting: '%@'.", self.hostname);
-
-        self.state = XMPPClientStateConnecting;
-        _negotiatedFeatures = @[];
-        _currentFeature = nil;
-        _featureConfigurations = nil;
-        [_stream open];
+            self.state = XMPPClientStateConnecting;
+            _negotiatedFeatures = @[];
+            _currentFeature = nil;
+            _featureConfigurations = nil;
+            [_stream open];
+        }
     });
 }
 
 - (void)disconnect
 {
     dispatch_async(_operationQueue, ^{
-        NSAssert(self.state == XMPPClientStateConnected, @"Invalid State: Can only disconnect a client with an established connection.");
 
-        DDLogInfo(@"Disconnecting: '%@'.", self.hostname);
+        if (self.state != XMPPClientStateConnected) {
+            DDLogWarn(@"Invalid State: Can only disconnect a connected client: %@", self);
+        } else {
+            DDLogInfo(@"Disconnecting: '%@'.", self.hostname);
 
-        self.state = XMPPClientStateDisconnecting;
-        [_stanzaHandler processPendingStanzas:^(NSError *error) {
-            dispatch_async(_operationQueue, ^{
-                [_stream close];
-                _streamManagement = nil;
-                _negotiatedFeatures = @[];
-            });
-        }];
+            self.state = XMPPClientStateDisconnecting;
+            [_stanzaHandler processPendingStanzas:^(NSError *error) {
+                dispatch_async(_operationQueue, ^{
+                    [_stream close];
+                    _streamManagement = nil;
+                    _negotiatedFeatures = @[];
+                });
+            }];
+        }
     });
 }
 
 - (void)suspend
 {
     dispatch_async(_operationQueue, ^{
+        if (self.state != XMPPClientStateConnected) {
+            DDLogWarn(@"Invalid State: Can only suspend a connected client: %@", self);
+        } else {
+            DDLogInfo(@"Suspending: %@", self);
 
-        NSAssert(self.state == XMPPClientStateConnected, @"Invalid State: Can only suspend a client with an established connection.");
+            self.state = XMPPClientStateDisconnecting;
 
-        DDLogInfo(@"Suspending: %@", self);
+            [_streamManagement sendAcknowledgement];
+            [_stream suspend];
+            if (_streamManagement.resumable == NO) {
+                _streamManagement = nil;
+            }
+        }
+    });
+}
 
-        self.state = XMPPClientStateDisconnecting;
+#pragma mark Acknowledgement
 
-        [_streamManagement sendAcknowledgement];
-        [_stream suspend];
-        if (_streamManagement.resumable == NO) {
-            _streamManagement = nil;
+- (void)exchangeAcknowledgement
+{
+    dispatch_async(_operationQueue, ^{
+        if (self.state != XMPPClientStateConnected) {
+            DDLogWarn(@"Invalid State: Could not exchange acknowledgement, because the client is not connected: %@", self);
+        } else {
+            [_streamManagement sendAcknowledgement];
+            [_streamManagement requestAcknowledgement];
         }
     });
 }
@@ -198,6 +218,27 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 #pragma mark -
 #pragma mark Feature Negotiation
 
+- (void)xmpp_updatePreferredFeatures
+{
+    _preferredFeatures = [[NSMutableArray alloc] init];
+
+    if (_streamManagement.resumable) {
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
+        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
+    } else {
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-bind", @"bind")];
+        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-session", @"session")];
+        [_featureConfigurations enumerateKeysAndObjectsUsingBlock:^(PXQName *name, PXDocument *configuration, BOOL *stop) {
+            if (![name isEqual:PXQN(@"urn:xmpp:sm:3", @"sm")] &&
+                ![_preferredFeatures containsObject:name]) {
+                [_preferredFeatures addObject:name];
+            }
+        }];
+        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
+    }
+}
+
 - (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
 {
     DDLogInfo(@"Client '%@' updating features: %@", self, features.document);
@@ -210,23 +251,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     }];
 
     _featureConfigurations = featureConfigurations;
-    _preferredFeatures = [[NSMutableArray alloc] init];
-
-    if (_streamManagement.resumable) {
-        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
-        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
-    } else {
-        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
-        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-bind", @"bind")];
-        [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-session", @"session")];
-        [featureConfigurations enumerateKeysAndObjectsUsingBlock:^(PXQName *name, PXDocument *configuration, BOOL *stop) {
-            if (![name isEqual:PXQN(@"urn:xmpp:sm:3", @"sm")] &&
-                ![_preferredFeatures containsObject:name]) {
-                [_preferredFeatures addObject:name];
-            }
-        }];
-        [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
-    }
+    [self xmpp_updatePreferredFeatures];
 }
 
 - (XMPPStreamFeature *)xmpp_featureWithQName:(PXQName *)QName
@@ -509,6 +534,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
             if (streamFeature == _streamManagement) {
                 _streamManagement = nil;
+                [self xmpp_updatePreferredFeatures];
             }
 
             [self xmpp_negotiateNextFeature];

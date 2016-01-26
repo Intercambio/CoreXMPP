@@ -66,4 +66,7 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 - (void)disconnect;
 - (void)suspend;
 
+#pragma mark Acknowledgement
+- (void)exchangeAcknowledgement;
+
 @end
