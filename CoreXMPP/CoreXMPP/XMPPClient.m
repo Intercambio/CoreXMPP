@@ -35,7 +35,6 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     XMPPWebsocketStream *_stream;
     XMPPStreamFeature *_currentFeature;
     NSMutableArray *_featureConfigurations;
-    id<XMPPStanzaHandler> _stanzaHandler;
     id<XMPPStanzaHandler> _streamFeatureStanzaHandler;
 }
 
@@ -56,6 +55,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 }
 
 #pragma mark Life-cycle
+
+@synthesize stanzaHandler = _stanzaHandler;
 
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options
@@ -112,14 +113,37 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     });
 }
 
-#pragma mark Stream Management
+#pragma mark -
+#pragma mark XMPPStanzaHandler
 
-- (BOOL)isStreamManagementEnabled
+- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
-    XMPPStreamFeature *feature = [self xmpp_negotiatedFeaturesWithQName:PXQN(@"urn:xmpp:sm:3", @"sm")];
-    return feature != nil;
+    dispatch_async(_operationQueue, ^{
+        NSError *error = nil;
+        if (_state == XMPPClientStateEstablished) {
+            [_stream sendElement:stanza];
+            [_streamManagement didSentStanza:stanza];
+        } else {
+            error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                        code:XMPPDispatcherErrorCodeNotConnected
+                                    userInfo:nil];
+        }
+        if (completion) {
+            completion(error);
+        }
+    });
 }
 
+- (void)processPendingStanzas:(void (^)(NSError *))completion
+{
+    dispatch_async(_operationQueue, ^{
+        if (completion) {
+            completion(nil);
+        }
+    });
+}
+
+#pragma mark -
 #pragma mark Feature Negotiation
 
 - (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
@@ -190,54 +214,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     return nil;
 }
 
-#pragma mark XMPPConnection
-
-- (void)setStanzaHandler:(id<XMPPStanzaHandler>)stanzaHandler
-{
-    dispatch_async(_operationQueue, ^{
-        _stanzaHandler = stanzaHandler;
-    });
-}
-
-- (id<XMPPStanzaHandler>)stanzaHandler
-{
-    __block id<XMPPStanzaHandler> stanzaHandler = nil;
-    dispatch_sync(_operationQueue, ^{
-        stanzaHandler = _stanzaHandler;
-    });
-    return stanzaHandler;
-}
-
-#pragma mark XMPPStanzaHandler
-
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
-{
-    dispatch_async(_operationQueue, ^{
-        NSError *error = nil;
-        if (_state == XMPPClientStateEstablished) {
-            [_stream sendElement:stanza];
-            [_streamManagement didSentStanza:stanza];
-        } else {
-            error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                        code:XMPPDispatcherErrorCodeNotConnected
-                                    userInfo:nil];
-        }
-        if (completion) {
-            completion(error);
-        }
-    });
-}
-
-- (void)processPendingStanzas:(void (^)(NSError *))completion
-{
-    dispatch_async(_operationQueue, ^{
-        if (completion) {
-            completion(nil);
-        }
-    });
-}
-
-#pragma mark XMPPStreamDelegate
+#pragma mark -
+#pragma mark XMPPStreamDelegate (called on operation queue)
 
 - (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId
 {
@@ -375,7 +353,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     }
 }
 
-#pragma mark XMPPStreamFeatureDelegate
+#pragma mark XMPPStreamFeatureDelegate  (called on operation queue)
 
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature
 {
@@ -429,7 +407,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     }
 }
 
-#pragma mark XMPPStreamFeatureDelegateSASL
+#pragma mark XMPPStreamFeatureDelegateSASL (called on operation queue)
 
 - (SASLMechanism *)SASLMechanismForStreamFeature:(XMPPStreamFeature *)streamFeature
                              supportedMechanisms:(NSArray *)mechanisms
@@ -456,17 +434,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     return mechanism;
 }
 
-#pragma mark XMPPStreamFeatureDelegateBind
+#pragma mark XMPPStreamFeatureDelegateBind (called on operation queue)
 
 - (NSString *)resourceNameForStreamFeature:(XMPPStreamFeature *)streamFeature
 {
     return self.options[XMPPClientOptionsResourceKey];
-}
-
-#pragma mark XMPPStreamFeatureStreamManagement
-
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didAcknowledgeStanzas:(NSUInteger)numberOfAcknowledgedStanzas
-{
 }
 
 @end

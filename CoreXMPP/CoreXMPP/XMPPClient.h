@@ -45,17 +45,17 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;
 
-#pragma mark Delegate
+#pragma mark Properties
+@property (nonatomic, readonly) NSString *hostname;
+@property (nonatomic, readonly) NSDictionary *options;
+
+#pragma mark Delegate & SASL Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;
 @property (nonatomic, strong) dispatch_queue_t delegateQueue;
 
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 @property (nonatomic, strong) dispatch_queue_t SASLDelegateQueue;
 @property (nonatomic, strong) id SASLContext;
-
-#pragma mark Properties
-@property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readonly) NSDictionary *options;
 
 #pragma mark Stream Features
 @property (nonatomic, readonly) NSArray *negotiatedFeatures;
