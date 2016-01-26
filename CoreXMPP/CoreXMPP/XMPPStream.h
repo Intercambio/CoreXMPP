@@ -57,6 +57,7 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 - (void)open;
 - (void)reopen;
 - (void)close;
+- (void)suspend;
 
 #pragma mark Sending Element
 - (void)sendElement:(PXElement *)element;

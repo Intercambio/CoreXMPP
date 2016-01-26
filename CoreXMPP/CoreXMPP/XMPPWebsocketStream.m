@@ -99,6 +99,12 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     _state = XMPPStreamStateClosing;
 }
 
+- (void)suspend
+{
+    [self xmpp_tearDownWebsocket];
+    _state = XMPPStreamStateClosed;
+}
+
 #pragma mark Sending Element
 
 - (void)sendElement:(PXElement *)element

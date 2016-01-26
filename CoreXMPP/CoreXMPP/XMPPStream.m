@@ -44,6 +44,10 @@
 {
 }
 
+- (void)suspend
+{
+}
+
 - (void)sendElement:(PXElement *)element
 {
 }
