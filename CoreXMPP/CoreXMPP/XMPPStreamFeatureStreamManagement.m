@@ -176,18 +176,18 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
             _id = [stanza valueForAttribute:@"id"];
             _resumable = [[stanza valueForAttribute:@"resume"] boolValue];
-            
+
             _enabled = YES;
-            
+
             _numberOfSentStanzas = 0;
             _numberOfReceivedStanzas = 0;
             _numberOfAcknowledgedStanzas = 0;
             _unacknowledgedStanzas = @[];
-            
+
             [self.delegate streamFeatureDidSucceedNegotiation:self];
-        
+
         } else if ([stanza.name isEqualToString:@"resumed"]) {
-            
+
             NSString *previd = [stanza valueForAttribute:@"previd"];
             if ([previd isEqualToString:_id]) {
                 NSString *value = [stanza valueForAttribute:@"h"];
@@ -239,7 +239,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                                                         namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                            prefix:nil];
     [request.root setValue:@"true" forAttribute:@"resume"];
-    
+
     [self.stanzaHandler handleStanza:request.root
                           completion:^(NSError *error) {
                               if (error) {

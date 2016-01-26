@@ -343,7 +343,7 @@
     //
     // Prepare Resume
     //
-    
+
     [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
 
         assertThat(stanza.name, equalTo(@"resume"));
@@ -371,7 +371,7 @@
         if (completion) {
             completion(nil);
         }
-        
+
         [expectResending fulfill];
     }];
 
@@ -391,150 +391,4 @@
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
 }
 
-- (void)_testClient_ReceviedStanzas
-{
-    XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : stream}];
-
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
-
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
-
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
-        if (_completion) {
-            _completion(nil);
-        }
-        return nil;
-    }];
-
-    //
-    // Prepare Client with Stream Management Feature
-    //
-
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [doc.root addElementWithName:@"sm" namespace:@"urn:xmpp:sm:3" content:nil];
-
-        [stream receiveElement:doc.root];
-    }];
-
-    [stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
-        assertThat(element.name, equalTo(@"enable"));
-        assertThat(element.namespace, equalTo(@"urn:xmpp:sm:3"));
-        PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled"
-                                                             namespace:@"urn:xmpp:sm:3"
-                                                                prefix:nil];
-        [stream receiveElement:response.root];
-    }];
-
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
-    [client connect];
-    [self waitForExpectationsWithTimeout:2.0 handler:nil];
-
-    //
-    // SM
-    //
-
-    id<XMPPClientStreamManagement> sm = client.streamManagement;
-    assertThat(sm, notNilValue());
-
-    //
-    // Ack Recevied Stanza
-    //
-
-    [self keyValueObservingExpectationForObject:sm
-                                        keyPath:@"numberOfReceivedStanzas"
-                                  expectedValue:@(1)];
-
-    PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message"
-                                                                namespace:@"jabber:client"
-                                                                   prefix:nil];
-    [messageDocument.root setStringValue:@"1"];
-    [stream receiveElement:messageDocument.root];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-}
-
-- (void)_testClient_SentStanzas
-{
-    XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : stream}];
-
-    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
-    client.delegate = delegate;
-
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
-
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
-        if (_completion) {
-            _completion(nil);
-        }
-        return nil;
-    }];
-
-    //
-    // Prepare Client with Stream Management Feature
-    //
-
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [doc.root addElementWithName:@"sm" namespace:@"urn:xmpp:sm:3" content:nil];
-
-        [stream receiveElement:doc.root];
-    }];
-
-    [stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
-        assertThat(element.name, equalTo(@"enable"));
-        assertThat(element.namespace, equalTo(@"urn:xmpp:sm:3"));
-        PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled"
-                                                             namespace:@"urn:xmpp:sm:3"
-                                                                prefix:nil];
-        [stream receiveElement:response.root];
-    }];
-
-    XCTestExpectation *establishedConnectionExpectation = [self expectationWithDescription:@"Expect established Connection"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *invocation) {
-        [establishedConnectionExpectation fulfill];
-        return nil;
-    }];
-    [client connect];
-    [self waitForExpectationsWithTimeout:2.0 handler:nil];
-
-    //
-    // SM
-    //
-
-    id<XMPPClientStreamManagement> sm = client.streamManagement;
-    assertThat(sm, notNilValue());
-
-    [self keyValueObservingExpectationForObject:sm
-                                        keyPath:@"numberOfSendStanzas"
-                                  expectedValue:@(1)];
-
-    PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message"
-                                                                namespace:@"jabber:client"
-                                                                   prefix:nil];
-    [messageDocument.root setStringValue:@"1"];
-    [client handleStanza:messageDocument.root completion:nil];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
-    assertThat(sm.unacknowledgedStanzas, equalTo(@[ messageDocument.root ]));
-}
 @end

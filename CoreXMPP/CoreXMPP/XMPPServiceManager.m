@@ -450,7 +450,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
                 DDLogInfo(@"Did suspend account: %@", account);
 
-                if (client.state == XMPPClientStateEstablished) {
+                if (client.state == XMPPClientStateConnected) {
                     [client disconnect];
                 }
             }

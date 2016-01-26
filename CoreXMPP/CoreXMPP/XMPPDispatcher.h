@@ -9,14 +9,11 @@
 #import <Foundation/Foundation.h>
 
 #import "XMPPStanzaHandler.h"
+#import "XMPPConnection.h"
 
 @class PXQName;
 @class PXElement;
 @class XMPPJID;
-
-@protocol XMPPConnection <XMPPStanzaHandler>
-@property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;
-@end
 
 @protocol XMPPIQHandler <NSObject>
 - (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;

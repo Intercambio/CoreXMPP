@@ -420,7 +420,7 @@
                                                                prefix:@"stream"];
             [stream receiveElement:doc.root];
         }];
-        
+
         [stream onDidOpen:^(XMPPStreamStub *stream) {
             PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                             namespace:@"http://etherx.jabber.org/streams"

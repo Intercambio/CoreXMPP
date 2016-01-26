@@ -104,10 +104,10 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only suspend an open stream.");
 
     DDLogInfo(@"Suspending stream to host: %@", self.hostname);
-    
+
     [self xmpp_tearDownWebsocket];
     _state = XMPPStreamStateClosed;
-    
+
     if ([self.delegate respondsToSelector:@selector(streamDidClose:)]) {
         [self.delegate streamDidClose:self];
     }
