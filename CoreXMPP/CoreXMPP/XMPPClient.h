@@ -67,7 +67,10 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @property (nonatomic, readonly) XMPPClientState state;
 
 #pragma mark Manage Client
-- (void)connect;
-- (void)disconnect;
+- (void)connect __attribute__((deprecated));
+- (void)disconnect __attribute__((deprecated));
+- (void)connect:(void (^)(NSError *error))completion;
+- (void)disconnect:(void (^)(NSError *error))completion;
+- (void)suspend:(void (^)(NSError *error))completion;
 
 @end

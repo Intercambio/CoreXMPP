@@ -16,7 +16,7 @@
 @property (nonatomic, readonly) NSUInteger numberOfAcknowledgedStanzas;
 @property (nonatomic, readonly) NSArray *unacknowledgedStanzas;
 
-- (void)didSentStanza:(PXElement *)stanza;
+- (void)didSentStanza:(PXElement *)stanza acknowledgement:(void (^)(NSError *error))acknowledgement;
 - (void)didHandleReceviedStanza:(PXElement *)stanza;
 
 - (void)requestAcknowledgement;

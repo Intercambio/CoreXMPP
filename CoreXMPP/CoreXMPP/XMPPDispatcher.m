@@ -398,37 +398,35 @@
                 [stanza setValue:requestId forAttribute:@"id"];
             }
 
+            XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
+            XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
+            NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
+
+            if (completion) {
+                [_responseHandlers setObject:completion forKey:key];
+            }
+
+            NSTimeInterval defaultTimeout = 60.0;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), _operationQueue, ^{
+                void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                if (completion) {
+                    [_responseHandlers removeObjectForKey:key];
+                    NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                         code:XMPPDispatcherErrorCodeTimeout
+                                                     userInfo:nil];
+                    completion(nil, error);
+                }
+            });
+
             [self xmpp_routeStanza:stanza
                         completion:^(NSError *error) {
                             if (error) {
                                 dispatch_async(_operationQueue, ^{
+                                    void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
                                     if (completion) {
+                                        [_responseHandlers removeObjectForKey:key];
                                         completion(nil, error);
                                     }
-                                });
-                            } else {
-
-                                dispatch_async(_operationQueue, ^{
-
-                                    XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-                                    XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
-                                    NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
-
-                                    if (completion) {
-                                        [_responseHandlers setObject:completion forKey:key];
-                                    }
-
-                                    NSTimeInterval defaultTimeout = 60.0;
-                                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), _operationQueue, ^{
-                                        void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
-                                        if (completion) {
-                                            [_responseHandlers removeObjectForKey:key];
-                                            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                                                                 code:XMPPDispatcherErrorCodeTimeout
-                                                                             userInfo:nil];
-                                            completion(nil, error);
-                                        }
-                                    });
                                 });
                             }
                         }];

@@ -106,6 +106,20 @@
     [self waitForExpectationsWithTimeout:5.0 handler:nil];
 
     //
+    // Send Message
+    //
+
+    PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
+    [messageDocument.root setValue:@"localhost" forAttribute:@"to"];
+
+    XCTestExpectation *expectMessageAck = [self expectationWithDescription:@"Expect Ack"];
+    [client handleStanza:messageDocument.root
+              completion:^(NSError *error) {
+                  [expectMessageAck fulfill];
+              }];
+    [self waitForExpectationsWithTimeout:5.0 handler:nil];
+
+    //
     // Disconnect
     //
 

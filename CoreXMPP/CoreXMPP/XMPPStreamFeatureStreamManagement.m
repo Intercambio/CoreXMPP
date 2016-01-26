@@ -12,6 +12,13 @@
 #import "XMPPError.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 
+@interface XMPPStreamFeatureStreamManagement_Stanza : NSObject
+@property (nonatomic, strong) PXElement *stanza;
+@property (nonatomic, strong) void (^acknowledgement)(NSError *error);
+@end
+
+#pragma mark -
+
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 @interface XMPPStreamFeatureStreamManagement () {
@@ -89,19 +96,33 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 - (NSArray *)unacknowledgedStanzas
 {
-    return _unacknowledgedStanzas ?: @[];
+    NSMutableArray *unacknowledgedStanzas = [[NSMutableArray alloc] init];
+    if (_unacknowledgedStanzas) {
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
+            [unacknowledgedStanzas addObject:wrapper.stanza];
+        }
+    }
+    return unacknowledgedStanzas;
 }
 
-- (void)didSentStanza:(PXElement *)stanza
+- (void)didSentStanza:(PXElement *)stanza acknowledgement:(void (^)(NSError *error))acknowledgement;
 {
     [self willChangeValueForKey:@"numberOfSendStanzas"];
     [self willChangeValueForKey:@"unacknowledgedStanzas"];
 
+    XMPPStreamFeatureStreamManagement_Stanza *wrapper = [[XMPPStreamFeatureStreamManagement_Stanza alloc] init];
+    wrapper.stanza = stanza;
+    wrapper.acknowledgement = acknowledgement;
+
     _numberOfSendStanzas += 1;
-    _unacknowledgedStanzas = [_unacknowledgedStanzas arrayByAddingObject:stanza];
+    _unacknowledgedStanzas = [_unacknowledgedStanzas arrayByAddingObject:wrapper];
 
     [self didChangeValueForKey:@"unacknowledgedStanzas"];
     [self didChangeValueForKey:@"numberOfSendStanzas"];
+
+    if (wrapper.acknowledgement) {
+        [self requestAcknowledgement];
+    }
 }
 
 - (void)didHandleReceviedStanza:(PXElement *)stanza
@@ -183,9 +204,22 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
         // Invalid ACK
     } else {
         NSUInteger diff = numberOfAcknowledgedStanzas - _numberOfAcknowledgedStanzas;
+
+        NSArray *acknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(0, diff)];
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in acknowledgedStanzas) {
+            if (wrapper.acknowledgement) {
+                wrapper.acknowledgement(nil);
+            }
+        }
+
         _unacknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(diff, [_unacknowledgedStanzas count] - diff)];
         _numberOfAcknowledgedStanzas = numberOfAcknowledgedStanzas;
     }
 }
 
+@end
+
+#pragma mark -
+
+@implementation XMPPStreamFeatureStreamManagement_Stanza
 @end

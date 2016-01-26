@@ -86,6 +86,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 - (void)connect
 {
+    return [self connect:nil];
+}
+
+- (void)connect:(void (^)(NSError *error))completion;
+{
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPClientStateDisconnected, @"Invalid State: Can only connect a disconnected client.");
 
@@ -94,10 +99,19 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
         [_stream open];
+
+        if (completion) {
+            completion(nil);
+        }
     });
 }
 
 - (void)disconnect
+{
+    return [self disconnect:nil];
+}
+
+- (void)disconnect:(void (^)(NSError *error))completion;
 {
     dispatch_async(_operationQueue, ^{
         NSAssert(_state == XMPPClientStateEstablished, @"Invalid State: Can only disconnect a client with an established connection.");
@@ -108,8 +122,34 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         [_stanzaHandler processPendingStanzas:^(NSError *error) {
             dispatch_async(_operationQueue, ^{
                 [_stream close];
+                _streamManagement = nil;
+                _negotiatedFeatures = @[];
+
+                if (completion) {
+                    completion(nil);
+                }
             });
         }];
+    });
+}
+
+- (void)suspend:(void (^)(NSError *error))completion;
+{
+    dispatch_async(_operationQueue, ^{
+
+        DDLogInfo(@"Suspending: %@", self);
+
+        for (XMPPStreamFeature *feature in _negotiatedFeatures) {
+            feature.stanzaHandler = nil;
+        }
+
+        _state = XMPPClientStateDisconnected;
+        _stream.delegate = nil;
+        _stream = nil;
+
+        if (completion) {
+            completion(nil);
+        }
     });
 }
 
@@ -119,17 +159,32 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        NSError *error = nil;
-        if (_state == XMPPClientStateEstablished) {
-            [_stream sendElement:stanza];
-            [_streamManagement didSentStanza:stanza];
+
+        if (_state == XMPPClientStateEstablished ||
+            _streamManagement.enabled) {
+
+            // The stanza can be handled if the connection to the server is established
+            // or if the client supports stream management (and can resend the stanza later).
+
+            if (_stream) {
+                [_stream sendElement:stanza];
+            } else {
+                DDLogDebug(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
+            }
+
+            if (_streamManagement.enabled) {
+                [_streamManagement didSentStanza:stanza acknowledgement:completion];
+            } else if (completion) {
+                completion(nil);
+            }
+
         } else {
-            error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                        code:XMPPDispatcherErrorCodeNotConnected
-                                    userInfo:nil];
-        }
-        if (completion) {
-            completion(error);
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeNotConnected
+                                             userInfo:nil];
+            if (completion) {
+                completion(error);
+            }
         }
     });
 }
