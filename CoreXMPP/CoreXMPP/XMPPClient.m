@@ -98,6 +98,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         _state = XMPPClientStateConnecting;
         _negotiatedFeatures = @[];
+        _currentFeature = nil;
+        _featureConfigurations = nil;
         [_stream open];
 
         if (completion) {
@@ -146,6 +148,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         _state = XMPPClientStateDisconnected;
         _stream.delegate = nil;
         _stream = nil;
+        _currentFeature = nil;
+        _featureConfigurations = nil;
 
         if (completion) {
             completion(nil);

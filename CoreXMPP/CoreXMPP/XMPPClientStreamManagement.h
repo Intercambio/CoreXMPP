@@ -12,7 +12,7 @@
 
 @property (nonatomic, readonly, getter=isEnabled) BOOL enabled;
 @property (nonatomic, readonly) NSUInteger numberOfReceivedStanzas;
-@property (nonatomic, readonly) NSUInteger numberOfSendStanzas;
+@property (nonatomic, readonly) NSUInteger numberOfSentStanzas;
 @property (nonatomic, readonly) NSUInteger numberOfAcknowledgedStanzas;
 @property (nonatomic, readonly) NSArray *unacknowledgedStanzas;
 

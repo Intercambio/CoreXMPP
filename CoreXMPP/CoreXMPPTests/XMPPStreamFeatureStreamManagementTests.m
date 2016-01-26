@@ -235,42 +235,49 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
-- (void)testAcknowledgeSentStanzas
+- (void)testAcknowledgeSentStanzasAndResume
 {
     PXDocument *configuration = [[PXDocument alloc] initWithElementName:@"sm" namespace:@"urn:xmpp:sm:3" prefix:nil];
     XMPPStreamFeature *feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
     assertThat(feature, notNilValue());
 
-    id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
-    feature.delegate = delegate;
+    id<XMPPStreamFeatureDelegate> delegate = nil;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
+    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
+    stanzaHandler.stanzaHandler = feature;
     feature.stanzaHandler = stanzaHandler;
 
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
 
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        assertThat(stanza.name, equalTo(@"enable"));
+        assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
+        assertThatBool([[stanza valueForAttribute:@"resume"] boolValue], isTrue());
 
         dispatch_async(dispatch_get_main_queue(), ^{
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
-            [feature handleStanza:response.root completion:nil];
+            [response.root setValue:@"a" forAttribute:@"id"];
+            [response.root setValue:@"true" forAttribute:@"resume"];
+            [responseHandler handleStanza:response.root completion:nil];
         });
-        if (_completion) {
-            _completion(nil);
+
+        if (completion) {
+            completion(nil);
         }
-        return nil;
     }];
 
     //
     // Begin Negotiation
     //
 
+    delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
+
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expecting successfull negotiation"];
-    [givenVoid([delegate streamFeatureDidSucceedNegotiation:feature]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([feature.delegate streamFeatureDidSucceedNegotiation:feature]) willDo:^id(NSInvocation *invocation) {
         [expectation fulfill];
         return nil;
     }];
@@ -279,7 +286,7 @@
 
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
-    assertThatInteger(sm.numberOfSendStanzas, equalToInteger(0));
+    assertThatInteger(sm.numberOfSentStanzas, equalToInteger(0));
     assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
 
     PXDocument *stanza_1 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
@@ -303,13 +310,15 @@
             ack_3 = YES;
         }];
 
-    assertThatInteger(sm.numberOfSendStanzas, equalToInteger(3));
+    assertThatInteger(sm.numberOfSentStanzas, equalToInteger(3));
     assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
     assertThat(sm.unacknowledgedStanzas, equalTo(@[ stanza_1.root, stanza_2.root, stanza_3.root ]));
 
     assertThatBool(ack_1, isFalse());
     assertThatBool(ack_2, isFalse());
     assertThatBool(ack_3, isFalse());
+
+    [sm didHandleReceviedStanza:stanza_1.root];
 
     PXDocument *ack = [[PXDocument alloc] initWithElementName:@"a"
                                                     namespace:[XMPPStreamFeatureStreamManagement namespace]
@@ -329,9 +338,79 @@
     assertThatBool(ack_1, isTrue());
     assertThatBool(ack_2, isTrue());
     assertThatBool(ack_3, isFalse());
+
+    //
+    // Prepare Resume
+    //
+
+    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+
+        assertThat(stanza.name, equalTo(@"enable"));
+        assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
+        assertThatBool([[stanza valueForAttribute:@"resume"] boolValue], isTrue());
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
+            [response.root setValue:@"b" forAttribute:@"id"];
+            [response.root setValue:@"true" forAttribute:@"resume"];
+            [responseHandler handleStanza:response.root completion:nil];
+        });
+
+        if (completion) {
+            completion(nil);
+        }
+    }];
+
+    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+
+        assertThat(stanza.name, equalTo(@"resume"));
+        assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
+        assertThat([stanza valueForAttribute:@"previd"], equalTo(@"a"));
+        assertThat([stanza valueForAttribute:@"h"], equalTo(@"1"));
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            PXDocument *response = [[PXDocument alloc] initWithElementName:@"resumed" namespace:@"urn:xmpp:sm:3" prefix:nil];
+            [response.root setValue:@"a" forAttribute:@"previd"];
+            [response.root setValue:@"2" forAttribute:@"h"];
+            [responseHandler handleStanza:response.root completion:nil];
+        });
+
+        if (completion) {
+            completion(nil);
+        }
+    }];
+
+    __block BOOL didResendStanza = NO;
+
+    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+
+        assertThat(stanza, equalTo(stanza_3.root));
+        didResendStanza = YES;
+
+        if (completion) {
+            completion(nil);
+        }
+    }];
+
+    //
+    // Resume
+    //
+
+    delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
+
+    expectation = [self expectationWithDescription:@"Expecting successfull negotiation"];
+    [givenVoid([feature.delegate streamFeatureDidSucceedNegotiation:feature]) willDo:^id(NSInvocation *invocation) {
+        [expectation fulfill];
+        return nil;
+    }];
+    [feature beginNegotiationWithHostname:@"localhost" options:nil];
+    [self waitForExpectationsWithTimeout:5.0 handler:nil];
+
+    assertThatBool(didResendStanza, isTrue());
 }
 
-- (void)testClient_ReceviedStanzas
+- (void)_testClient_ReceviedStanzas
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
@@ -405,7 +484,7 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
-- (void)testClient_SentStanzas
+- (void)_testClient_SentStanzas
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
