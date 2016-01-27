@@ -8,9 +8,11 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
+#import "XMPPError.h"
 #import "XMPPJID.h"
 #import "XMPPWebsocketStream.h"
 #import "XMPPModule.h"
+#import "XMPPPingModule.h"
 #import "XMPPDispatcher.h"
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
@@ -158,12 +160,14 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return self;
 }
 
-#pragma mark Managing Service Manager
+#pragma mark Exchange Pending Stanzas
 
-- (void)resume
+- (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
+                               completion:(void(^)(NSError *error))completion
 {
-    dispatch_sync(_operationQueue, ^{
-        [self xmpp_resume];
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_exchangePendingStanzasWithTimeout:timeout
+                                          completion:completion];
     });
 }
 
@@ -402,26 +406,51 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_modules removeObject:module];
 }
 
-#pragma mark Suspend & Resume
+#pragma mark Exchange Pending Stanzas
 
-- (void)xmpp_resume
+- (void)xmpp_exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
+                                    completion:(void(^)(NSError *error))completion
 {
+    dispatch_group_t g = dispatch_group_create();
+    
+    __block NSMutableArray *errors = [[NSMutableArray alloc] init];
+    
     for (XMPPAccount *account in [self xmpp_accounts]) {
         if (account.suspended == NO) {
+            
             XMPPClient *client = [self xmpp_clientForAccount:account];
             if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
             }
             if (client.state != XMPPClientStateConnected) {
                 [client connect];
-            } else {
-                [client exchangeAcknowledgement];
             }
+            
+            dispatch_group_enter(g);
+            [XMPPPingModule sendPingUsingIQHandler:_dispatcher
+                                                to:[account.JID bareJID]
+                                              from:account.JID
+                                           timeout:timeout
+                                 completionHandler:^(BOOL success, NSError *error) {
+                                     dispatch_group_leave(g);
+                                 }];
         }
     }
-
-    DDLogInfo(@"Did resume service manager: %@", self);
+    
+    dispatch_group_notify(g, dispatch_get_main_queue(), ^{
+        if (completion) {
+            NSError *error = nil;
+            if (errors) {
+                error = [NSError errorWithDomain:XMPPErrorDomain
+                                            code:XMPPErrorCodeUnknown
+                                        userInfo:@{ XMPPErrorUnderlyingErrorsKey: errors }];
+            }
+            completion(error);
+        }
+    });
 }
+
+#pragma mark Suspend & Resume
 
 - (void)xmpp_suspendAccounts:(NSArray *)accounts
 {
