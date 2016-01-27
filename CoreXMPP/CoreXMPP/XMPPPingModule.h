@@ -15,6 +15,12 @@
 
 @interface XMPPPingModule : XMPPModule <XMPPIQHandler>
 
++ (void)sendPingUsingIQHandler:(id<XMPPIQHandler>)IQHandler
+                            to:(XMPPJID *)to
+                          from:(XMPPJID *)from
+                       timeout:(NSTimeInterval)timeout
+             completionHandler:(void (^)(BOOL success, NSError *error))completionHandler;
+
 - (void)sendPingTo:(XMPPJID *)to
               from:(XMPPJID *)from
            timeout:(NSTimeInterval)timeout
