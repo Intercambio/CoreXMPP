@@ -170,6 +170,10 @@ listen:
     http_bind: true
     ## register: true
     captcha: true
+    resume_timeout: 3600
+    max_resume_timeout: 3600
+    max_ack_queue: infinity
+    resend_on_timeout: if_offline
 
 ##
 ## s2s_use_starttls: Enable STARTTLS + Dialback for S2S connections.
