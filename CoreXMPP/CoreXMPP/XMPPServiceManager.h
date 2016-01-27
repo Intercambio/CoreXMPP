@@ -48,8 +48,9 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
-#pragma mark Managing Service Manager
-- (void)resume;
+#pragma mark Exchange Pending Stanzas
+- (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
+                               completion:(void(^)(NSError *error))completion;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;

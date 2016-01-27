@@ -11,6 +11,7 @@
 extern NSString *const XMPPErrorDomain;
 
 typedef NS_ENUM(NSInteger, XMPPErrorCode) {
+    XMPPErrorCodeUnknown,
     XMPPErrorCodeInvalidState,
 
     // Replace with more general error codes
@@ -20,6 +21,7 @@ typedef NS_ENUM(NSInteger, XMPPErrorCode) {
 };
 
 extern NSString *const XMPPErrorXMLDocumentKey;
+extern NSString *const XMPPErrorUnderlyingErrorsKey;
 
 // Dispatcher
 
