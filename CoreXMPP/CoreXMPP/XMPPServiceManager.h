@@ -50,7 +50,7 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 
 #pragma mark Exchange Pending Stanzas
 - (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
-                               completion:(void(^)(NSError *error))completion;
+                               completion:(void (^)(NSError *error))completion;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;

@@ -48,17 +48,17 @@
              completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
 {
     PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-    
+
     PXElement *iq = doc.root;
     [iq setValue:[to stringValue] forAttribute:@"to"];
     [iq setValue:[from stringValue] forAttribute:@"from"];
     [iq setValue:@"get" forAttribute:@"type"];
-    
+
     NSString *requestID = [[NSUUID UUID] UUIDString];
     [iq setValue:requestID forAttribute:@"id"];
-    
+
     [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-    
+
     [IQHandler handleIQRequest:iq
                        timeout:timeout
                     completion:^(PXElement *response, NSError *error) {
@@ -81,15 +81,18 @@
 - (void)sendPingTo:(XMPPJID *)to from:(XMPPJID *)from timeout:(NSTimeInterval)timeout completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
 {
     dispatch_async(_operationQueue, ^{
-        
+
         [[self class] sendPingUsingIQHandler:self.dispatcher
-                                          to:to from:from timeout:timeout completionHandler:^(BOOL success, NSError *error) {
-                                              dispatch_async(_operationQueue, ^{
-                                                  if (completionHandler) {
-                                                      completionHandler(success, error);
-                                                  }
-                                              });
-                                          }];
+                                          to:to
+                                        from:from
+                                     timeout:timeout
+                           completionHandler:^(BOOL success, NSError *error) {
+                               dispatch_async(_operationQueue, ^{
+                                   if (completionHandler) {
+                                       completionHandler(success, error);
+                                   }
+                               });
+                           }];
     });
 }
 

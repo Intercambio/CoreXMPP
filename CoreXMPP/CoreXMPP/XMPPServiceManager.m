@@ -162,7 +162,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 #pragma mark Exchange Pending Stanzas
 
 - (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
-                               completion:(void(^)(NSError *error))completion
+                               completion:(void (^)(NSError *error))completion
 {
     dispatch_async(_operationQueue, ^{
         [self xmpp_exchangePendingStanzasWithTimeout:timeout
@@ -408,15 +408,15 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 #pragma mark Exchange Pending Stanzas
 
 - (void)xmpp_exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
-                                    completion:(void(^)(NSError *error))completion
+                                    completion:(void (^)(NSError *error))completion
 {
     dispatch_group_t g = dispatch_group_create();
-    
+
     __block NSMutableArray *errors = [[NSMutableArray alloc] init];
-    
+
     for (XMPPAccount *account in [self xmpp_accounts]) {
         if (account.suspended == NO) {
-            
+
             XMPPClient *client = [self xmpp_clientForAccount:account];
             if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
@@ -424,7 +424,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             if (client.state != XMPPClientStateConnected) {
                 [client connect];
             }
-            
+
             dispatch_group_enter(g);
             [XMPPPingModule sendPingUsingIQHandler:_dispatcher
                                                 to:[account.JID bareJID]
@@ -435,14 +435,14 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                                  }];
         }
     }
-    
+
     dispatch_group_notify(g, dispatch_get_main_queue(), ^{
         if (completion) {
             NSError *error = nil;
             if (errors) {
                 error = [NSError errorWithDomain:XMPPErrorDomain
                                             code:XMPPErrorCodeUnknown
-                                        userInfo:@{ XMPPErrorUnderlyingErrorsKey: errors }];
+                                        userInfo:@{XMPPErrorUnderlyingErrorsKey : errors}];
             }
             completion(error);
         }
