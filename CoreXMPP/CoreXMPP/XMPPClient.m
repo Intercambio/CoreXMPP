@@ -79,7 +79,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"<XMPPClient: %p (%@) state: %ld>", self, self.hostname, self.state];
+    return [NSString stringWithFormat:@"<XMPPClient: %p (%@) state: %ld>", self, self.hostname, (unsigned long)self.state];
 }
 
 #pragma mark State

@@ -81,7 +81,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     }
 
     if ([error.domain isEqualToString:NSPOSIXErrorDomain]) {
-#warning TODO: Check the error code to see, if the error is a reachability error
         return NO;
     }
 
