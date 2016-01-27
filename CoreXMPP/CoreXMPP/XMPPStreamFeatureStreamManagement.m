@@ -270,9 +270,9 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
         _numberOfSentStanzas < numberOfAcknowledgedStanzas) {
 
         DDLogWarn(@"Received invalid ack (%ld). Stream has sent (%ld) stanzas and (%ld) have already been acknowledged.",
-                  numberOfAcknowledgedStanzas,
-                  _numberOfSentStanzas,
-                  _numberOfAcknowledgedStanzas);
+                  (unsigned long)numberOfAcknowledgedStanzas,
+                  (unsigned long)_numberOfSentStanzas,
+                  (unsigned long)_numberOfAcknowledgedStanzas);
 
     } else {
         NSUInteger diff = numberOfAcknowledgedStanzas - _numberOfAcknowledgedStanzas;
@@ -288,7 +288,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
             _unacknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(diff, [_unacknowledgedStanzas count] - diff)];
             _numberOfAcknowledgedStanzas = numberOfAcknowledgedStanzas;
 
-            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", _numberOfAcknowledgedStanzas, _numberOfSentStanzas);
+            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", (unsigned long)_numberOfAcknowledgedStanzas, (unsigned long)_numberOfSentStanzas);
         }
     }
 }
@@ -296,7 +296,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 - (void)xmpp_resendPendingStanzas
 {
     if ([_unacknowledgedStanzas count] > 0) {
-        DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", [_unacknowledgedStanzas count]);
+        DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedStanzas count]);
         for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
             [self.stanzaHandler handleStanza:wrapper.stanza
                                   completion:^(NSError *error) {
