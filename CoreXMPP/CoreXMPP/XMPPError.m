@@ -17,6 +17,7 @@ NSString *const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
 NSString *const XMPPStanzaErrorDomain = @"XMPPStanzaErrorDomain";
 
 NSString *const XMPPErrorXMLDocumentKey = @"XMPPErrorXMLDocumentKey";
+NSString *const XMPPErrorUnderlyingErrorsKey = @"XMPPErrorUnderlyingErrorsKey";
 
 @implementation NSError (XMPP)
 
