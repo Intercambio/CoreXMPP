@@ -320,7 +320,7 @@
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
 
-    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:anything()];
+    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:NO];
     [verifyCount(delegate, never()) clientDidDisconnect:client];
 
     HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
@@ -372,7 +372,7 @@
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
 
-    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:anything()];
+    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:NO];
     [verifyCount(delegate, never()) clientDidDisconnect:client];
 
     HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];

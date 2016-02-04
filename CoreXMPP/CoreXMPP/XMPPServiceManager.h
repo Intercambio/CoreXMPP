@@ -55,10 +55,9 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
-- (XMPPAccount *)accountWithJID:(XMPPJID *)JID;
+- (XMPPAccount *)addAccountWithJID:(XMPPJID *)JID options:(NSDictionary *)options error:(NSError **)error;
+- (BOOL)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error;
 - (void)removeAccount:(XMPPAccount *)account;
-
-- (void)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account;
 
 - (void)suspendAccount:(XMPPAccount *)account;
 - (void)resumeAccount:(XMPPAccount *)resume;

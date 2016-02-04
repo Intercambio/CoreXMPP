@@ -22,7 +22,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
     assertThat(account, notNilValue());
     assertThat(account.JID, equalTo(JID(@"romeo@localhost")));
     assertThat(serviceManager.accounts, contains(account, nil));
@@ -34,7 +34,7 @@
     assertThat(account.options, equalTo(@{}));
 
     NSDictionary *options = @{ @"foo" : @"bar" };
-    [serviceManager setOptions:options forAccount:account];
+    [serviceManager setOptions:options forAccount:account error:nil];
 
     assertThat(account.options, equalTo(@{ @"foo" : @"bar" }));
 
@@ -48,7 +48,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@example.com")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Prepare SASL Authentication
@@ -70,7 +70,7 @@
     //
 
     NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
-    [serviceManager setOptions:options forAccount:account];
+    [serviceManager setOptions:options forAccount:account error:nil];
 
     //
     // Resume Account
@@ -97,7 +97,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Prepare SASL Authentication
@@ -181,7 +181,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Prepare SASL Authentication
@@ -265,7 +265,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Prepare SASL Authentication
@@ -374,7 +374,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Resume Account
@@ -444,7 +444,7 @@
 
     XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:@"XEP-0199" options:nil error:nil];
 
-    XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
+    XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
     //
     // Prepare SASL Authentication

@@ -182,13 +182,26 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return accounts;
 }
 
-- (XMPPAccount *)accountWithJID:(XMPPJID *)JID
+- (XMPPAccount *)addAccountWithJID:(XMPPJID *)JID options:(NSDictionary *)options error:(NSError **)error
 {
     __block XMPPAccount *account = nil;
     dispatch_sync(_operationQueue, ^{
-        account = [self xmpp_accountWithJID:JID];
-        if (account == nil) {
-            account = [self xmpp_createAccountWithJID:JID];
+        XMPPJID *bareJID = [JID bareJID];
+        if ([self xmpp_accountWithJID:bareJID]) {
+            if (error) {
+                *error = [NSError errorWithDomain:XMPPErrorDomain
+                                             code:XMPPErrorCodeAccountExists
+                                         userInfo:@{}];
+            }
+        } else {
+            account = [self xmpp_createAccountWithJID:bareJID];
+            if (options) {
+                BOOL success = [self xmpp_setOptions:options forAccount:account error:error];
+                if (!success) {
+                    [self xmpp_removeAccount:account];
+                    account = nil;
+                }
+            }
         }
     });
     return account;
@@ -202,11 +215,13 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     });
 }
 
-- (void)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account
+- (BOOL)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error
 {
+    __block BOOL success = NO;
     dispatch_sync(_operationQueue, ^{
-        [self xmpp_setOptions:options forAccount:account];
+        success = [self xmpp_setOptions:options forAccount:account error:error];
     });
+    return success;
 }
 
 - (void)suspendAccount:(XMPPAccount *)account
@@ -303,10 +318,22 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     DDLogDebug(@"Did remove account: %@", account);
 }
 
-- (void)xmpp_setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account
+- (BOOL)xmpp_setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error
 {
-    account.options = options;
-    DDLogDebug(@"Did update options of account: %@ -- %@", account, options);
+    if (account.suspended) {
+        account.options = options;
+        DDLogDebug(@"Did update options of account: %@ -- %@", account, options);
+        return YES;
+    } else {
+        DDLogError(@"Can not update options of an account, that is not suspended: %@ -- %@", account, options);
+        if (error) {
+            NSString *errorMessasge = [NSString stringWithFormat:@"Can not update options of an account, that is not suspended: %@ -- %@", account, options];
+            *error = [NSError errorWithDomain:XMPPErrorDomain
+                                         code:XMPPErrorCodeInvalidState
+                                     userInfo:@{NSLocalizedDescriptionKey : errorMessasge}];
+        }
+        return NO;
+    }
 }
 
 #pragma mark Clients
@@ -620,8 +647,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
-                                                              userInfo:@{XMPPServiceManagerAccountKey : account,
-                                                                         XMPPServiceManagerResumedKey: @(resumedStream)}];
+                                                              userInfo:@{ XMPPServiceManagerAccountKey : account,
+                                                                          XMPPServiceManagerResumedKey : @(resumedStream) }];
 
         });
     }

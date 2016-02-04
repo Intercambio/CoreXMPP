@@ -13,6 +13,7 @@ extern NSString *const XMPPErrorDomain;
 typedef NS_ENUM(NSInteger, XMPPErrorCode) {
     XMPPErrorCodeUnknown,
     XMPPErrorCodeInvalidState,
+    XMPPErrorCodeAccountExists,
 
     // Replace with more general error codes
     XMPPErrorCodeParseError,
