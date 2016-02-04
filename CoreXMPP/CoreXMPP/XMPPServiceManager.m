@@ -326,7 +326,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     DDLogDebug(@"Did remove account: %@", account);
     
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidAddAccountNotification
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidRemoveAccountNotification
                                                             object:self
                                                           userInfo:@{XMPPServiceManagerAccountKey : account}];
     });
