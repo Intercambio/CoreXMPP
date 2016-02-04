@@ -29,6 +29,7 @@ NSString *const XMPPServiceManagerDidDisconnectAccountNotification = @"XMPPServi
 NSString *const XMPPServiceManagerConnectionDidFailNotification = @"XMPPServiceManagerConnectionDidFailNotification";
 
 NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
+NSString *const XMPPServiceManagerResumedKey = @"XMPPServiceManagerResumedKey";
 
 NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPServiceManagerOptionClientFactoryCallbackKey";
 
@@ -601,7 +602,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 #pragma mark -
 #pragma mark XMPPClientDelegate (called on operation queue)
 
-- (void)clientDidConnect:(XMPPClient *)client
+- (void)clientDidConnect:(XMPPClient *)client resumedStream:(BOOL)resumedStream
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
 
@@ -619,7 +620,8 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
                                                                 object:self
-                                                              userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                              userInfo:@{XMPPServiceManagerAccountKey : account,
+                                                                         XMPPServiceManagerResumedKey: @(resumedStream)}];
 
         });
     }

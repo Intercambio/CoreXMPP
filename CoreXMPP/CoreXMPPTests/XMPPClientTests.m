@@ -167,6 +167,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [[givenVoid([delegate clientDidConnect:client resumedStream:NO]) withMatcher:isFalse() forArgument:1] willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -189,7 +196,14 @@
 
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
-                                  expectedValue:@(XMPPClientStateEstablished)];
+                                  expectedValue:@(XMPPClientStateConnected)];
+
+    expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [[givenVoid([delegate clientDidConnect:client resumedStream:YES]) withMatcher:isTrue() forArgument:1] willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 }
@@ -246,7 +260,7 @@
     // Verify
     //
 
-    [verifyCount(delegate, times(1)) clientDidConnect:client];
+    [verifyCount(delegate, times(1)) clientDidConnect:client resumedStream:NO];
     [verifyCount(delegate, times(1)) clientDidDisconnect:client];
 
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
@@ -306,7 +320,7 @@
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
 
-    [verifyCount(delegate, never()) clientDidConnect:client];
+    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:anything()];
     [verifyCount(delegate, never()) clientDidDisconnect:client];
 
     HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
@@ -358,7 +372,7 @@
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateConnecting) forArgument:1] client:client didChangeState:XMPPClientStateConnecting];
     [[verifyCount(delegate, times(1)) withMatcher:equalToInteger(XMPPClientStateDisconnected) forArgument:1] client:client didChangeState:XMPPClientStateDisconnected];
 
-    [verifyCount(delegate, never()) clientDidConnect:client];
+    [verifyCount(delegate, never()) clientDidConnect:client resumedStream:anything()];
     [verifyCount(delegate, never()) clientDidDisconnect:client];
 
     HCArgumentCaptor *captor = [[HCArgumentCaptor alloc] init];
@@ -452,7 +466,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];
@@ -537,7 +551,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];
@@ -610,7 +624,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];
@@ -675,7 +689,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];
@@ -760,7 +774,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];
@@ -947,7 +961,7 @@
                                   expectedValue:@(XMPPClientStateConnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
-    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate clientDidConnect:client resumedStream:NO]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];

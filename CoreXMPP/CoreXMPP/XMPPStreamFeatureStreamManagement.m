@@ -24,6 +24,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 @interface XMPPStreamFeatureStreamManagement () {
     BOOL _enabled;
     BOOL _resumable;
+    BOOL _resumed;
     NSString *_id;
     NSUInteger _numberOfReceivedStanzas;
     NSUInteger _numberOfSentStanzas;
@@ -93,6 +94,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 @synthesize enabled = _enabled;
 @synthesize resumable = _resumable;
+@synthesize resumed = _resumed;
 @synthesize numberOfReceivedStanzas = _numberOfReceivedStanzas;
 @synthesize numberOfSentStanzas = _numberOfSentStanzas;
 @synthesize numberOfAcknowledgedStanzas = _numberOfAcknowledgedStanzas;
@@ -178,7 +180,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
             _resumable = [[stanza valueForAttribute:@"resume"] boolValue];
 
             _enabled = YES;
-
+            _resumed = NO;
             _numberOfSentStanzas = 0;
             _numberOfReceivedStanzas = 0;
             _numberOfAcknowledgedStanzas = 0;
@@ -190,6 +192,9 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
             NSString *previd = [stanza valueForAttribute:@"previd"];
             if ([previd isEqualToString:_id]) {
+
+                _resumed = YES;
+
                 NSString *value = [stanza valueForAttribute:@"h"];
                 if (value) {
                     NSUInteger h = [value integerValue];
@@ -240,6 +245,8 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                                                            prefix:nil];
     [request.root setValue:@"true" forAttribute:@"resume"];
 
+    _resumed = NO;
+
     [self.stanzaHandler handleStanza:request.root
                           completion:^(NSError *error) {
                               if (error) {
@@ -255,6 +262,8 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                                                            prefix:nil];
     [request.root setValue:_id forAttribute:@"previd"];
     [request.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
+
+    _resumed = NO;
 
     [self.stanzaHandler handleStanza:request.root
                           completion:^(NSError *error) {

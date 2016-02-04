@@ -32,7 +32,7 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @protocol XMPPClientDelegate <NSObject>
 @optional
 - (void)client:(XMPPClient *)client didChangeState:(XMPPClientState)state;
-- (void)clientDidConnect:(XMPPClient *)client;
+- (void)clientDidConnect:(XMPPClient *)client resumedStream:(BOOL)resumedStream;
 - (void)clientDidDisconnect:(XMPPClient *)client;
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error;
 - (void)client:(XMPPClient *)client didNegotiateFeature:(XMPPStreamFeature *)feature;

@@ -328,11 +328,13 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         self.state = XMPPClientStateConnected;
 
+        BOOL resumed = _streamManagement.resumed;
+
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
-            if ([delegate respondsToSelector:@selector(clientDidConnect:)]) {
-                [delegate clientDidConnect:self];
+            if ([delegate respondsToSelector:@selector(clientDidConnect:resumedStream:)]) {
+                [delegate clientDidConnect:self resumedStream:resumed];
             }
         });
     }
