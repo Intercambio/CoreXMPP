@@ -22,6 +22,8 @@
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
+NSString *const XMPPServiceManagerDidAddAccountNotification = @"XMPPServiceManagerDidAddAccountNotification";
+NSString *const XMPPServiceManagerDidRemoveAccountNotification = @"XMPPServiceManagerDidRemoveAccountNotification";
 NSString *const XMPPServiceManagerDidResumeAccountNotification = @"XMPPServiceManagerDidResumeAccountNotification";
 NSString *const XMPPServiceManagerDidSuspendAccountNotification = @"XMPPServiceManagerDidSuspendAccountNotification";
 NSString *const XMPPServiceManagerDidConnectAccountNotification = @"XMPPServiceManagerDidConnectAccountNotification";
@@ -306,6 +308,12 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_accounts addObject:account];
 
     DDLogDebug(@"Did add account: %@", account);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidAddAccountNotification
+                                                            object:self
+                                                          userInfo:@{XMPPServiceManagerAccountKey : account}];
+    });
 
     return account;
 }
@@ -316,6 +324,12 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_accounts removeObject:account];
 
     DDLogDebug(@"Did remove account: %@", account);
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidAddAccountNotification
+                                                            object:self
+                                                          userInfo:@{XMPPServiceManagerAccountKey : account}];
+    });
 }
 
 - (BOOL)xmpp_setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error

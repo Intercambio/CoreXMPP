@@ -15,6 +15,8 @@
 @class XMPPModule;
 @class XMPPServiceManager;
 
+extern NSString *const XMPPServiceManagerDidAddAccountNotification;
+extern NSString *const XMPPServiceManagerDidRemoveAccountNotification;
 extern NSString *const XMPPServiceManagerDidResumeAccountNotification;
 extern NSString *const XMPPServiceManagerDidSuspendAccountNotification;
 extern NSString *const XMPPServiceManagerDidConnectAccountNotification;
