@@ -29,14 +29,25 @@
 
 #pragma mark Life-cycle
 
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher options:(NSDictionary *)options
+- (instancetype)initWithServiceManager:(XMPPServiceManager *)serviceManager
+                            dispatcher:(XMPPDispatcher *)dispatcher
+                               options:(NSDictionary *)options
 {
-    self = [super initWithDispatcher:dispatcher options:options];
+    self = [super initWithServiceManager:serviceManager
+                              dispatcher:dispatcher
+                                 options:options];
     if (self) {
         _operationQueue = dispatch_queue_create("XMPPPingModule", DISPATCH_QUEUE_SERIAL);
-        [dispatcher setIQHandler:self forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
     }
     return self;
+}
+
+- (BOOL)loadModule:(NSError **)error
+{
+    [self.dispatcher setIQHandler:self
+                         forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
+
+    return YES;
 }
 
 #pragma mark Send Ping

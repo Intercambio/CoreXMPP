@@ -247,11 +247,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return modules;
 }
 
-- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options
+- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error
 {
     __block XMPPModule *module = nil;
     dispatch_sync(_operationQueue, ^{
-        module = [self xmpp_addModuleWithType:moduleType options:options];
+        module = [self xmpp_addModuleWithType:moduleType options:options error:error];
     });
     return module;
 }
@@ -386,14 +386,20 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     return [_modules copy];
 }
 
-- (XMPPModule *)xmpp_addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options
+- (XMPPModule *)xmpp_addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error
 {
     Class moduleClass = [[[self class] registeredModules] objectForKey:moduleType];
     if (moduleClass) {
-        XMPPModule *module = [[moduleClass alloc] initWithDispatcher:_dispatcher options:options];
-        [_modules addObject:module];
-
-        return module;
+        XMPPModule *module = [[moduleClass alloc] initWithServiceManager:self
+                                                              dispatcher:_dispatcher
+                                                                 options:options];
+        BOOL loaded = [module loadModule:error];
+        if (loaded) {
+            [_modules addObject:module];
+            return module;
+        } else {
+            return nil;
+        }
     } else {
         return nil;
     }

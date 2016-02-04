@@ -8,17 +8,20 @@
 
 #import <Foundation/Foundation.h>
 
+@class XMPPServiceManager;
 @class XMPPDispatcher;
+@class XMPPAccount;
 
 @interface XMPPModule : NSObject
 
-#pragma mark Life-cycle
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher options:(NSDictionary *)options;
+- (instancetype)initWithServiceManager:(XMPPServiceManager *)serviceManager
+                            dispatcher:(XMPPDispatcher *)dispatcher
+                               options:(NSDictionary *)options;
 
-#pragma mark Options
+@property (nonatomic, weak, readonly) XMPPServiceManager *serviceManager;
+@property (nonatomic, weak, readonly) XMPPDispatcher *dispatcher;
 @property (nonatomic, readonly) NSDictionary *options;
 
-#pragma mark Dispatcher
-@property (nonatomic, readonly) XMPPDispatcher *dispatcher;
+- (BOOL)loadModule:(NSError **)error;
 
 @end

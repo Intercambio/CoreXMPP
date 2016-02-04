@@ -48,7 +48,8 @@
         [responseHandler handleStanza:response completion:nil];
     }];
 
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
+    [module loadModule:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -103,7 +104,8 @@
         [responseHandler handleStanza:response completion:nil];
     }];
 
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
+    [module loadModule:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -130,7 +132,8 @@
     connection.stanzaHandler = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
-    XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
+    [module loadModule:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -157,7 +160,8 @@
     connection.stanzaHandler = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
-    __unused XMPPPingModule *module = [[XMPPPingModule alloc] initWithDispatcher:dispatcher options:nil];
+    XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
+    [module loadModule:nil];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");

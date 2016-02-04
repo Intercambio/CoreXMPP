@@ -66,7 +66,7 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 
 #pragma mark Manage Modules
 @property (nonatomic, readonly) NSArray *modules;
-- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options;
+- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error;
 - (void)removeModule:(XMPPModule *)module;
 
 @end

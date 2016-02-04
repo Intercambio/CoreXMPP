@@ -10,16 +10,22 @@
 
 @implementation XMPPModule
 
-#pragma mark Life-cycle
-
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher options:(NSDictionary *)options
+- (instancetype)initWithServiceManager:(XMPPServiceManager *)serviceManager
+                            dispatcher:(XMPPDispatcher *)dispatcher
+                               options:(NSDictionary *)options
 {
     self = [super init];
     if (self) {
+        _serviceManager = serviceManager;
         _dispatcher = dispatcher;
         _options = options;
     }
     return self;
+}
+
+- (BOOL)loadModule:(NSError **)error
+{
+    return YES;
 }
 
 @end

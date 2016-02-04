@@ -414,7 +414,7 @@
 
     NSString *moduleName = @"XEP-0199";
 
-    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:moduleName options:nil];
+    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:moduleName options:nil error:nil];
     assertThat(module, isA([XMPPPingModule class]));
     assertThat(serviceManager.modules, contains(module, nil));
 
@@ -442,7 +442,7 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:@"XEP-0199" options:nil];
+    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:@"XEP-0199" options:nil error:nil];
 
     XMPPAccount *account = [serviceManager accountWithJID:JID(@"romeo@localhost")];
 
