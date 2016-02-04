@@ -232,6 +232,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateDisconnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Disconnect"];
+    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client disconnect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -282,6 +289,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateDisconnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Error"];
+    [givenVoid([delegate client:client didFailWithError:anything()]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -327,6 +341,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateDisconnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Error"];
+    [givenVoid([delegate client:client didFailWithError:anything()]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -429,6 +450,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -507,6 +535,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -572,7 +607,14 @@
 
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
-                                  expectedValue:@(XMPPClientStateEstablished)];
+                                  expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -631,6 +673,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -709,6 +758,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -775,6 +831,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateDisconnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Disconnect"];
+    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
@@ -882,6 +945,13 @@
     [self keyValueObservingExpectationForObject:client
                                         keyPath:@"state"
                                   expectedValue:@(XMPPClientStateConnected)];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Connect"];
+    [givenVoid([delegate clientDidConnect:client]) willDo:^id(NSInvocation *inv) {
+        [expectation fulfill];
+        return nil;
+    }];
+
     [client connect];
     [self waitForExpectationsWithTimeout:2.0 handler:nil];
 
