@@ -24,5 +24,6 @@
 @property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
 @property (nonatomic, readonly) NSDate *nextConnectionAttempt;
 @property (nonatomic, readonly) BOOL needsReachabilityChange;
+@property (nonatomic, readonly) NSError *recentError;
 
 @end

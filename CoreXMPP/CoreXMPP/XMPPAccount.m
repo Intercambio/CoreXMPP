@@ -72,4 +72,9 @@
     _needsReachabilityChange = needsReachabilityChange;
 }
 
+- (void)setRecentError:(NSError *)recentError
+{
+    _recentError = recentError;
+}
+
 @end

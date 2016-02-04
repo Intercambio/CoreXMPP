@@ -640,6 +640,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         account.numberOfConnectionAttempts = 0;
         account.nextConnectionAttempt = nil;
         account.needsReachabilityChange = NO;
+        account.recentError = nil;
 
         XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
         [reachability removeAllHostnames];
@@ -685,6 +686,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error
 {
     XMPPAccount *account = [self xmpp_accountForClient:client];
+    account.recentError = error;
 
     DDLogError(@"Client %@ for account %@ did fail with error (%@, %ld): %@", client, account, error.domain, (long)error.code, [error localizedDescription]);
 
