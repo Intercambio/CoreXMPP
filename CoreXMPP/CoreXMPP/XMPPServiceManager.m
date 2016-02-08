@@ -308,7 +308,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_accounts addObject:account];
 
     DDLogDebug(@"Did add account: %@", account);
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidAddAccountNotification
                                                             object:self
@@ -324,7 +324,7 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [_accounts removeObject:account];
 
     DDLogDebug(@"Did remove account: %@", account);
-    
+
     dispatch_async(dispatch_get_main_queue(), ^{
         [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidRemoveAccountNotification
                                                             object:self
@@ -658,6 +658,20 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 
         XMPPNetworkReachability *reachability = [_networkReachabilitiesByClient objectForKey:client];
         [reachability removeAllHostnames];
+
+        // Send initial presence
+
+        if (!resumedStream) {
+            PXDocument *doc = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
+            [doc.root setValue:[account.JID stringValue] forAttribute:@"from"];
+
+            [_dispatcher handlePresence:doc.root
+                             completion:^(NSError *error) {
+                                 if (error) {
+                                     NSLog(@"Failed to send initial presence: %@", [error localizedDescription]);
+                                 }
+                             }];
+        }
 
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
