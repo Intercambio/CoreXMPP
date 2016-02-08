@@ -522,10 +522,10 @@
         completionHandler:^(BOOL success, NSError *error) {
             assertThatBool(success, isFalse());
             assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
-            assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNotConnected));
+            assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
             [expectation fulfill];
         }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    [self waitForExpectationsWithTimeout:20.0 handler:nil];
 }
 
 @end

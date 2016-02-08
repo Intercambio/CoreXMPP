@@ -126,13 +126,12 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             DDLogInfo(@"Disconnecting: '%@'.", self.hostname);
 
             self.state = XMPPClientStateDisconnecting;
-            [_stanzaHandler processPendingStanzas:^(NSError *error) {
-                dispatch_async(_operationQueue, ^{
-                    [_stream close];
-                    _streamManagement = nil;
-                    _negotiatedFeatures = @[];
-                });
-            }];
+
+            [_streamManagement sendAcknowledgement];
+            [_streamManagement cancelUnacknowledgedStanzas];
+            [_stream close];
+            _streamManagement = nil;
+            _negotiatedFeatures = @[];
         }
     });
 }

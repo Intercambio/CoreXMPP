@@ -168,6 +168,22 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                           }];
 }
 
+- (void)cancelUnacknowledgedStanzas
+{
+    if ([_unacknowledgedStanzas count] > 0) {
+        DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedStanzas count]);
+        NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                             code:XMPPDispatcherErrorCodeNotConnected
+                                         userInfo:nil];
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
+            if (wrapper.acknowledgement) {
+                wrapper.acknowledgement(error);
+            }
+        }
+        _unacknowledgedStanzas = @[];
+    }
+}
+
 #pragma mark XMPPStanzaHandler
 
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion

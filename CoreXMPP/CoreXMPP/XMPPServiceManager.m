@@ -395,8 +395,6 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     client.SASLDelegate = self.SASLDelegate;
     client.SASLDelegateQueue = dispatch_get_main_queue();
     client.SASLContext = account;
-    client.stanzaHandler = _dispatcher;
-    [_dispatcher setConnection:client forJID:account.JID];
 
     [_clientsByAccount setObject:client forKey:account];
 
@@ -508,17 +506,21 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
                 account.suspended = YES;
                 account.numberOfConnectionAttempts = 0;
                 account.nextConnectionAttempt = nil;
+
+                client.stanzaHandler = nil;
+                [_dispatcher removeConnectionForJID:account.JID];
+
+                if (client.state == XMPPClientStateConnected) {
+                    [client disconnect];
+                }
+
+                DDLogInfo(@"Did suspend account: %@", account);
+
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidSuspendAccountNotification
                                                                         object:self
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
-
-                DDLogInfo(@"Did suspend account: %@", account);
-
-                if (client.state == XMPPClientStateConnected) {
-                    [client disconnect];
-                }
             }
         }
     }
@@ -537,17 +539,20 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
             if (account.suspended) {
                 account.suspended = NO;
 
+                client.stanzaHandler = _dispatcher;
+                [_dispatcher setConnection:client forJID:account.JID];
+
+                if (client.state == XMPPClientStateDisconnected) {
+                    [client connect];
+                }
+
+                DDLogInfo(@"Did resume account: %@", account);
+
                 dispatch_async(dispatch_get_main_queue(), ^{
                     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidResumeAccountNotification
                                                                         object:self
                                                                       userInfo:@{XMPPServiceManagerAccountKey : account}];
                 });
-
-                DDLogInfo(@"Did resume account: %@", account);
-
-                if (client.state == XMPPClientStateDisconnected) {
-                    [client connect];
-                }
             }
         }
     }

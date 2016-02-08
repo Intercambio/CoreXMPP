@@ -24,4 +24,6 @@
 - (void)requestAcknowledgement;
 - (void)sendAcknowledgement;
 
+- (void)cancelUnacknowledgedStanzas;
+
 @end
