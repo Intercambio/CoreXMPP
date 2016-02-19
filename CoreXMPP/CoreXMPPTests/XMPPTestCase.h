@@ -25,5 +25,5 @@
 #import "XMPPStreamFeatureStub.h"
 
 @interface XMPPTestCase : XCTestCase
-
+@property (nonatomic, strong) NSString *keyChainServiceName;
 @end
