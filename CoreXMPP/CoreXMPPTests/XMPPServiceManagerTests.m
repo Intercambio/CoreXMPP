@@ -235,6 +235,30 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
+- (void)testKeyChain
+{
+    XMPPKeyChainService *keyChain = [[XMPPKeyChainService alloc] initWithServiceName:self.keyChainServiceName];
+
+    NSDictionary *options = @{XMPPServiceManagerOptionsKeyChainServiceKey : keyChain};
+    XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:options];
+
+    [serviceManager addAccountWithJID:JID(@"romeo@example.com")
+                              options:@{ @"foo" : @"bar" }
+                                error:nil];
+
+    assertThat(keyChain.identities, contains(JID(@"romeo@example.com"), nil));
+
+    XMPPKeyChainItemAttributes *attributes = [keyChain attributesForIdentityWithJID:JID(@"romeo@example.com")];
+    assertThat(attributes.options, equalTo(@{ @"foo" : @"bar" }));
+
+    serviceManager = [[XMPPServiceManager alloc] initWithOptions:options];
+    assertThat(serviceManager.accounts, hasCountOf(1));
+
+    XMPPAccount *account = [serviceManager.accounts firstObject];
+    assertThat(account.JID, equalTo(JID(@"romeo@example.com")));
+    assertThat(account.options, equalTo(@{ @"foo" : @"bar" }));
+}
+
 #pragma mark Reconnect
 
 - (void)testReconnectOnFailure
