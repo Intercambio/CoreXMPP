@@ -313,7 +313,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
 - (XMPPAccount *)xmpp_createAccountWithJID:(XMPPJID *)JID
 {
-    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self];
+    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self keyChain:_keyChain];
 
     if (_keyChain) {
         [_keyChain addIdentitiyWithJID:JID];

@@ -6,13 +6,17 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPKeyChainService.h"
 #import "XMPPServiceManager.h"
 #import "XMPPAccount.h"
 
 @interface XMPPAccount (Private)
 
 - (instancetype)initWithJID:(XMPPJID *)JID
-             serviceManager:(XMPPServiceManager *)serviceManager;
+             serviceManager:(XMPPServiceManager *)serviceManager
+                   keyChain:(XMPPKeyChainService *)keyChain;
+
+@property (nonatomic, readonly) XMPPKeyChainService *keyChain;
 
 @property (nonatomic, readwrite) NSDictionary *options;
 @property (nonatomic, readwrite) BOOL suspended;

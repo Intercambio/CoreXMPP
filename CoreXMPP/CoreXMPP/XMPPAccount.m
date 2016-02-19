@@ -11,7 +11,23 @@
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
 
+@interface XMPPAccount () {
+    XMPPKeyChainService *_keyChain;
+}
+
+@end
+
 @implementation XMPPAccount
+
+- (void)setPassword:(NSString *)password
+{
+    [_keyChain setPassword:password forIdentityWithJID:_JID];
+}
+
+- (NSString *)password
+{
+    return [_keyChain passwordForIdentityWithJID:_JID];
+}
 
 - (BOOL)isEqual:(id)object
 {
@@ -32,14 +48,21 @@
 
 - (instancetype)initWithJID:(XMPPJID *)JID
              serviceManager:(XMPPServiceManager *)serviceManager
+                   keyChain:(XMPPKeyChainService *)keyChain
 {
     self = [super init];
     if (self) {
         _JID = JID;
         _serviceManger = serviceManager;
+        _keyChain = keyChain;
         _options = @{};
     }
     return self;
+}
+
+- (XMPPKeyChainService *)keyChain
+{
+    return _keyChain;
 }
 
 - (void)setOptions:(NSDictionary *)options

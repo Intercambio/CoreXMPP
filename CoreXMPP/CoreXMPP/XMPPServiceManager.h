@@ -52,9 +52,10 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
-#pragma mark Exchange Pending Stanzas
-- (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
-                               completion:(void (^)(NSError *error))completion;
+#pragma mark Manage Modules
+@property (nonatomic, readonly) NSArray *modules;
+- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error;
+- (void)removeModule:(XMPPModule *)module;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
@@ -67,9 +68,8 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 - (void)suspendAllAccounts;
 - (void)resumeAllAccounts;
 
-#pragma mark Manage Modules
-@property (nonatomic, readonly) NSArray *modules;
-- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error;
-- (void)removeModule:(XMPPModule *)module;
+#pragma mark Exchange Pending Stanzas
+- (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
+                               completion:(void (^)(NSError *error))completion;
 
 @end

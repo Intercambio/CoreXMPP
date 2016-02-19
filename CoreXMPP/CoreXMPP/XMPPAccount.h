@@ -20,6 +20,9 @@
 @property (nonatomic, readonly) BOOL suspended;
 @property (nonatomic, readonly) NSDictionary *options;
 
+#pragma mark Password
+@property (nonatomic, readwrite) NSString *password;
+
 #pragma mark Account Connection State
 @property (nonatomic, readonly) BOOL connected;
 @property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
