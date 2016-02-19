@@ -16,11 +16,12 @@
 @property (nonatomic, readonly) XMPPJID *JID;
 @property (nonatomic, readonly, weak) XMPPServiceManager *serviceManger;
 
+#pragma mark Account Attributes
+@property (nonatomic, readonly) BOOL suspended;
 @property (nonatomic, readonly) NSDictionary *options;
 
-@property (nonatomic, readonly) BOOL suspended;
+#pragma mark Account Connection State
 @property (nonatomic, readonly) BOOL connected;
-
 @property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
 @property (nonatomic, readonly) NSDate *nextConnectionAttempt;
 @property (nonatomic, readonly) BOOL needsReachabilityChange;

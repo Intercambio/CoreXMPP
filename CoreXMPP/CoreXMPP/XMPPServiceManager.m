@@ -17,6 +17,8 @@
 #import "XMPPClient.h"
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
+#import "XMPPKeyChainService.h"
+#import "XMPPKeyChainItemAttributes.h"
 #import "XMPPNetworkReachability.h"
 #import "XMPPServiceManager.h"
 
@@ -34,9 +36,11 @@ NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
 NSString *const XMPPServiceManagerResumedKey = @"XMPPServiceManagerResumedKey";
 
 NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPServiceManagerOptionClientFactoryCallbackKey";
+NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManagerOptionsKeyChainServiceKey";
 
 @interface XMPPServiceManager () <XMPPClientDelegate, XMPPNetworkReachabilityDelegate> {
     dispatch_queue_t _operationQueue;
+    XMPPKeyChainService *_keyChain;
     NSMutableArray *_accounts;
     NSMapTable *_clientsByAccount;
     NSMapTable *_networkReachabilitiesByClient;
@@ -153,11 +157,18 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     if (self) {
         _options = options;
         _operationQueue = dispatch_queue_create("XMPPServiceManager", DISPATCH_QUEUE_SERIAL);
+        _keyChain = _options[XMPPServiceManagerOptionsKeyChainServiceKey];
         _clientsByAccount = [NSMapTable strongToStrongObjectsMapTable];
         _accounts = [[NSMutableArray alloc] init];
         _modules = [[NSMutableArray alloc] init];
         _networkReachabilitiesByClient = [NSMapTable weakToStrongObjectsMapTable];
         _dispatcher = [[XMPPDispatcher alloc] init];
+
+        if (_keyChain) {
+            for (XMPPJID *JID in [_keyChain identities]) {
+                [self xmpp_createAccountWithJID:JID];
+            }
+        }
     }
     return self;
 }
@@ -303,7 +314,16 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 - (XMPPAccount *)xmpp_createAccountWithJID:(XMPPJID *)JID
 {
     XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self];
-    account.suspended = YES;
+
+    if (_keyChain) {
+        [_keyChain addIdentitiyWithJID:JID];
+        XMPPKeyChainItemAttributes *attributes = [_keyChain attributesForIdentityWithJID:JID];
+        account.suspended = attributes.suspended;
+        account.options = attributes.options;
+    } else {
+        account.suspended = YES;
+    }
+
     account.connected = NO;
     [_accounts addObject:account];
 
@@ -323,6 +343,10 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
     [self xmpp_removeClientForAccount:account];
     [_accounts removeObject:account];
 
+    if (_keyChain) {
+        [_keyChain removeIdentityWithJID:account.JID];
+    }
+
     DDLogDebug(@"Did remove account: %@", account);
 
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -336,6 +360,13 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
 {
     if (account.suspended) {
         account.options = options;
+
+        if (_keyChain) {
+            XMPPKeyChainItemAttributes *attributes = [[XMPPKeyChainItemAttributes alloc] initWithOptions:options
+                                                                                               suspended:account.suspended];
+            [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
+        }
+
         DDLogDebug(@"Did update options of account: %@ -- %@", account, options);
         return YES;
     } else {
@@ -504,6 +535,12 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if (client) {
             if (account.suspended == NO) {
                 account.suspended = YES;
+
+                if (_keyChain) {
+                    XMPPKeyChainItemAttributes *attributes = [[XMPPKeyChainItemAttributes alloc] initWithOptions:account.options suspended:account.suspended];
+                    [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
+                }
+
                 account.numberOfConnectionAttempts = 0;
                 account.nextConnectionAttempt = nil;
 
@@ -538,6 +575,11 @@ NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPService
         if (client) {
             if (account.suspended) {
                 account.suspended = NO;
+
+                if (_keyChain) {
+                    XMPPKeyChainItemAttributes *attributes = [[XMPPKeyChainItemAttributes alloc] initWithOptions:account.options suspended:account.suspended];
+                    [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
+                }
 
                 client.stanzaHandler = _dispatcher;
                 [_dispatcher setConnection:client forJID:account.JID];
