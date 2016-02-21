@@ -34,7 +34,7 @@
     assertThat(account.options, equalTo(@{}));
 
     NSDictionary *options = @{ @"foo" : @"bar" };
-    [serviceManager setOptions:options forAccount:account error:nil];
+    [serviceManager setOptions:options forAccount:account];
 
     assertThat(account.options, equalTo(@{ @"foo" : @"bar" }));
 
@@ -70,7 +70,7 @@
     //
 
     NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
-    [serviceManager setOptions:options forAccount:account error:nil];
+    [serviceManager setOptions:options forAccount:account];
 
     //
     // Resume Account

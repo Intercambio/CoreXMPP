@@ -209,11 +209,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         } else {
             account = [self xmpp_createAccountWithJID:bareJID];
             if (options) {
-                BOOL success = [self xmpp_setOptions:options forAccount:account error:error];
-                if (!success) {
-                    [self xmpp_removeAccount:account];
-                    account = nil;
-                }
+                [self xmpp_setOptions:options forAccount:account];
             }
         }
     });
@@ -228,13 +224,11 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     });
 }
 
-- (BOOL)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error
+- (void)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account
 {
-    __block BOOL success = NO;
     dispatch_sync(_operationQueue, ^{
-        success = [self xmpp_setOptions:options forAccount:account error:error];
+        [self xmpp_setOptions:options forAccount:account];
     });
-    return success;
 }
 
 - (void)suspendAccount:(XMPPAccount *)account
@@ -356,28 +350,23 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     });
 }
 
-- (BOOL)xmpp_setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account error:(NSError **)error
+- (void)xmpp_setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account
 {
-    if (account.suspended) {
-        account.options = options;
+    if (_keyChain) {
+        XMPPKeyChainItemAttributes *attributes = [[XMPPKeyChainItemAttributes alloc] initWithOptions:options
+                                                                                           suspended:account.suspended];
+        [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
+    }
 
-        if (_keyChain) {
-            XMPPKeyChainItemAttributes *attributes = [[XMPPKeyChainItemAttributes alloc] initWithOptions:options
-                                                                                               suspended:account.suspended];
-            [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
-        }
+    account.options = options;
+    DDLogDebug(@"Did update options of account: %@ -- %@", account, options);
 
-        DDLogDebug(@"Did update options of account: %@ -- %@", account, options);
-        return YES;
-    } else {
-        DDLogError(@"Can not update options of an account, that is not suspended: %@ -- %@", account, options);
-        if (error) {
-            NSString *errorMessasge = [NSString stringWithFormat:@"Can not update options of an account, that is not suspended: %@ -- %@", account, options];
-            *error = [NSError errorWithDomain:XMPPErrorDomain
-                                         code:XMPPErrorCodeInvalidState
-                                     userInfo:@{NSLocalizedDescriptionKey : errorMessasge}];
+    if (account.connected) {
+        DDLogDebug(@"Reconnecting account to apply the new options.");
+        XMPPClient *client = [self xmpp_clientForAccount:account];
+        if (client) {
+            [client disconnect];
         }
-        return NO;
     }
 }
 
@@ -499,6 +488,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 client = [self xmpp_createClientForAccount:account];
             }
             if (client.state != XMPPClientStateConnected) {
+                client.options = account.options;
                 [client connect];
             }
 
@@ -585,6 +575,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 [_dispatcher setConnection:client forJID:account.JID];
 
                 if (client.state == XMPPClientStateDisconnected) {
+                    client.options = account.options;
                     [client connect];
                 }
 
@@ -631,6 +622,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
                 DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
 
+                client.options = account.options;
                 [client connect];
 
             } else if ([[self class] isNetworkReachabilityError:error]) {
@@ -671,6 +663,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                         }
 
                         DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
+                        client.options = account.options;
                         [client connect];
                     }
                 });
@@ -815,6 +808,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 if (status == XMPPNetworkReachabilityStatusReachableViaWiFi ||
                     status == XMPPNetworkReachabilityStatusReachableViaWWAN) {
                     DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
+                    client.options = account.options;
                     [client connect];
                     break;
                 }

@@ -48,7 +48,7 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readonly) NSDictionary *options;
+@property (nonatomic, readwrite) NSDictionary *options;
 
 #pragma mark Delegate & SASL Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;

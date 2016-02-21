@@ -111,6 +111,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             _negotiatedFeatures = @[];
             _currentFeature = nil;
             _featureConfigurations = nil;
+            _stream.options = self.options;
             [_stream open];
         }
     });

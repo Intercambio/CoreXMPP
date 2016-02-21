@@ -291,6 +291,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     _websocket.delegate = nil;
     [_websocket close];
     _websocket = nil;
+    _discoveredWebsocketURL = nil;
 }
 
 #pragma mark Discovering

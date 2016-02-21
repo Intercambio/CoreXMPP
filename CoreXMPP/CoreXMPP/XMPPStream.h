@@ -37,7 +37,7 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readonly) NSDictionary *options;
+@property (nonatomic, readwrite) NSDictionary *options;
 
 #pragma mark Queue
 
