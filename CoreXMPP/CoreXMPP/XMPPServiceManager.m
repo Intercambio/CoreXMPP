@@ -486,6 +486,8 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
             XMPPClient *client = [self xmpp_clientForAccount:account];
             if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
+                client.stanzaHandler = _dispatcher;
+                [_dispatcher setConnection:client forJID:account.JID];
             }
             if (client.state != XMPPClientStateConnected) {
                 client.options = account.options;
