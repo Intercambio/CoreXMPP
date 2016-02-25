@@ -1,2 +1,2 @@
 git "https://github.com/AliSoftware/OHHTTPStubs.git" ~> 4.7.0
-git "https://github.com/anagromataf/OCMockito.git" "fix-carthage-framework-search-path"
+github "jonreid/OCMockito" "master"
