@@ -90,7 +90,7 @@
     [query setObject:self.serviceName forKey:(__bridge id)kSecAttrService];
     [query setObject:[[JID bareJID] stringValue] forKey:(__bridge id)kSecAttrAccount];
 
-    OSStatus resultCode = SecItemDelete((__bridge CFDictionaryRef)query);
+    __unused OSStatus resultCode = SecItemDelete((__bridge CFDictionaryRef)query);
     NSAssert(resultCode == noErr || resultCode == errSecItemNotFound, @"Failed to delete key chain item.");
 }
 
@@ -143,8 +143,8 @@
                                            (__bridge id)
                              kSecAttrGeneric : optionsData };
 
-    OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
-                                        (__bridge CFDictionaryRef)values);
+    __unused OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
+                                                 (__bridge CFDictionaryRef)values);
 
     NSAssert(resultCode == noErr, @"Failed to update key chain item (attributes).");
 }
@@ -192,8 +192,8 @@
     NSData *passwordData = password ? [password dataUsingEncoding:NSUTF8StringEncoding] : [@"" dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary *values = @{(__bridge id) kSecValueData : passwordData};
 
-    OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
-                                        (__bridge CFDictionaryRef)values);
+    __unused OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
+                                                 (__bridge CFDictionaryRef)values);
 
     NSAssert(resultCode == noErr, @"Failed to update key chain item (password).");
 }
