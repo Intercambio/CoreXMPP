@@ -63,6 +63,7 @@
     NSMutableDictionary *query = [[NSMutableDictionary alloc] init];
 
     [query setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
+    [query setObject:(__bridge id)kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly forKey:(__bridge id)kSecAttrAccessible];
     [query setObject:self.serviceName forKey:(__bridge id)kSecAttrService];
     [query setObject:[[JID bareJID] stringValue] forKey:(__bridge id)kSecAttrAccount];
 
