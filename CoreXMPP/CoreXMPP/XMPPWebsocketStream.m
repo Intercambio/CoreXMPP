@@ -244,6 +244,20 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     }
 }
 
+#pragma Keep Alive
+
+- (void)keepAlive
+{
+    NSTimeInterval keepAliveInterval = 20.0;
+    __weak typeof(self) _self = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(keepAliveInterval * NSEC_PER_SEC)), [self xmpp_queue], ^{
+        if (_self && _websocket.readyState == SR_OPEN) {
+            [_websocket sendPing:nil];
+            [_self keepAlive];
+        }
+    });
+}
+
 #pragma mark Error Handling
 
 - (void)xmpp_handleError:(NSError *)error
@@ -380,6 +394,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     } else {
         _state = XMPPStreamStateOpening;
         [self xmpp_sendOpenFrame];
+        [self keepAlive];
     }
 }
 
