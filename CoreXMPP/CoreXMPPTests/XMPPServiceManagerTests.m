@@ -349,7 +349,7 @@
     // Wait for the Account to be disconnected
     //
 
-    [self expectationForNotification:XMPPServiceManagerDidDisconnectAccountNotification
+    [self expectationForNotification:XMPPServiceManagerConnectionDidFailNotification
                               object:serviceManager
                              handler:^BOOL(NSNotification *_Nonnull notification) {
                                  assertThatBool(account.connected, isFalse());

@@ -11,6 +11,8 @@
 #import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
 
+NSString * const XMPPAccountDidChangeNotification = @"XMPPAccountDidChangeNotification";
+
 @interface XMPPAccount () {
     XMPPKeyChainService *_keyChain;
 }
@@ -27,6 +29,11 @@
 - (NSString *)password
 {
     return [_keyChain passwordForIdentityWithJID:_JID];
+}
+
+- (BOOL)connected
+{
+    return _clientState == XMPPClientStateConnected;
 }
 
 - (BOOL)isEqual:(id)object
@@ -68,36 +75,51 @@
 - (void)setOptions:(NSDictionary *)options
 {
     _options = [options copy] ?: @{};
+    [self postChangeNotification];
 }
 
 - (void)setSuspended:(BOOL)suspended
 {
     _suspended = suspended;
+    [self postChangeNotification];
 }
 
-- (void)setConnected:(BOOL)connected
+- (void)setClientState:(XMPPClientState)clientState
 {
-    _connected = connected;
+    _clientState = clientState;
+    [self postChangeNotification];
 }
 
 - (void)setNumberOfConnectionAttempts:(NSUInteger)numberOfConnectionAttempts
 {
     _numberOfConnectionAttempts = numberOfConnectionAttempts;
+    [self postChangeNotification];
 }
 
 - (void)setNextConnectionAttempt:(NSDate *)nextConnectionAttempt
 {
     _nextConnectionAttempt = nextConnectionAttempt;
+    [self postChangeNotification];
 }
 
 - (void)setNeedsReachabilityChange:(BOOL)needsReachabilityChange
 {
     _needsReachabilityChange = needsReachabilityChange;
+    [self postChangeNotification];
 }
 
 - (void)setRecentError:(NSError *)recentError
 {
     _recentError = recentError;
+    [self postChangeNotification];
+}
+
+- (void)postChangeNotification
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountDidChangeNotification
+                                                            object:self];
+    });
 }
 
 @end

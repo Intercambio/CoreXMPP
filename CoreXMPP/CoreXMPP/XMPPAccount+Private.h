@@ -20,7 +20,7 @@
 
 @property (nonatomic, readwrite) NSDictionary *options;
 @property (nonatomic, readwrite) BOOL suspended;
-@property (nonatomic, readwrite) BOOL connected;
+@property (nonatomic, readwrite) XMPPClientState clientState;
 
 @property (nonatomic, readwrite) NSUInteger numberOfConnectionAttempts;
 @property (nonatomic, readwrite) NSDate *nextConnectionAttempt;

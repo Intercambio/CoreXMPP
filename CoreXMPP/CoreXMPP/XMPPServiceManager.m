@@ -318,7 +318,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         account.suspended = YES;
     }
 
-    account.connected = NO;
     [_accounts addObject:account];
 
     DDLogDebug(@"Did add account: %@", account);
@@ -432,7 +431,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     XMPPClient *client = [_clientsByAccount objectForKey:account];
     client.delegate = nil;
     client.delegateQueue = nil;
-    account.connected = NO;
+    account.clientState = client.state;
     [_clientsByAccount removeObjectForKey:account];
     [_dispatcher removeConnection:client];
 
@@ -692,7 +691,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogInfo(@"Client %@ for account %@ did connect.", client, account);
 
     if (account) {
-        account.connected = YES;
+        account.clientState = client.state;
         account.numberOfConnectionAttempts = 0;
         account.nextConnectionAttempt = nil;
         account.needsReachabilityChange = NO;
@@ -733,7 +732,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
     if (account) {
 
-        account.connected = NO;
+        account.clientState = client.state;
 
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
@@ -761,26 +760,24 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogError(@"Client %@ for account %@ did fail with error (%@, %ld): %@", client, account, error.domain, (long)error.code, [error localizedDescription]);
 
     if (account) {
-
+        
+        account.clientState = client.state;
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerConnectionDidFailNotification
                                                                 object:self
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
-
-        if (account.connected) {
-            account.connected = NO;
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
-                                                                    object:self
-                                                                  userInfo:@{XMPPServiceManagerAccountKey : account}];
-
-            });
-        }
-
+        
         [self xmpp_reconnectClientForAccount:account error:error];
     }
+}
+
+- (void)client:(XMPPClient *)client didChangeState:(XMPPClientState)state
+{
+    XMPPAccount *account = [self xmpp_accountForClient:client];
+    account.clientState = client.state;
 }
 
 #pragma mark XMPPNetworkReachabilityDelegate (called on operation queue)

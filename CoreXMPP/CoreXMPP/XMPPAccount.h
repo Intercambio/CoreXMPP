@@ -8,6 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+#import "XMPPClient.h"
+
+extern NSString * const XMPPAccountDidChangeNotification;
+
 @class XMPPServiceManager;
 @class XMPPJID;
 
@@ -25,6 +29,7 @@
 
 #pragma mark Account Connection State
 @property (nonatomic, readonly) BOOL connected;
+@property (nonatomic, readonly) XMPPClientState clientState;
 @property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
 @property (nonatomic, readonly) NSDate *nextConnectionAttempt;
 @property (nonatomic, readonly) BOOL needsReachabilityChange;
