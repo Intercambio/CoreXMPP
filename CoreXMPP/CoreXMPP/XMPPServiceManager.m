@@ -259,6 +259,13 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     });
 }
 
+- (void)reconnectAccount:(XMPPAccount *)account
+{
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_reconnectAccount:account];
+    });
+}
+
 #pragma mark Manage Modules
 
 - (NSArray *)modules
@@ -594,6 +601,27 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
 #pragma mark Reconnect
 
+- (void)xmpp_reconnectAccount:(XMPPAccount *)account
+{
+    if (account.suspended == NO) {
+        XMPPClient *client = [self xmpp_clientForAccount:account];
+        
+        if (client == nil) {
+            client = [self xmpp_createClientForAccount:account];
+        }
+        
+        client.stanzaHandler = _dispatcher;
+        [_dispatcher setConnection:client forJID:account.JID];
+        
+        if (client.state == XMPPClientStateDisconnected) {
+            client.options = account.options;
+            [client connect];
+        }
+        
+        DDLogInfo(@"Will reconnect account: %@", account);
+    }
+}
+
 - (void)xmpp_reconnectClientForAccount:(XMPPAccount *)account error:(NSError *)error
 {
     if (account.suspended == NO) {
@@ -601,8 +629,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         NSUInteger maxConnectionAttempts = 10;
 
         if (account.numberOfConnectionAttempts >= maxConnectionAttempts) {
-            DDLogInfo(@"Suspending account '%@' due to to many reconnection attempts.", account);
-            [self xmpp_suspendAccounts:@[ account ]];
+            DDLogInfo(@"To many reconnection attempts for account '%@'. Giving up.", account);
         } else {
             account.numberOfConnectionAttempts += 1;
             DDLogInfo(@"Try to reconnect account '%@' (%lu)", account, (unsigned long)account.numberOfConnectionAttempts);
@@ -670,12 +697,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 });
 
             } else {
-
                 DDLogInfo(@"Client has been disconnected due to a permanent error. Suspending Account.");
-                [self xmpp_suspendAccounts:@[ account ]];
             }
         }
-
     } else {
         [self xmpp_removeClientForAccount:account];
     }

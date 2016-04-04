@@ -68,6 +68,8 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 - (void)suspendAllAccounts;
 - (void)resumeAllAccounts;
 
+- (void)reconnectAccount:(XMPPAccount *)account;
+
 #pragma mark Exchange Pending Stanzas
 - (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
                                completion:(void (^)(NSError *error))completion;
