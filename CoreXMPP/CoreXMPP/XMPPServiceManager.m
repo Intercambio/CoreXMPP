@@ -8,19 +8,19 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
+#import "XMPPAccount+Private.h"
+#import "XMPPAccount.h"
+#import "XMPPClient.h"
+#import "XMPPDispatcher.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
-#import "XMPPWebsocketStream.h"
-#import "XMPPModule.h"
-#import "XMPPPingModule.h"
-#import "XMPPDispatcher.h"
-#import "XMPPClient.h"
-#import "XMPPAccount.h"
-#import "XMPPAccount+Private.h"
-#import "XMPPKeyChainService.h"
 #import "XMPPKeyChainItemAttributes.h"
+#import "XMPPKeyChainService.h"
+#import "XMPPModule.h"
 #import "XMPPNetworkReachability.h"
+#import "XMPPPingModule.h"
 #import "XMPPServiceManager.h"
+#import "XMPPWebsocketStream.h"
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
@@ -605,19 +605,19 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 {
     if (account.suspended == NO) {
         XMPPClient *client = [self xmpp_clientForAccount:account];
-        
+
         if (client == nil) {
             client = [self xmpp_createClientForAccount:account];
         }
-        
+
         client.stanzaHandler = _dispatcher;
         [_dispatcher setConnection:client forJID:account.JID];
-        
+
         if (client.state == XMPPClientStateDisconnected) {
             client.options = account.options;
             [client connect];
         }
-        
+
         DDLogInfo(@"Will reconnect account: %@", account);
     }
 }
@@ -675,7 +675,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 NSTimeInterval defaultAttemptTimeInterval = 1.0;
                 NSTimeInterval maxAttemptTimeInterval = 60.0;
                 NSTimeInterval timeIntervalUntilNextAttempt = fmin(pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval, maxAttemptTimeInterval);
-                
+
                 DDLogInfo(@"Will try to reconnect client %@ for account %@ in %f seconds.", client, account, timeIntervalUntilNextAttempt);
 
                 account.nextConnectionAttempt = [NSDate dateWithTimeIntervalSinceNow:timeIntervalUntilNextAttempt];
@@ -785,16 +785,16 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogError(@"Client %@ for account %@ did fail with error (%@, %ld): %@", client, account, error.domain, (long)error.code, [error localizedDescription]);
 
     if (account) {
-        
+
         account.clientState = client.state;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerConnectionDidFailNotification
                                                                 object:self
                                                               userInfo:@{XMPPServiceManagerAccountKey : account}];
 
         });
-        
+
         [self xmpp_reconnectClientForAccount:account error:error];
     }
 }

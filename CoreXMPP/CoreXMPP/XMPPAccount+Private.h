@@ -6,9 +6,9 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPAccount.h"
 #import "XMPPKeyChainService.h"
 #import "XMPPServiceManager.h"
-#import "XMPPAccount.h"
 
 @interface XMPPAccount (Private)
 

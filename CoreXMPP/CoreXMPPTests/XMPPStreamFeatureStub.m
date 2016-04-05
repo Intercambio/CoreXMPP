@@ -28,7 +28,7 @@
     return @"feature";
 }
 
-+ (NSString *) namespace
++ (NSString *)namespace
 {
     return @"http://example.com/";
 }

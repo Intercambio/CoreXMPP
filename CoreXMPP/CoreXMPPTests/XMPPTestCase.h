@@ -14,15 +14,15 @@
 #define MOCKITO_SHORTHAND
 #import <OCMockito/OCMockito.h>
 
-#import <OHHTTPStubs/OHHTTPStubs.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <OHHTTPStubs/OHHTTPStubs.h>
 
 #import <CoreXMPP/CoreXMPP.h>
 
-#import "XMPPModuleStub.h"
 #import "XMPPConnectionStub.h"
-#import "XMPPStreamStub.h"
+#import "XMPPModuleStub.h"
 #import "XMPPStreamFeatureStub.h"
+#import "XMPPStreamStub.h"
 
 @interface XMPPTestCase : XCTestCase
 @property (nonatomic, strong) NSString *keyChainServiceName;

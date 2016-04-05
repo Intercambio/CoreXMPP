@@ -42,7 +42,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     return @"session";
 }
 
-+ (NSString *) namespace
++ (NSString *)namespace
 {
     return XMPPStreamFeatureSessionNamespace;
 }

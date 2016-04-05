@@ -10,7 +10,7 @@
 
 #import "XMPPClient.h"
 
-extern NSString * const XMPPAccountDidChangeNotification;
+extern NSString *const XMPPAccountDidChangeNotification;
 
 @class XMPPServiceManager;
 @class XMPPJID;

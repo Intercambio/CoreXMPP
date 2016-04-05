@@ -9,12 +9,12 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 #import "XMPPError.h"
-#import "XMPPWebsocketStream.h"
 #import "XMPPStreamFeature.h"
-#import "XMPPStreamFeatureSASL.h"
 #import "XMPPStreamFeatureBind.h"
+#import "XMPPStreamFeatureSASL.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 #import "XMPPStreamStanzaHandlerProxy.h"
+#import "XMPPWebsocketStream.h"
 
 #import "SASLMechanism.h"
 

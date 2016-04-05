@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPStreamFeature.h"
 #import "SASLMechanism.h"
+#import "XMPPStreamFeature.h"
 
 extern NSString *const XMPPStreamFeatureSASLNamespace;
 

@@ -8,14 +8,22 @@
 
 #import <Foundation/Foundation.h>
 
-#import "XMPPStanzaHandler.h"
 #import "XMPPConnection.h"
+#import "XMPPStanzaHandler.h"
 
 @class PXQName;
 @class PXElement;
 @class XMPPJID;
 
-@protocol XMPPIQHandler <NSObject>
+@protocol XMPPDispatcherHandler <NSObject>
+@optional
+- (void)didAddConnectionTo:(XMPPJID *)JID;
+- (void)didRemoveConnectionTo:(XMPPJID *)JID;
+- (void)didConnect:(XMPPJID *)JID resumed:(BOOL)resumed;
+- (void)didDisconnect:(XMPPJID *)JID;
+@end
+
+@protocol XMPPIQHandler <XMPPDispatcherHandler>
 - (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;
 @end
 
@@ -27,7 +35,7 @@
 - (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
-@interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler, XMPPConnectionDelegate>
 
 #pragma mark Manage Connections
 @property (nonatomic, readonly) NSDictionary *connectionsByJID;

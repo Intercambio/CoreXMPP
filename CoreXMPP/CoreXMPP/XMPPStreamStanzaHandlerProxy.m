@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPError.h"
 #import "XMPPStreamStanzaHandlerProxy.h"
+#import "XMPPError.h"
 
 @implementation XMPPStreamStanzaHandlerProxy
 
