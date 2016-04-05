@@ -673,8 +673,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 account.needsReachabilityChange = NO;
 
                 NSTimeInterval defaultAttemptTimeInterval = 1.0;
-                NSTimeInterval timeIntervalUntilNextAttempt = pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval;
-
+                NSTimeInterval maxAttemptTimeInterval = 60.0;
+                NSTimeInterval timeIntervalUntilNextAttempt = fmin(pow(2, account.numberOfConnectionAttempts) * defaultAttemptTimeInterval, maxAttemptTimeInterval);
+                
                 DDLogInfo(@"Will try to reconnect client %@ for account %@ in %f seconds.", client, account, timeIntervalUntilNextAttempt);
 
                 account.nextConnectionAttempt = [NSDate dateWithTimeIntervalSinceNow:timeIntervalUntilNextAttempt];
