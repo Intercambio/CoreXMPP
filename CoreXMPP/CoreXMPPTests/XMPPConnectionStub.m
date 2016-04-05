@@ -11,12 +11,13 @@
 @interface XMPPConnectionStub () {
     dispatch_queue_t _operationQueue;
     NSMutableArray *_onHandleStanzaCallbacks;
-    id<XMPPStanzaHandler> _stanzaHandler;
 }
 
 @end
 
 @implementation XMPPConnectionStub
+
+@synthesize connectionDelegate = _connectionDelegate;
 
 - (instancetype)init
 {
@@ -30,22 +31,6 @@
 
 #pragma mark XMPPConnection
 
-- (void)setStanzaHandler:(id<XMPPStanzaHandler>)stanzaHandler
-{
-    dispatch_async(_operationQueue, ^{
-        _stanzaHandler = stanzaHandler;
-    });
-}
-
-- (id<XMPPStanzaHandler>)stanzaHandler
-{
-    __block id<XMPPStanzaHandler> handler = nil;
-    dispatch_sync(_operationQueue, ^{
-        handler = _stanzaHandler;
-    });
-    return handler;
-}
-
 - (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
@@ -53,7 +38,7 @@
         if (_callback) {
             [_onHandleStanzaCallbacks removeObjectAtIndex:0];
             dispatch_async(dispatch_get_main_queue(), ^{
-                _callback(stanza, completion, _stanzaHandler);
+                _callback(stanza, completion, _connectionDelegate);
             });
         } else {
             if (completion) {

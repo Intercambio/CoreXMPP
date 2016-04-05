@@ -41,8 +41,8 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> stanzaHandler = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = stanzaHandler;
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
@@ -138,10 +138,10 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     client.SASLDelegate = SASLDelegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -219,8 +219,8 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = connectionDelegate;
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
@@ -279,8 +279,8 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = connectionDelegate;
 
     [self.stream onDidOpen:^(XMPPStreamStub *stream) {
 
@@ -1096,10 +1096,10 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1165,7 +1165,7 @@
     //
 
     HCArgumentCaptor *captoredStanzas = [[HCArgumentCaptor alloc] init];
-    [verifyCount(stanzaHandler, atLeastOnce()) handleStanza:(id)captoredStanzas completion:anything()];
+    [verifyCount(connectionDelegate, atLeastOnce()) handleStanza:(id)captoredStanzas completion:anything()];
 
     NSArray *stanzas = [captoredStanzas allValues];
     assertThat(stanzas, hasCountOf(3));
@@ -1217,10 +1217,10 @@
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    client.stanzaHandler = stanzaHandler;
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {

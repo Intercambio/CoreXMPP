@@ -11,12 +11,11 @@
 @protocol XMPPConnection;
 @class XMPPJID;
 
-@protocol XMPPConnectionDelegate <NSObject>
+@protocol XMPPConnectionDelegate <XMPPStanzaHandler>
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed;
 - (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID;
 @end
 
 @protocol XMPPConnection <XMPPStanzaHandler>
-@property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;
 @property (nonatomic, weak) id<XMPPConnectionDelegate> connectionDelegate;
 @end

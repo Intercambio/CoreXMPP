@@ -244,7 +244,7 @@
     id<XMPPStreamFeatureDelegate> delegate = nil;
 
     XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
-    stanzaHandler.stanzaHandler = feature;
+    stanzaHandler.connectionDelegate = (id<XMPPConnectionDelegate>)feature;
     feature.stanzaHandler = stanzaHandler;
 
     //

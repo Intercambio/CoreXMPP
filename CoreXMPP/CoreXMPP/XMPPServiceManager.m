@@ -492,7 +492,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
             XMPPClient *client = [self xmpp_clientForAccount:account];
             if (client == nil) {
                 client = [self xmpp_createClientForAccount:account];
-                client.stanzaHandler = _dispatcher;
+                client.connectionDelegate = _dispatcher;
                 [_dispatcher setConnection:client forJID:account.JID];
             }
             if (client.state != XMPPClientStateConnected) {
@@ -542,7 +542,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 account.numberOfConnectionAttempts = 0;
                 account.nextConnectionAttempt = nil;
 
-                client.stanzaHandler = nil;
+                client.connectionDelegate = nil;
                 [_dispatcher removeConnectionForJID:account.JID];
 
                 if (client.state == XMPPClientStateConnected) {
@@ -579,7 +579,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                     [_keyChain setAttributes:attributes forIdentityWithJID:account.JID];
                 }
 
-                client.stanzaHandler = _dispatcher;
+                client.connectionDelegate = _dispatcher;
                 [_dispatcher setConnection:client forJID:account.JID];
 
                 if (client.state == XMPPClientStateDisconnected) {
@@ -610,7 +610,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
             client = [self xmpp_createClientForAccount:account];
         }
 
-        client.stanzaHandler = _dispatcher;
+        client.connectionDelegate = _dispatcher;
         [_dispatcher setConnection:client forJID:account.JID];
 
         if (client.state == XMPPClientStateDisconnected) {

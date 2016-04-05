@@ -58,6 +58,7 @@
 {
     dispatch_async(_operationQueue, ^{
         BOOL replaceConnection = [_connectionsByJID objectForKey:[JID bareJID]] != nil;
+        connection.connectionDelegate = self;
         [_connectionsByJID setObject:connection forKey:[JID bareJID]];
         if (replaceConnection == NO) {
             for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {

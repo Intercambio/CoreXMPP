@@ -50,6 +50,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @property (nonatomic, readonly) NSString *hostname;
 @property (nonatomic, readwrite) NSDictionary *options;
 
+#pragma mark Bound JID
+@property (nonatomic, readonly) XMPPJID *JID;
+
 #pragma mark Delegate & SASL Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;
 @property (nonatomic, strong) dispatch_queue_t delegateQueue;

@@ -395,7 +395,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -449,7 +449,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");

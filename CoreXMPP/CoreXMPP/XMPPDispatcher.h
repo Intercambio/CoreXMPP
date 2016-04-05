@@ -35,7 +35,7 @@
 - (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
-@interface XMPPDispatcher : NSObject <XMPPStanzaHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler, XMPPConnectionDelegate>
+@interface XMPPDispatcher : NSObject <XMPPConnectionDelegate, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
 #pragma mark Manage Connections
 @property (nonatomic, readonly) NSDictionary *connectionsByJID;

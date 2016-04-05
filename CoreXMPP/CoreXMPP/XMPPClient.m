@@ -36,6 +36,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     NSArray *_negotiatedFeatures;
     id<XMPPStanzaHandler> _streamFeatureStanzaHandler;
     XMPPStreamFeature<XMPPClientStreamManagement> *_streamManagement;
+    XMPPJID *_JID;
 }
 
 @end
@@ -56,7 +57,7 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
 #pragma mark Life-cycle
 
-@synthesize stanzaHandler = _stanzaHandler;
+@synthesize connectionDelegate = _connectionDelegate;
 
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options
@@ -302,6 +303,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         if (feature) {
 
+            if ([feature.configuration.root.qualifiedName isEqual:PXQN(@"urn:ietf:params:xml:ns:xmpp-bind", @"bind")]) {
+                // Reset client JID if we have to bind the client (and not resuming a session).
+                _JID = nil;
+            }
+
             // Begin the negotiation of the feature
 
             _currentFeature = feature;
@@ -329,6 +335,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         self.state = XMPPClientStateConnected;
 
         BOOL resumed = _streamManagement.resumed;
+
+        [_connectionDelegate connection:self didConnectTo:_JID resumed:resumed];
 
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
@@ -413,18 +421,18 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
                                                                  [element.name isEqual:@"presence"] ||
                                                                  [element.name isEqual:@"iq"])) {
-                [_stanzaHandler handleStanza:element
-                                  completion:^(NSError *error) {
-                                      dispatch_async(_operationQueue, ^{
-                                          if (error) {
-                                              DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
-                                          } else {
-                                              [_streamManagement didHandleReceviedStanza:element];
-                                          }
-                                      });
-                                  }];
+                [_connectionDelegate handleStanza:element
+                                       completion:^(NSError *error) {
+                                           dispatch_async(_operationQueue, ^{
+                                               if (error) {
+                                                   DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
+                                               } else {
+                                                   [_streamManagement didHandleReceviedStanza:element];
+                                               }
+                                           });
+                                       }];
             } else {
-                [_stanzaHandler processPendingStanzas:^(NSError *error) {
+                [_connectionDelegate processPendingStanzas:^(NSError *error) {
                     dispatch_async(_operationQueue, ^{
                         if (error) {
                             DDLogError(@"Failed to process pending stanzas with error: %@", [error localizedDescription]);
@@ -465,6 +473,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
     if (self.state != XMPPClientStateDisconnected) {
         self.state = XMPPClientStateDisconnected;
 
+        [_connectionDelegate connection:self didDisconnectFrom:_JID];
+
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
@@ -479,6 +489,8 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 {
     if (self.state != XMPPClientStateDisconnected) {
         self.state = XMPPClientStateDisconnected;
+
+        [_connectionDelegate connection:self didDisconnectFrom:_JID];
 
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
@@ -588,6 +600,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 - (NSString *)resourceNameForStreamFeature:(XMPPStreamFeature *)streamFeature
 {
     return self.options[XMPPClientOptionsResourceKey];
+}
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didBindToJID:(XMPPJID *)JID
+{
+    _JID = JID;
 }
 
 @end

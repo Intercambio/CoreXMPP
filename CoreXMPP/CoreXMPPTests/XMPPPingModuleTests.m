@@ -20,7 +20,7 @@
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
@@ -72,7 +72,7 @@
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
@@ -129,7 +129,7 @@
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
@@ -157,7 +157,7 @@
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
