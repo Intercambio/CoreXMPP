@@ -16,4 +16,9 @@
 - (void)onPresence:(void (^)(PXElement *stanza))callback;
 - (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback;
 
+- (void)onAddConnection:(void (^)(XMPPJID *JID))callback;
+- (void)onRemoveConnection:(void (^)(XMPPJID *JID))callback;
+- (void)onConnect:(void (^)(XMPPJID *JID, BOOL resumed))callback;
+- (void)onDisconnect:(void (^)(XMPPJID *JID))callback;
+
 @end

@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <PureXML/PureXML.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <PureXML/PureXML.h>
 
 #import "XMPPError.h"
 #import "XMPPStreamFeatureStreamManagement.h"
@@ -60,7 +60,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     return @"sm";
 }
 
-+ (NSString *) namespace
++ (NSString *)namespace
 {
     return @"urn:xmpp:sm:3";
 }

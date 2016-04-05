@@ -140,8 +140,8 @@
 
     NSData *optionsData = [NSKeyedArchiver archivedDataWithRootObject:attributes.options];
 
-    NSDictionary *values = @{(__bridge id) kSecAttrIsInvisible : @(attributes.suspended),
-                                           (__bridge id)
+    NSDictionary *values = @{(__bridge id)kSecAttrIsInvisible : @(attributes.suspended),
+                             (__bridge id)
                              kSecAttrGeneric : optionsData };
 
     __unused OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
@@ -191,7 +191,7 @@
     [query setObject:[[JID bareJID] stringValue] forKey:(__bridge id)kSecAttrAccount];
 
     NSData *passwordData = password ? [password dataUsingEncoding:NSUTF8StringEncoding] : [@"" dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary *values = @{(__bridge id) kSecValueData : passwordData};
+    NSDictionary *values = @{(__bridge id)kSecValueData : passwordData};
 
     __unused OSStatus resultCode = SecItemUpdate((__bridge CFDictionaryRef)query,
                                                  (__bridge CFDictionaryRef)values);

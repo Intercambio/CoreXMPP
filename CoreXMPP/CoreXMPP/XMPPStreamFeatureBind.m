@@ -50,7 +50,7 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
     return @"bind";
 }
 
-+ (NSString *) namespace
++ (NSString *)namespace
 {
     return XMPPStreamFeatureBindNamespace;
 }

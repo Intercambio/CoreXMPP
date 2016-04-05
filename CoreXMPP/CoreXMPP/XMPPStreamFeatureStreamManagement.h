@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPStreamFeature.h"
 #import "XMPPClientStreamManagement.h"
+#import "XMPPStreamFeature.h"
 
 @protocol XMPPStreamFeatureDelegateStreamManagement <XMPPStreamFeatureDelegate>
 @optional

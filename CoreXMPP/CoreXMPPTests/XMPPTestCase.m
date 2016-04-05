@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <Security/Security.h>
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <Security/Security.h>
 
 #import "XMPPTestCase.h"
 

@@ -23,14 +23,14 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPJID.h>
 
 // Protocols
-#import <CoreXMPP/XMPPStanzaHandler.h>
 #import <CoreXMPP/XMPPConnection.h>
+#import <CoreXMPP/XMPPStanzaHandler.h>
 
 // XMPP Service Manager
-#import <CoreXMPP/XMPPServiceManager.h>
 #import <CoreXMPP/XMPPAccount.h>
-#import <CoreXMPP/XMPPKeyChainService.h>
 #import <CoreXMPP/XMPPKeyChainItemAttributes.h>
+#import <CoreXMPP/XMPPKeyChainService.h>
+#import <CoreXMPP/XMPPServiceManager.h>
 
 // XMPP Dispatcher
 #import <CoreXMPP/XMPPDispatcher.h>
@@ -49,8 +49,8 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 
 // XMPP Stream Feature
 #import <CoreXMPP/XMPPStreamFeature.h>
-#import <CoreXMPP/XMPPStreamFeatureSASL.h>
 #import <CoreXMPP/XMPPStreamFeatureBind.h>
+#import <CoreXMPP/XMPPStreamFeatureSASL.h>
 #import <CoreXMPP/XMPPStreamFeatureSession.h>
 #import <CoreXMPP/XMPPStreamFeatureStreamManagement.h>
 

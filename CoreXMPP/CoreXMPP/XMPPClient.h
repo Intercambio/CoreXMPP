@@ -9,9 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
-#import "XMPPConnection.h"
-#import "XMPPClientStreamManagement.h"
 #import "SASLMechanism.h"
+#import "XMPPClientStreamManagement.h"
+#import "XMPPConnection.h"
 
 extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
@@ -49,6 +49,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
 @property (nonatomic, readwrite) NSDictionary *options;
+
+#pragma mark Bound JID
+@property (nonatomic, readonly) XMPPJID *JID;
 
 #pragma mark Delegate & SASL Delegate
 @property (nonatomic, weak) id<XMPPClientDelegate> delegate;

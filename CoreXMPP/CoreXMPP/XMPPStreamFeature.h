@@ -26,7 +26,7 @@
 
 #pragma mark Feature Name & Namespace
 + (NSString *)name;
-+ (NSString *) namespace;
++ (NSString *)namespace;
 
 #pragma mark Life-cycle
 + (instancetype)streamFeatureWithConfiguration:(PXDocument *)configuration;

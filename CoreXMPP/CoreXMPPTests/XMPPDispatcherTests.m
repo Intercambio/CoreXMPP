@@ -16,6 +16,57 @@
 
 @implementation XMPPDispatcherTests
 
+#pragma mark Connection Handling
+
+- (void)testHandleConnections
+{
+    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
+    id<XMPPConnection> connection = mockProtocol(@protocol(XMPPConnection));
+
+    [dispatcher addMessageHandler:module];
+
+    // Add Connection
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Add Connection"];
+    [module onAddConnection:^(XMPPJID *JID) {
+        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        [expectation fulfill];
+    }];
+    [dispatcher setConnection:connection forJID:JID(@"romeo@example.com")];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    // Connect
+
+    expectation = [self expectationWithDescription:@"Expect Connect"];
+    [module onConnect:^(XMPPJID *JID, BOOL resumed) {
+        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        [expectation fulfill];
+    }];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@example.com") resumed:NO];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    // Disconnect
+
+    expectation = [self expectationWithDescription:@"Expect Disconnect"];
+    [module onDisconnect:^(XMPPJID *JID) {
+        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        [expectation fulfill];
+    }];
+    [dispatcher connection:connection didDisconnectFrom:JID(@"romeo@example.com")];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    // Remove Connection
+
+    expectation = [self expectationWithDescription:@"Expect Remove Connection"];
+    [module onRemoveConnection:^(XMPPJID *JID) {
+        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        [expectation fulfill];
+    }];
+    [dispatcher removeConnectionForJID:JID(@"romeo@example.com")];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
 #pragma mark Message Handling
 
 - (void)testManagingMessageHandler
@@ -344,7 +395,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -398,7 +449,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
-    connection.stanzaHandler = dispatcher;
+    connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");

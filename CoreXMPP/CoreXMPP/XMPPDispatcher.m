@@ -8,10 +8,10 @@
 
 #import <PureXML/PureXML.h>
 
+#import "XMPPDispatcher.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
 #import "XMPPModule.h"
-#import "XMPPDispatcher.h"
 
 @interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;
@@ -57,7 +57,16 @@
 - (void)setConnection:(id<XMPPConnection>)connection forJID:(XMPPJID *)JID
 {
     dispatch_async(_operationQueue, ^{
+        BOOL replaceConnection = [_connectionsByJID objectForKey:[JID bareJID]] != nil;
+        connection.connectionDelegate = self;
         [_connectionsByJID setObject:connection forKey:[JID bareJID]];
+        if (replaceConnection == NO) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+                if ([handler respondsToSelector:@selector(didAddConnectionTo:)]) {
+                    [handler didAddConnectionTo:[JID bareJID]];
+                }
+            }
+        }
     });
 }
 
@@ -65,6 +74,11 @@
 {
     dispatch_async(_operationQueue, ^{
         [_connectionsByJID removeObjectForKey:[JID bareJID]];
+        for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+            if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
+                [handler didRemoveConnectionTo:[JID bareJID]];
+            }
+        }
     });
 }
 
@@ -79,6 +93,11 @@
         }
         for (XMPPJID *JID in keys) {
             [_connectionsByJID removeObjectForKey:JID];
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+                if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
+                    [handler didRemoveConnectionTo:JID];
+                }
+            }
         }
     });
 }
@@ -206,6 +225,34 @@
         }
         for (PXQName *query in keys) {
             [_IQHandlersByQuery removeObjectForKey:query];
+        }
+    });
+}
+
+#pragma mark XMPPConnectionDelegate
+
+- (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed
+{
+    dispatch_async(_operationQueue, ^{
+        if (connection == [_connectionsByJID objectForKey:JID]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+                if ([handler respondsToSelector:@selector(didConnect:resumed:)]) {
+                    [handler didConnect:JID resumed:resumed];
+                }
+            }
+        }
+    });
+}
+
+- (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID
+{
+    dispatch_async(_operationQueue, ^{
+        if (connection == [_connectionsByJID objectForKey:JID]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+                if ([handler respondsToSelector:@selector(didDisconnect:)]) {
+                    [handler didDisconnect:JID];
+                }
+            }
         }
     });
 }
@@ -443,6 +490,15 @@
 }
 
 #pragma mark -
+
+- (NSArray *)xmpp_dispatcherHandlers
+{
+    NSMutableSet *handlers = [[NSMutableSet alloc] init];
+    [handlers addObjectsFromArray:[_messageHandlers allObjects]];
+    [handlers addObjectsFromArray:[_presenceHandlers allObjects]];
+    [handlers addObjectsFromArray:[[_IQHandlersByQuery objectEnumerator] allObjects]];
+    return [handlers allObjects];
+}
 
 - (void)xmpp_routeStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {

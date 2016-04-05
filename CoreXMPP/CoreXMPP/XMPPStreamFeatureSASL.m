@@ -8,8 +8,8 @@
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
-#import "XMPPError.h"
 #import "XMPPClient.h"
+#import "XMPPError.h"
 #import "XMPPStreamFeatureSASL.h"
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
@@ -101,7 +101,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
     return @"mechanisms";
 }
 
-+ (NSString *) namespace
++ (NSString *)namespace
 {
     return XMPPStreamFeatureSASLNamespace;
 }

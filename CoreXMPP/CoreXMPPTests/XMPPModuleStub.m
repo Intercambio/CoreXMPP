@@ -14,6 +14,10 @@
     NSMutableArray *_onPresenceCallbacks;
     NSMutableArray *_onIQRequestCallbacks;
     NSMutableArray *_onIQResponseCallbacks;
+    NSMutableArray *_onAddConnectionCallbacks;
+    NSMutableArray *_onRemoveConnectionCallbacks;
+    NSMutableArray *_onConnectCallbacks;
+    NSMutableArray *_onDisconnectCallbacks;
 }
 
 @end
@@ -36,11 +40,15 @@
         _onPresenceCallbacks = [[NSMutableArray alloc] init];
         _onIQRequestCallbacks = [[NSMutableArray alloc] init];
         _onIQResponseCallbacks = [[NSMutableArray alloc] init];
+        _onAddConnectionCallbacks = [[NSMutableArray alloc] init];
+        _onRemoveConnectionCallbacks = [[NSMutableArray alloc] init];
+        _onConnectCallbacks = [[NSMutableArray alloc] init];
+        _onDisconnectCallbacks = [[NSMutableArray alloc] init];
     }
     return self;
 }
 
-#pragma mark XMPPMessageHandler
+#pragma mark Handler
 
 - (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
@@ -75,6 +83,50 @@
     });
 }
 
+- (void)didAddConnectionTo:(XMPPJID *)JID
+{
+    dispatch_async(_operationQueue, ^{
+        void (^_callback)(XMPPJID *JID) = [_onAddConnectionCallbacks firstObject];
+        if (_callback) {
+            [_onAddConnectionCallbacks removeObjectAtIndex:0];
+            _callback(JID);
+        }
+    });
+}
+
+- (void)didRemoveConnectionTo:(XMPPJID *)JID
+{
+    dispatch_async(_operationQueue, ^{
+        void (^_callback)(XMPPJID *JID) = [_onRemoveConnectionCallbacks firstObject];
+        if (_callback) {
+            [_onRemoveConnectionCallbacks removeObjectAtIndex:0];
+            _callback(JID);
+        }
+    });
+}
+
+- (void)didConnect:(XMPPJID *)JID resumed:(BOOL)resumed
+{
+    dispatch_async(_operationQueue, ^{
+        void (^_callback)(XMPPJID *JID, BOOL resumed) = [_onConnectCallbacks firstObject];
+        if (_callback) {
+            [_onConnectCallbacks removeObjectAtIndex:0];
+            _callback(JID, resumed);
+        }
+    });
+}
+
+- (void)didDisconnect:(XMPPJID *)JID
+{
+    dispatch_async(_operationQueue, ^{
+        void (^_callback)(XMPPJID *JID) = [_onDisconnectCallbacks firstObject];
+        if (_callback) {
+            [_onDisconnectCallbacks removeObjectAtIndex:0];
+            _callback(JID);
+        }
+    });
+}
+
 #pragma mark -
 
 - (void)onMessage:(void (^)(PXElement *))callback
@@ -100,6 +152,42 @@
     dispatch_async(_operationQueue, ^{
         if (callback) {
             [_onIQRequestCallbacks addObject:callback];
+        }
+    });
+}
+
+- (void)onAddConnection:(void (^)(XMPPJID *JID))callback
+{
+    dispatch_async(_operationQueue, ^{
+        if (callback) {
+            [_onAddConnectionCallbacks addObject:callback];
+        }
+    });
+}
+
+- (void)onRemoveConnection:(void (^)(XMPPJID *JID))callback
+{
+    dispatch_async(_operationQueue, ^{
+        if (callback) {
+            [_onRemoveConnectionCallbacks addObject:callback];
+        }
+    });
+}
+
+- (void)onConnect:(void (^)(XMPPJID *JID, BOOL resumed))callback
+{
+    dispatch_async(_operationQueue, ^{
+        if (callback) {
+            [_onConnectCallbacks addObject:callback];
+        }
+    });
+}
+
+- (void)onDisconnect:(void (^)(XMPPJID *JID))callback
+{
+    dispatch_async(_operationQueue, ^{
+        if (callback) {
+            [_onDisconnectCallbacks addObject:callback];
         }
     });
 }

@@ -8,10 +8,10 @@
 
 #import "XMPPJID.h"
 
-#import "XMPPAccount.h"
 #import "XMPPAccount+Private.h"
+#import "XMPPAccount.h"
 
-NSString * const XMPPAccountDidChangeNotification = @"XMPPAccountDidChangeNotification";
+NSString *const XMPPAccountDidChangeNotification = @"XMPPAccountDidChangeNotification";
 
 @interface XMPPAccount () {
     XMPPKeyChainService *_keyChain;
