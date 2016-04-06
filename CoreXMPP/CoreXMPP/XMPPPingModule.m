@@ -42,12 +42,13 @@
     return self;
 }
 
-- (BOOL)loadModule:(NSError **)error
+- (void)loadModuleWithCompletion:(void (^)(BOOL success, NSError *error))completion
 {
-    [self.dispatcher setIQHandler:self
-                         forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
+    [self.dispatcher setIQHandler:self forQuery:PXQN(@"urn:xmpp:ping", @"ping")];
 
-    return YES;
+    if (completion) {
+        completion(YES, nil);
+    }
 }
 
 #pragma mark Send Ping

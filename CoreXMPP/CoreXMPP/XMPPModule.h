@@ -22,6 +22,6 @@
 @property (nonatomic, weak, readonly) XMPPDispatcher *dispatcher;
 @property (nonatomic, readonly) NSDictionary *options;
 
-- (BOOL)loadModule:(NSError **)error;
+- (void)loadModuleWithCompletion:(void (^)(BOOL success, NSError *error))completion;
 
 @end

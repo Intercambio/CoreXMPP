@@ -438,11 +438,21 @@
 
     NSString *moduleName = @"XEP-0199";
 
-    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:moduleName options:nil error:nil];
+    __block XMPPPingModule *module = nil;
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be added"];
+    [serviceManager addModuleWithType:moduleName
+                              options:nil
+                           completion:^(id _module, NSError *error) {
+                               module = _module;
+                               [expectation fulfill];
+                           }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
     assertThat(module, isA([XMPPPingModule class]));
     assertThat(serviceManager.modules, contains(module, nil));
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Completion"];
+    expectation = [self expectationWithDescription:@"Expect Completion"];
     [module sendPingTo:JID(@"juliet@localhost")
                      from:JID(@"romeo@localhost")
                   timeout:10.0
@@ -454,7 +464,13 @@
         }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
-    [serviceManager removeModule:module];
+    expectation = [self expectationWithDescription:@"Expect module to be removed"];
+    [serviceManager removeModule:module
+                      completion:^(NSError *error) {
+                          [expectation fulfill];
+                      }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
     assertThat(serviceManager.modules, isNot(contains(module, nil)));
 }
 
@@ -466,7 +482,16 @@
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
 
-    XMPPPingModule *module = (XMPPPingModule *)[serviceManager addModuleWithType:@"XEP-0199" options:nil error:nil];
+    __block XMPPPingModule *module = nil;
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be added"];
+    [serviceManager addModuleWithType:@"XEP-0199"
+                              options:nil
+                           completion:^(id _module, NSError *error) {
+                               module = _module;
+                               [expectation fulfill];
+                           }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
@@ -507,7 +532,7 @@
     // Send Ping
     //
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
     [module sendPingTo:JID(@"localhost")
                      from:JID(@"romeo@localhost")
                   timeout:10.0

@@ -277,19 +277,32 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     return modules;
 }
 
-- (XMPPModule *)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error
-{
-    __block XMPPModule *module = nil;
-    dispatch_sync(_operationQueue, ^{
-        module = [self xmpp_addModuleWithType:moduleType options:options error:error];
-    });
-    return module;
-}
-
-- (void)removeModule:(XMPPModule *)module
+- (void)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options completion:(void (^)(XMPPModule *module, NSError *error))completion
 {
     dispatch_async(_operationQueue, ^{
-        [self xmpp_removeModule:module];
+        [self xmpp_addModuleWithType:moduleType
+                             options:options
+                          completion:^(XMPPModule *module, NSError *error) {
+                              if (completion) {
+                                  dispatch_async(dispatch_get_main_queue(), ^{
+                                      completion(module, error);
+                                  });
+                              }
+                          }];
+    });
+}
+
+- (void)removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
+{
+    dispatch_async(_operationQueue, ^{
+        [self xmpp_removeModule:module
+                     completion:^(NSError *error) {
+                         if (completion) {
+                             dispatch_async(dispatch_get_main_queue(), ^{
+                                 completion(error);
+                             });
+                         }
+                     }];
     });
 }
 
@@ -452,29 +465,40 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     return [_modules copy];
 }
 
-- (XMPPModule *)xmpp_addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options error:(NSError **)error
+- (void)xmpp_addModuleWithType:(NSString *)moduleType
+                       options:(NSDictionary *)options
+                    completion:(void (^)(XMPPModule *module, NSError *error))completion
 {
     Class moduleClass = [[[self class] registeredModules] objectForKey:moduleType];
-    if (moduleClass) {
-        XMPPModule *module = [[moduleClass alloc] initWithServiceManager:self
-                                                              dispatcher:_dispatcher
-                                                                 options:options];
-        BOOL loaded = [module loadModule:error];
-        if (loaded) {
-            [_modules addObject:module];
-            return module;
-        } else {
-            return nil;
-        }
-    } else {
-        return nil;
-    }
+
+    NSAssert(moduleClass, @"No module class registered for module of type '%@'.", moduleType);
+
+    XMPPModule *module = [[moduleClass alloc] initWithServiceManager:self
+                                                          dispatcher:_dispatcher
+                                                             options:options];
+
+    NSAssert(module, @"Could not instanciate module '%@'.", moduleClass);
+
+    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
+        dispatch_async(_operationQueue, ^{
+            if (success) {
+                [_modules addObject:module];
+            }
+            if (completion) {
+                completion(success ? module : nil, error);
+            }
+        });
+    }];
 }
 
-- (void)xmpp_removeModule:(XMPPModule *)module
+- (void)xmpp_removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
 {
     [_dispatcher removeHandler:module];
     [_modules removeObject:module];
+
+    if (completion) {
+        completion(nil);
+    }
 }
 
 #pragma mark Exchange Pending Stanzas

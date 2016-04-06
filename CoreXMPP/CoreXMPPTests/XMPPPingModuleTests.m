@@ -49,12 +49,18 @@
     }];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
-    [module loadModule:nil];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be loaded."];
+    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
+        assertThatBool(success, isTrue());
+        [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
     [module sendPingTo:to
                      from:from
                   timeout:2.0
@@ -105,12 +111,17 @@
     }];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
-    [module loadModule:nil];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be loaded."];
+    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
+        assertThatBool(success, isTrue());
+        [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
     [module sendPingTo:to
                      from:from
                   timeout:2.0
@@ -133,12 +144,17 @@
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
-    [module loadModule:nil];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be loaded."];
+    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
+        assertThatBool(success, isTrue());
+        [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
     [module sendPingTo:to
                      from:from
                   timeout:1.0
@@ -161,7 +177,12 @@
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPPingModule *module = [[XMPPPingModule alloc] initWithServiceManager:nil dispatcher:dispatcher options:nil];
-    [module loadModule:nil];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be loaded."];
+    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
+        assertThatBool(success, isTrue());
+        [expectation fulfill];
+    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -175,7 +196,7 @@
     [iq setValue:requestID forAttribute:@"id"];
     [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
 
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
     [connection onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThatInteger(stanza.numberOfElements, equalToInteger(0));

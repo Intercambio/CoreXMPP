@@ -23,9 +23,11 @@
     return self;
 }
 
-- (BOOL)loadModule:(NSError **)error
+- (void)loadModuleWithCompletion:(void (^)(BOOL success, NSError *error))completion
 {
-    return YES;
+    if (completion) {
+        completion(YES, nil);
+    }
 }
 
 @end
