@@ -27,11 +27,11 @@
 - (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;
 @end
 
-@protocol XMPPMessageHandler <NSObject>
+@protocol XMPPMessageHandler <XMPPDispatcherHandler>
 - (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
-@protocol XMPPPresenceHandler <NSObject>
+@protocol XMPPPresenceHandler <XMPPDispatcherHandler>
 - (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
 @end
 
