@@ -234,7 +234,7 @@
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed
 {
     dispatch_async(_operationQueue, ^{
-        if (connection == [_connectionsByJID objectForKey:JID]) {
+        if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
             for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
                 if ([handler respondsToSelector:@selector(didConnect:resumed:)]) {
                     [handler didConnect:JID resumed:resumed];
@@ -247,7 +247,7 @@
 - (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID
 {
     dispatch_async(_operationQueue, ^{
-        if (connection == [_connectionsByJID objectForKey:JID]) {
+        if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
             for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
                 if ([handler respondsToSelector:@selector(didDisconnect:)]) {
                     [handler didDisconnect:JID];
