@@ -446,7 +446,7 @@
             }
 
             XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-            XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
+            XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]] ?: [from bareJID];
             NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
 
             if (completion) {
