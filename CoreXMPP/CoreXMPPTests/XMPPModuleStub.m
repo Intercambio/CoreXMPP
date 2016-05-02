@@ -24,11 +24,6 @@
 
 @implementation XMPPModuleStub
 
-+ (void)load
-{
-    [XMPPServiceManager registerModuleClass:[self class] forModuleType:@"XMPPModuleStub"];
-}
-
 #pragma mark Life-cycle
 
 - (instancetype)init

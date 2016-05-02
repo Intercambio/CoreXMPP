@@ -10,7 +10,7 @@
 
 @class PXElement;
 
-@interface XMPPModuleStub : XMPPModule <XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@interface XMPPModuleStub : NSObject <XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
 - (void)onMessage:(void (^)(PXElement *stanza))callback;
 - (void)onPresence:(void (^)(PXElement *stanza))callback;

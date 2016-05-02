@@ -14,6 +14,7 @@
 @class XMPPClient;
 @class XMPPModule;
 @class XMPPServiceManager;
+@class XMPPDispatcher;
 
 extern NSString *const XMPPServiceManagerDidAddAccountNotification;
 extern NSString *const XMPPServiceManagerDidRemoveAccountNotification;
@@ -38,10 +39,6 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 
 @interface XMPPServiceManager : NSObject
 
-#pragma mark Registered Modules
-+ (NSDictionary *)registeredModules;
-+ (void)registerModuleClass:(Class)moduleClass forModuleType:(NSString *)moduleType;
-
 #pragma mark Life-cycle
 - (instancetype)initWithOptions:(NSDictionary *)options;
 
@@ -52,10 +49,8 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
-#pragma mark Manage Modules
-@property (nonatomic, readonly) NSArray *modules;
-- (void)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options completion:(void (^)(XMPPModule *module, NSError *error))completion;
-- (void)removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion;
+#pragma mark Dispatcher
+@property (nonatomic, readonly) XMPPDispatcher *dispatcher;
 
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;

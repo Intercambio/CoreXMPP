@@ -11,7 +11,6 @@
 #import "XMPPDispatcher.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
-#import "XMPPModule.h"
 
 @interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;

@@ -434,50 +434,6 @@
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 }
 
-#pragma mark Module Management
-
-- (void)testManageModules
-{
-    XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
-
-    NSString *moduleName = @"XEP-0199";
-
-    __block XMPPPingModule *module = nil;
-
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be added"];
-    [serviceManager addModuleWithType:moduleName
-                              options:nil
-                           completion:^(id _module, NSError *error) {
-                               module = _module;
-                               [expectation fulfill];
-                           }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    assertThat(module, isA([XMPPPingModule class]));
-    assertThat(serviceManager.modules, contains(module, nil));
-
-    expectation = [self expectationWithDescription:@"Expect Completion"];
-    [module sendPingTo:JID(@"juliet@localhost")
-                     from:JID(@"romeo@localhost")
-                  timeout:10.0
-        completionHandler:^(BOOL success, NSError *error) {
-            assertThatBool(success, isFalse());
-            assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
-            assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
-            [expectation fulfill];
-        }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    expectation = [self expectationWithDescription:@"Expect module to be removed"];
-    [serviceManager removeModule:module
-                      completion:^(NSError *error) {
-                          [expectation fulfill];
-                      }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    assertThat(serviceManager.modules, isNot(contains(module, nil)));
-}
-
 #pragma mark Despatching
 
 - (void)testDispatching
@@ -485,17 +441,6 @@
     XMPPServiceManager *serviceManager = [[XMPPServiceManager alloc] initWithOptions:nil];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     serviceManager.SASLDelegate = SASLDelegate;
-
-    __block XMPPPingModule *module = nil;
-
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect module to be added"];
-    [serviceManager addModuleWithType:@"XEP-0199"
-                              options:nil
-                           completion:^(id _module, NSError *error) {
-                               module = _module;
-                               [expectation fulfill];
-                           }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     XMPPAccount *account = [serviceManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
 
@@ -537,14 +482,28 @@
     // Send Ping
     //
 
-    expectation = [self expectationWithDescription:@"Expect Pong"];
-    [module sendPingTo:JID(@"localhost")
-                     from:JID(@"romeo@localhost")
-                  timeout:10.0
-        completionHandler:^(BOOL success, NSError *error) {
-            assertThatBool(success, isTrue());
-            [expectation fulfill];
-        }];
+    XMPPJID *to = JID(@"localhost");
+    XMPPJID *from = JID(@"romeo@localhost");
+
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+
+    PXElement *iq = doc.root;
+    [iq setValue:[to stringValue] forAttribute:@"to"];
+    [iq setValue:[from stringValue] forAttribute:@"from"];
+    [iq setValue:@"get" forAttribute:@"type"];
+
+    NSString *requestID = [[NSUUID UUID] UUIDString];
+    [iq setValue:requestID forAttribute:@"id"];
+
+    [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
+    [serviceManager.dispatcher handleIQRequest:iq
+                                       timeout:60.0
+                                    completion:^(PXElement *response, NSError *error) {
+                                        assertThat(response, notNilValue());
+                                        [expectation fulfill];
+                                    }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     //
@@ -569,17 +528,16 @@
     // Send Ping
     //
 
-    expectation = [self expectationWithDescription:@"Expect Completion"];
-    [module sendPingTo:JID(@"juliet@localhost")
-                     from:JID(@"romeo@localhost")
-                  timeout:10.0
-        completionHandler:^(BOOL success, NSError *error) {
-            assertThatBool(success, isFalse());
-            assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
-            assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
-            [expectation fulfill];
-        }];
-    [self waitForExpectationsWithTimeout:20.0 handler:nil];
+    expectation = [self expectationWithDescription:@"Expect Pong"];
+    [serviceManager.dispatcher handleIQRequest:iq
+                                       timeout:60.0
+                                    completion:^(PXElement *response, NSError *error) {
+                                        assertThat(response, nilValue());
+                                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
+                                        assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
+                                        [expectation fulfill];
+                                    }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 @end

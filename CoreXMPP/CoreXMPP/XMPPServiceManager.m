@@ -16,9 +16,7 @@
 #import "XMPPJID.h"
 #import "XMPPKeyChainItemAttributes.h"
 #import "XMPPKeyChainService.h"
-#import "XMPPModule.h"
 #import "XMPPNetworkReachability.h"
-#import "XMPPPingModule.h"
 #import "XMPPServiceManager.h"
 #import "XMPPWebsocketStream.h"
 
@@ -125,28 +123,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 + (void)ddSetLogLevel:(DDLogLevel)logLevel
 {
     ddLogLevel = logLevel;
-}
-
-#pragma mark Registered Modules
-
-+ (NSMutableDictionary *)xmpp_registeredModules
-{
-    static NSMutableDictionary *registeredModules;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        registeredModules = [[NSMutableDictionary alloc] init];
-    });
-    return registeredModules;
-}
-
-+ (NSDictionary *)registeredModules
-{
-    return [self xmpp_registeredModules];
-}
-
-+ (void)registerModuleClass:(Class)moduleClass forModuleType:(NSString *)moduleType
-{
-    [[self xmpp_registeredModules] setObject:moduleClass forKey:moduleType];
 }
 
 #pragma mark Life-cycle
@@ -263,46 +239,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 {
     dispatch_async(_operationQueue, ^{
         [self xmpp_reconnectAccount:account];
-    });
-}
-
-#pragma mark Manage Modules
-
-- (NSArray *)modules
-{
-    __block NSArray *modules = nil;
-    dispatch_sync(_operationQueue, ^{
-        modules = [self xmpp_modules];
-    });
-    return modules;
-}
-
-- (void)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options completion:(void (^)(XMPPModule *module, NSError *error))completion
-{
-    dispatch_async(_operationQueue, ^{
-        [self xmpp_addModuleWithType:moduleType
-                             options:options
-                          completion:^(XMPPModule *module, NSError *error) {
-                              if (completion) {
-                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                      completion(module, error);
-                                  });
-                              }
-                          }];
-    });
-}
-
-- (void)removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
-{
-    dispatch_async(_operationQueue, ^{
-        [self xmpp_removeModule:module
-                     completion:^(NSError *error) {
-                         if (completion) {
-                             dispatch_async(dispatch_get_main_queue(), ^{
-                                 completion(error);
-                             });
-                         }
-                     }];
     });
 }
 
@@ -458,49 +394,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogDebug(@"Did remove client %@ for account %@", client, account);
 }
 
-#pragma mark Modules
-
-- (NSArray *)xmpp_modules
-{
-    return [_modules copy];
-}
-
-- (void)xmpp_addModuleWithType:(NSString *)moduleType
-                       options:(NSDictionary *)options
-                    completion:(void (^)(XMPPModule *module, NSError *error))completion
-{
-    Class moduleClass = [[[self class] registeredModules] objectForKey:moduleType];
-
-    NSAssert(moduleClass, @"No module class registered for module of type '%@'.", moduleType);
-
-    XMPPModule *module = [[moduleClass alloc] initWithServiceManager:self
-                                                          dispatcher:_dispatcher
-                                                             options:options];
-
-    NSAssert(module, @"Could not instanciate module '%@'.", moduleClass);
-
-    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
-        dispatch_async(_operationQueue, ^{
-            if (success) {
-                [_modules addObject:module];
-            }
-            if (completion) {
-                completion(success ? module : nil, error);
-            }
-        });
-    }];
-}
-
-- (void)xmpp_removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
-{
-    [_dispatcher removeHandler:module];
-    [_modules removeObject:module];
-
-    if (completion) {
-        completion(nil);
-    }
-}
-
 #pragma mark Exchange Pending Stanzas
 
 - (void)xmpp_exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
@@ -525,13 +418,13 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
             }
 
             dispatch_group_enter(g);
-            [XMPPPingModule sendPingUsingIQHandler:_dispatcher
-                                                to:[account.JID bareJID]
-                                              from:account.JID
-                                           timeout:timeout
-                                 completionHandler:^(BOOL success, NSError *error) {
-                                     dispatch_group_leave(g);
-                                 }];
+
+            [self xmpp_sendPingTo:[account.JID bareJID]
+                             from:account.JID
+                          timeout:timeout
+                completionHandler:^(BOOL success, NSError *error) {
+                    dispatch_group_leave(g);
+                }];
         }
     }
 
@@ -728,6 +621,44 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     } else {
         [self xmpp_removeClientForAccount:account];
     }
+}
+
+#pragma mark Ping
+
+- (void)xmpp_sendPingTo:(XMPPJID *)to
+                   from:(XMPPJID *)from
+                timeout:(NSTimeInterval)timeout
+      completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
+{
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+
+    PXElement *iq = doc.root;
+    [iq setValue:[to stringValue] forAttribute:@"to"];
+    [iq setValue:[from stringValue] forAttribute:@"from"];
+    [iq setValue:@"get" forAttribute:@"type"];
+
+    NSString *requestID = [[NSUUID UUID] UUIDString];
+    [iq setValue:requestID forAttribute:@"id"];
+
+    [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
+
+    [_dispatcher handleIQRequest:iq
+                         timeout:timeout
+                      completion:^(PXElement *response, NSError *error) {
+                          if (completionHandler) {
+                              if (error) {
+                                  completionHandler(NO, error);
+                              } else {
+                                  NSString *type = [response valueForAttribute:@"type"];
+                                  if ([type isEqualToString:@"result"]) {
+                                      completionHandler(YES, nil);
+                                  } else if ([type isEqualToString:@"error"]) {
+                                      NSError *error = [NSError errorFromStanza:response];
+                                      completionHandler(NO, error);
+                                  }
+                              }
+                          }
+                      }];
 }
 
 #pragma mark -
