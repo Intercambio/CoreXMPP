@@ -1,5 +1,5 @@
 //
-//  XMPPServiceManager.h
+//  XMPPAccountManager.h
 //  CoreXMPP
 //
 //  Created by Tobias Kräntzer on 12.01.16.
@@ -13,31 +13,31 @@
 @class XMPPAccount;
 @class XMPPClient;
 @class XMPPModule;
-@class XMPPServiceManager;
+@class XMPPAccountManager;
 @class XMPPDispatcher;
 
-extern NSString *const XMPPServiceManagerDidAddAccountNotification;
-extern NSString *const XMPPServiceManagerDidRemoveAccountNotification;
-extern NSString *const XMPPServiceManagerDidResumeAccountNotification;
-extern NSString *const XMPPServiceManagerDidSuspendAccountNotification;
-extern NSString *const XMPPServiceManagerDidConnectAccountNotification;
-extern NSString *const XMPPServiceManagerDidDisconnectAccountNotification;
-extern NSString *const XMPPServiceManagerConnectionDidFailNotification;
+extern NSString *const XMPPAccountManagerDidAddAccountNotification;
+extern NSString *const XMPPAccountManagerDidRemoveAccountNotification;
+extern NSString *const XMPPAccountManagerDidResumeAccountNotification;
+extern NSString *const XMPPAccountManagerDidSuspendAccountNotification;
+extern NSString *const XMPPAccountManagerDidConnectAccountNotification;
+extern NSString *const XMPPAccountManagerDidDisconnectAccountNotification;
+extern NSString *const XMPPAccountManagerConnectionDidFailNotification;
 
-extern NSString *const XMPPServiceManagerAccountKey;
-extern NSString *const XMPPServiceManagerResumedKey;
+extern NSString *const XMPPAccountManagerAccountKey;
+extern NSString *const XMPPAccountManagerResumedKey;
 
-extern NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey;
-extern NSString *const XMPPServiceManagerOptionsKeyChainServiceKey;
+extern NSString *const XMPPAccountManagerOptionClientFactoryCallbackKey;
+extern NSString *const XMPPAccountManagerOptionsKeyChainServiceKey;
 
-typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
+typedef XMPPClient * (^XMPPAccountManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
 
-@protocol XMPPServiceManagerDelegate <NSObject>
+@protocol XMPPAccountManagerDelegate <NSObject>
 @optional
-- (void)serviceManager:(XMPPServiceManager *)serviceManager didFailWithError:(NSError *)error;
+- (void)accountManager:(XMPPAccountManager *)accountManager didFailWithError:(NSError *)error;
 @end
 
-@interface XMPPServiceManager : NSObject
+@interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
 - (instancetype)initWithOptions:(NSDictionary *)options;
@@ -46,7 +46,7 @@ typedef XMPPClient * (^XMPPServiceManagerClientFactoryCallback)(XMPPAccount *acc
 @property (nonatomic, readonly) NSDictionary *options;
 
 #pragma mark Delegate
-@property (nonatomic, weak) id<XMPPServiceManagerDelegate> delegate;
+@property (nonatomic, weak) id<XMPPAccountManagerDelegate> delegate;
 @property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
 
 #pragma mark Dispatcher

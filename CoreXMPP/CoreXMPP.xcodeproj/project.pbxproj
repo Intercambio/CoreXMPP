@@ -127,16 +127,16 @@
 		F6DC3C3F1C45322C007C0F48 /* XMPPStreamFeatureSession.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C3B1C45322C007C0F48 /* XMPPStreamFeatureSession.m */; };
 		F6DC3C411C45326F007C0F48 /* XMPPStreamFeatureSessionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C401C45326F007C0F48 /* XMPPStreamFeatureSessionTests.m */; };
 		F6DC3C421C45326F007C0F48 /* XMPPStreamFeatureSessionTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C401C45326F007C0F48 /* XMPPStreamFeatureSessionTests.m */; };
-		F6DC3C4C1C457677007C0F48 /* XMPPServiceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C4A1C457677007C0F48 /* XMPPServiceManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F6DC3C4D1C457677007C0F48 /* XMPPServiceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C4A1C457677007C0F48 /* XMPPServiceManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F6DC3C4E1C457677007C0F48 /* XMPPServiceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C4B1C457677007C0F48 /* XMPPServiceManager.m */; };
-		F6DC3C4F1C457677007C0F48 /* XMPPServiceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C4B1C457677007C0F48 /* XMPPServiceManager.m */; };
+		F6DC3C4C1C457677007C0F48 /* XMPPAccountManager.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C4A1C457677007C0F48 /* XMPPAccountManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6DC3C4D1C457677007C0F48 /* XMPPAccountManager.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C4A1C457677007C0F48 /* XMPPAccountManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6DC3C4E1C457677007C0F48 /* XMPPAccountManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C4B1C457677007C0F48 /* XMPPAccountManager.m */; };
+		F6DC3C4F1C457677007C0F48 /* XMPPAccountManager.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C4B1C457677007C0F48 /* XMPPAccountManager.m */; };
 		F6DC3C531C457815007C0F48 /* XMPPAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C511C457815007C0F48 /* XMPPAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6DC3C541C457815007C0F48 /* XMPPAccount.h in Headers */ = {isa = PBXBuildFile; fileRef = F6DC3C511C457815007C0F48 /* XMPPAccount.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6DC3C551C457815007C0F48 /* XMPPAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C521C457815007C0F48 /* XMPPAccount.m */; };
 		F6DC3C561C457815007C0F48 /* XMPPAccount.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C521C457815007C0F48 /* XMPPAccount.m */; };
-		F6DC3C581C45825A007C0F48 /* XMPPServiceManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C571C45825A007C0F48 /* XMPPServiceManagerTests.m */; };
-		F6DC3C591C45825A007C0F48 /* XMPPServiceManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C571C45825A007C0F48 /* XMPPServiceManagerTests.m */; };
+		F6DC3C581C45825A007C0F48 /* XMPPAccountManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C571C45825A007C0F48 /* XMPPAccountManagerTests.m */; };
+		F6DC3C591C45825A007C0F48 /* XMPPAccountManagerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6DC3C571C45825A007C0F48 /* XMPPAccountManagerTests.m */; };
 		F6EA5A7C1C54484D00807550 /* XMPPError.h in Headers */ = {isa = PBXBuildFile; fileRef = F6EA5A7A1C54484D00807550 /* XMPPError.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6EA5A7D1C54484D00807550 /* XMPPError.h in Headers */ = {isa = PBXBuildFile; fileRef = F6EA5A7A1C54484D00807550 /* XMPPError.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6EA5A7E1C54484D00807550 /* XMPPError.m in Sources */ = {isa = PBXBuildFile; fileRef = F6EA5A7B1C54484D00807550 /* XMPPError.m */; };
@@ -258,11 +258,11 @@
 		F6DC3C3A1C45322C007C0F48 /* XMPPStreamFeatureSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStreamFeatureSession.h; sourceTree = "<group>"; };
 		F6DC3C3B1C45322C007C0F48 /* XMPPStreamFeatureSession.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamFeatureSession.m; sourceTree = "<group>"; };
 		F6DC3C401C45326F007C0F48 /* XMPPStreamFeatureSessionTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamFeatureSessionTests.m; sourceTree = "<group>"; };
-		F6DC3C4A1C457677007C0F48 /* XMPPServiceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPServiceManager.h; sourceTree = "<group>"; };
-		F6DC3C4B1C457677007C0F48 /* XMPPServiceManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPServiceManager.m; sourceTree = "<group>"; };
+		F6DC3C4A1C457677007C0F48 /* XMPPAccountManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPAccountManager.h; sourceTree = "<group>"; };
+		F6DC3C4B1C457677007C0F48 /* XMPPAccountManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPAccountManager.m; sourceTree = "<group>"; };
 		F6DC3C511C457815007C0F48 /* XMPPAccount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPAccount.h; sourceTree = "<group>"; };
 		F6DC3C521C457815007C0F48 /* XMPPAccount.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPAccount.m; sourceTree = "<group>"; };
-		F6DC3C571C45825A007C0F48 /* XMPPServiceManagerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPServiceManagerTests.m; sourceTree = "<group>"; };
+		F6DC3C571C45825A007C0F48 /* XMPPAccountManagerTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = XMPPAccountManagerTests.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		F6EA5A7A1C54484D00807550 /* XMPPError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = XMPPError.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		F6EA5A7B1C54484D00807550 /* XMPPError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPError.m; sourceTree = "<group>"; };
 		F6F56AF71C537DF600C34CC8 /* XMPPNetworkReachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPNetworkReachability.h; sourceTree = "<group>"; };
@@ -385,7 +385,7 @@
 				F6EA5A7A1C54484D00807550 /* XMPPError.h */,
 				F6EA5A7B1C54484D00807550 /* XMPPError.m */,
 				F6CD44591C5653DD0084757A /* Protocols */,
-				F6DC3C501C45767C007C0F48 /* XMPP Service Manager */,
+				F6DC3C501C45767C007C0F48 /* XMPP Account Manager */,
 				F68414141C4EA528009B37BE /* XMPP Dispatcher */,
 				F6867C7C1C3D7E78009617B5 /* XMPP Client */,
 				F6476ABE1BEA584700B0DF82 /* XMPP Stream */,
@@ -403,7 +403,7 @@
 				F619BDA81C4CE78100F87F50 /* XMPPTestCase.m */,
 				F619BDAB1C4CF28000F87F50 /* XMPPJIDTests.m */,
 				F6100EB31C772488001E03E2 /* XMPPKeyChainServiceTests.m */,
-				F68414131C4EA507009B37BE /* XMPP Service Manager */,
+				F68414131C4EA507009B37BE /* XMPP Account Manager */,
 				F68414241C4F8357009B37BE /* XMPP Dispatcher */,
 				F68414121C4EA4FB009B37BE /* XMPP Client */,
 				F68414111C4EA4F4009B37BE /* XMPP Stream */,
@@ -506,12 +506,12 @@
 			name = "XMPP Client";
 			sourceTree = "<group>";
 		};
-		F68414131C4EA507009B37BE /* XMPP Service Manager */ = {
+		F68414131C4EA507009B37BE /* XMPP Account Manager */ = {
 			isa = PBXGroup;
 			children = (
-				F6DC3C571C45825A007C0F48 /* XMPPServiceManagerTests.m */,
+				F6DC3C571C45825A007C0F48 /* XMPPAccountManagerTests.m */,
 			);
-			name = "XMPP Service Manager";
+			name = "XMPP Account Manager";
 			sourceTree = "<group>";
 		};
 		F68414141C4EA528009B37BE /* XMPP Dispatcher */ = {
@@ -580,19 +580,19 @@
 			name = Protocols;
 			sourceTree = "<group>";
 		};
-		F6DC3C501C45767C007C0F48 /* XMPP Service Manager */ = {
+		F6DC3C501C45767C007C0F48 /* XMPP Account Manager */ = {
 			isa = PBXGroup;
 			children = (
 				F6100EAC1C77234B001E03E2 /* Key Chain */,
-				F6DC3C4A1C457677007C0F48 /* XMPPServiceManager.h */,
-				F6DC3C4B1C457677007C0F48 /* XMPPServiceManager.m */,
+				F6DC3C4A1C457677007C0F48 /* XMPPAccountManager.h */,
+				F6DC3C4B1C457677007C0F48 /* XMPPAccountManager.m */,
 				F6DC3C511C457815007C0F48 /* XMPPAccount.h */,
 				F6DC3C521C457815007C0F48 /* XMPPAccount.m */,
 				F696A2B61C4CD53F00D90A08 /* XMPPAccount+Private.h */,
 				F6F56AF71C537DF600C34CC8 /* XMPPNetworkReachability.h */,
 				F6F56AF81C537DF600C34CC8 /* XMPPNetworkReachability.m */,
 			);
-			name = "XMPP Service Manager";
+			name = "XMPP Account Manager";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -607,7 +607,7 @@
 				F6100EAF1C772362001E03E2 /* XMPPKeyChainItemAttributes.h in Headers */,
 				F6867C751C3D0C27009617B5 /* XMPPStreamFeatureSASL.h in Headers */,
 				F6DC3C2A1C43FC97007C0F48 /* XMPPStreamFeatureBind.h in Headers */,
-				F6DC3C4C1C457677007C0F48 /* XMPPServiceManager.h in Headers */,
+				F6DC3C4C1C457677007C0F48 /* XMPPAccountManager.h in Headers */,
 				F6F56AF91C537DF600C34CC8 /* XMPPNetworkReachability.h in Headers */,
 				F6CD446D1C56A5300084757A /* XMPPClientStreamManagement.h in Headers */,
 				F6867C5F1C3C092C009617B5 /* SASLMechanism.h in Headers */,
@@ -638,7 +638,7 @@
 				F6100EB01C772362001E03E2 /* XMPPKeyChainItemAttributes.h in Headers */,
 				F6867C761C3D0C27009617B5 /* XMPPStreamFeatureSASL.h in Headers */,
 				F6DC3C2B1C43FC97007C0F48 /* XMPPStreamFeatureBind.h in Headers */,
-				F6DC3C4D1C457677007C0F48 /* XMPPServiceManager.h in Headers */,
+				F6DC3C4D1C457677007C0F48 /* XMPPAccountManager.h in Headers */,
 				F6F56AFA1C537DF600C34CC8 /* XMPPNetworkReachability.h in Headers */,
 				F6CD446E1C56A5300084757A /* XMPPClientStreamManagement.h in Headers */,
 				F6867C601C3C092C009617B5 /* SASLMechanism.h in Headers */,
@@ -847,7 +847,7 @@
 				F6100EAA1C7721ED001E03E2 /* XMPPKeyChainService.m in Sources */,
 				F6476AC91BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC31BEA586000B0DF82 /* XMPPStream.m in Sources */,
-				F6DC3C4E1C457677007C0F48 /* XMPPServiceManager.m in Sources */,
+				F6DC3C4E1C457677007C0F48 /* XMPPAccountManager.m in Sources */,
 				F6867C711C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */,
 				F6867C611C3C092C009617B5 /* SASLMechanism.m in Sources */,
 				F6CD446A1C5661FE0084757A /* XMPPStreamFeatureStreamManagement.m in Sources */,
@@ -870,7 +870,7 @@
 				F6867C7A1C3D0E45009617B5 /* XMPPStreamFeatureSASLTests.m in Sources */,
 				F676EF841CD7A762003047EC /* XMPPModuleStub.m in Sources */,
 				F6DC3C2F1C440035007C0F48 /* XMPPStreamFeatureBindTests.m in Sources */,
-				F6DC3C581C45825A007C0F48 /* XMPPServiceManagerTests.m in Sources */,
+				F6DC3C581C45825A007C0F48 /* XMPPAccountManagerTests.m in Sources */,
 				F619BDA91C4CE78100F87F50 /* XMPPTestCase.m in Sources */,
 				F6476ACC1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */,
 				F6DC3C261C43C44D007C0F48 /* XMPPStreamFeatureStub.m in Sources */,
@@ -896,7 +896,7 @@
 				F6100EAB1C7721ED001E03E2 /* XMPPKeyChainService.m in Sources */,
 				F6476ACA1BEA61C700B0DF82 /* XMPPWebsocketStream.m in Sources */,
 				F6476AC41BEA586000B0DF82 /* XMPPStream.m in Sources */,
-				F6DC3C4F1C457677007C0F48 /* XMPPServiceManager.m in Sources */,
+				F6DC3C4F1C457677007C0F48 /* XMPPAccountManager.m in Sources */,
 				F6867C721C3C2DDD009617B5 /* XMPPStreamFeature.m in Sources */,
 				F6867C621C3C092C009617B5 /* SASLMechanism.m in Sources */,
 				F6CD446B1C5661FE0084757A /* XMPPStreamFeatureStreamManagement.m in Sources */,
@@ -919,7 +919,7 @@
 				F6867C7B1C3D0E45009617B5 /* XMPPStreamFeatureSASLTests.m in Sources */,
 				F676EF851CD7A763003047EC /* XMPPModuleStub.m in Sources */,
 				F6DC3C301C440035007C0F48 /* XMPPStreamFeatureBindTests.m in Sources */,
-				F6DC3C591C45825A007C0F48 /* XMPPServiceManagerTests.m in Sources */,
+				F6DC3C591C45825A007C0F48 /* XMPPAccountManagerTests.m in Sources */,
 				F619BDAA1C4CE78100F87F50 /* XMPPTestCase.m in Sources */,
 				F6476ACD1BECB31A00B0DF82 /* XMPPWebsocketStreamTests.m in Sources */,
 				F6DC3C271C43C44E007C0F48 /* XMPPStreamFeatureStub.m in Sources */,

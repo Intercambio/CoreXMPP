@@ -12,13 +12,13 @@
 
 extern NSString *const XMPPAccountDidChangeNotification;
 
-@class XMPPServiceManager;
+@class XMPPAccountManager;
 @class XMPPJID;
 
 @interface XMPPAccount : NSObject
 
 @property (nonatomic, readonly) XMPPJID *JID;
-@property (nonatomic, readonly, weak) XMPPServiceManager *serviceManger;
+@property (nonatomic, readonly, weak) XMPPAccountManager *accountManger;
 
 #pragma mark Account Attributes
 @property (nonatomic, readonly) BOOL suspended;
