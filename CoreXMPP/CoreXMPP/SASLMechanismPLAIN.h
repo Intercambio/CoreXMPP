@@ -10,8 +10,12 @@
 
 @interface SASLMechanismPLAIN : SASLMechanism
 
-- (void)authenticateWithUsername:(NSString *)username password:(NSString *)password DEPRECATED_ATTRIBUTE;
-- (void)authenticateWithUsername:(NSString *)username password:(NSString *)password completion:(void (^)(BOOL success, NSError *error))completion;
+#pragma mark Authenticate
+
+- (void)authenticateWithUsername:(NSString *)username
+                        password:(NSString *)password
+                      completion:(void (^)(BOOL success, NSError *error))completion;
+
 - (void)abort;
 
 @end

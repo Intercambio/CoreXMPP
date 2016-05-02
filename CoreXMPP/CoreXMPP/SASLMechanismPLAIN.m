@@ -59,11 +59,6 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 #pragma mark Authenticate
 
-- (void)authenticateWithUsername:(NSString *)username password:(NSString *)password
-{
-    [self authenticateWithUsername:username password:password completion:nil];
-}
-
 - (void)authenticateWithUsername:(NSString *)username
                         password:(NSString *)password
                       completion:(void (^)(BOOL success, NSError *error))completion
