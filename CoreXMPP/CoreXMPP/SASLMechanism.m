@@ -8,6 +8,8 @@
 
 #import "SASLMechanism.h"
 
+NSString *const SASLMechanismErrorDomain = @"SASLMechanismErrorDomain";
+
 @implementation SASLMechanism
 
 #pragma mark Registered Mechanisms
@@ -53,6 +55,16 @@
     if (responseHandler) {
         responseHandler(nil, YES);
     }
+}
+
+#pragma mark Authentication Outcome
+
+- (void)succeedWithData:(NSData *)data
+{
+}
+
+- (void)failedWithError:(NSError *)error
+{
 }
 
 @end

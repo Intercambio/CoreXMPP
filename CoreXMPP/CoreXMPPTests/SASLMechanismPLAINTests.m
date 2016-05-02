@@ -12,6 +12,9 @@
 @property (nonatomic, assign) BOOL abortAuthentication;
 @property (nonatomic, strong) NSString *username;
 @property (nonatomic, strong) NSString *password;
+@property (nonatomic, strong) XCTestExpectation *completionExpectation;
+@property (nonatomic, assign) BOOL completionSuccess;
+@property (nonatomic, strong) NSError *completionError;
 @end
 
 @implementation SASLMechanismPLAINTests
@@ -34,6 +37,7 @@
     mechanism.delegate = self;
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
+    self.completionExpectation = [self expectationWithDescription:@"Authentication Completion"];
 
     [mechanism beginAuthenticationExchangeWithHostname:@"localhost"
                                        responseHandler:^(NSData *initialResponse, BOOL abort) {
@@ -51,10 +55,14 @@
                                            assertThat(components, hasCountOf(3));
                                            assertThat(components, contains(@"", @"romeo", @"123", nil));
 
+                                           [mechanism succeedWithData:nil];
+
                                            [expectResponse fulfill];
                                        }];
-
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    assertThatBool(self.completionSuccess, isTrue());
+    assertThat(self.completionError, nilValue());
 }
 
 - (void)testMissingCredentials
@@ -65,6 +73,7 @@
     mechanism.delegate = self;
 
     XCTestExpectation *expectResponse = [self expectationWithDescription:@"Expecting inital response"];
+    self.completionExpectation = [self expectationWithDescription:@"Authentication Completion"];
 
     [mechanism beginAuthenticationExchangeWithHostname:@"localhost"
                                        responseHandler:^(NSData *initialResponse, BOOL abort) {
@@ -74,6 +83,10 @@
                                        }];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    assertThatBool(self.completionSuccess, isFalse());
+    assertThat(self.completionError.domain, equalTo(SASLMechanismErrorDomain));
+    assertThatInteger(self.completionError.code, equalToInteger(SASLMechanismErrorCodeNoCredentials));
 }
 
 - (void)testAbort
@@ -104,7 +117,13 @@
         if (self.abortAuthentication) {
             [plainMechanism abort];
         } else {
-            [plainMechanism authenticateWithUsername:self.username password:self.password];
+            [plainMechanism authenticateWithUsername:self.username
+                                            password:self.password
+                                          completion:^(BOOL success, NSError *error) {
+                                              self.completionSuccess = success;
+                                              self.completionError = error;
+                                              [self.completionExpectation fulfill];
+                                          }];
         }
     }
 }
