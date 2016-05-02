@@ -221,6 +221,11 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
             DDLogInfo(@"Did authenticated against host '%@'.", _hostname);
 
+            NSString *responseString = stanza.stringValue;
+            NSData *responseData = [responseString length] > 0 ? [[NSData alloc] initWithBase64EncodedString:responseString options:0] : nil;
+
+            [_mechanism succeedWithData:responseData];
+
             [self xmpp_handleSuccess];
 
         } else if ([stanza.name isEqualToString:@"failure"]) {
@@ -228,6 +233,8 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
             NSError *error = [[self class] errorFromElement:stanza];
 
             DDLogWarn(@"Did fail to authenticated against host '%@' with error: %@", _hostname, [error localizedDescription]);
+
+            [_mechanism failedWithError:error];
 
             [self xmpp_handleFailureWithError:error];
 

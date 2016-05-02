@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString *const SASLMechanismErrorDomain;
+
+typedef NS_ENUM(NSInteger, SASLMechanismErrorCode) {
+    SASLMechanismErrorCodeNoCredentials
+};
+
 @class SASLMechanism;
 
 @protocol SASLMechanismDelegate <NSObject>
@@ -36,5 +42,9 @@
                                 responseHandler:(void (^)(NSData *initialResponse, BOOL abort))responseHandler;
 - (void)handleChallenge:(NSData *)challenge
         responseHandler:(void (^)(NSData *response, BOOL abort))responseHandler;
+
+#pragma mark Authentication Outcome
+- (void)succeedWithData:(NSData *)data;
+- (void)failedWithError:(NSError *)error;
 
 @end

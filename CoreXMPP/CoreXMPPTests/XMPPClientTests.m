@@ -46,7 +46,7 @@
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123" completion:nil];
         return nil;
     }];
 
@@ -153,7 +153,7 @@
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123" completion:nil];
         return nil;
     }];
 
@@ -876,7 +876,7 @@
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123" completion:nil];
         return nil;
     }];
 
@@ -998,7 +998,7 @@
 
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
         SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo" password:@"123" completion:nil];
         return nil;
     }];
 

@@ -60,7 +60,8 @@
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
             [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"];
+                                       password:@"123"
+                                     completion:nil];
         }
         return nil;
     }];
@@ -109,7 +110,8 @@
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
             [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"];
+                                       password:@"123"
+                                     completion:nil];
         }
         return nil;
     }];
@@ -193,7 +195,8 @@
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
             [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"];
+                                       password:@"123"
+                                     completion:nil];
         }
         return nil;
     }];
@@ -301,7 +304,8 @@
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
             [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"];
+                                       password:@"123"
+                                     completion:nil];
         }
         return nil;
     }];
@@ -505,7 +509,8 @@
         if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
             assertThat(mechanism.context, is(account));
             [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"];
+                                       password:@"123"
+                                     completion:nil];
         }
         return nil;
     }];

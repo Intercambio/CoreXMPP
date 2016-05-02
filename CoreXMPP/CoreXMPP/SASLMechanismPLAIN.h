@@ -10,8 +10,11 @@
 
 @interface SASLMechanismPLAIN : SASLMechanism
 
+#pragma mark Authenticate
+
 - (void)authenticateWithUsername:(NSString *)username
-                        password:(NSString *)password;
+                        password:(NSString *)password
+                      completion:(void (^)(BOOL success, NSError *error))completion;
 
 - (void)abort;
 

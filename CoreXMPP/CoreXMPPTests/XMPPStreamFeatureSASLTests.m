@@ -82,9 +82,20 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
+    __block BOOL completionSuccess;
+    __block NSError *completionError;
+
+    XCTestExpectation *completionExpectation = [self expectationWithDescription:@"Authentication completion"];
+
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo"
+                                   password:@"123"
+                                 completion:^(BOOL success, NSError *error) {
+                                     completionSuccess = success;
+                                     completionError = error;
+                                     [completionExpectation fulfill];
+                                 }];
         return nil;
     }];
 
@@ -160,6 +171,9 @@
     [verifyCount(delegate, times(1)) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, never()) streamFeature:feature didFailNegotiationWithError:anything()];
     [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
+
+    assertThatBool(completionSuccess, isTrue());
+    assertThat(completionError, nilValue());
 }
 
 - (void)testFailedNegotiation
@@ -168,9 +182,20 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
+    __block BOOL completionSuccess;
+    __block NSError *completionError;
+
+    XCTestExpectation *completionExpectation = [self expectationWithDescription:@"Authentication completion"];
+
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
-        [mechanism authenticateWithUsername:@"romeo" password:@"123"];
+        [mechanism authenticateWithUsername:@"romeo"
+                                   password:@"123"
+                                 completion:^(BOOL success, NSError *error) {
+                                     completionSuccess = success;
+                                     completionError = error;
+                                     [completionExpectation fulfill];
+                                 }];
         return nil;
     }];
 
@@ -244,6 +269,9 @@
     [verifyCount(delegate, never()) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
     [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
+
+    assertThatBool(completionSuccess, isFalse());
+    assertThat(completionError.domain, equalTo(XMPPStreamFeatureSASLErrorDomain));
 }
 
 - (void)testAbortedNegotiation
@@ -252,9 +280,17 @@
 
     SASLMechanismPLAIN *mechanism = [[SASLMechanismPLAIN alloc] init];
 
+    __block BOOL completionSuccess;
+    __block NSError *completionError;
+
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:mechanism]) willDo:^id(NSInvocation *invocation) {
-        [mechanism authenticateWithUsername:nil password:@"123"]; // Missing credentials will abort the negotiation
+        [mechanism authenticateWithUsername:nil
+                                   password:@"123"
+                                 completion:^(BOOL success, NSError *error) {
+                                     completionSuccess = success;
+                                     completionError = error;
+                                 }]; // Missing credentials will abort the negotiation
         return nil;
     }];
 
@@ -300,6 +336,9 @@
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
 
     [verifyCount(stanzaHandler, never()) handleStanza:anything() completion:anything()];
+
+    assertThatBool(completionSuccess, isFalse());
+    assertThat(completionError.domain, equalTo(SASLMechanismErrorDomain));
 }
 
 #pragma mark -

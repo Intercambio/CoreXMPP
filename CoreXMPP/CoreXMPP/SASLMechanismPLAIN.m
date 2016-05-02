@@ -16,6 +16,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     dispatch_queue_t _queue;
     NSString *_hostname;
     void (^_responseHandler)(NSData *response, BOOL abort);
+    void (^_completion)(BOOL success, NSError *error);
 }
 
 @end
@@ -56,31 +57,17 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     return self;
 }
 
-#pragma mark Authentication Exchange
-
-- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *, BOOL))responseHandler
-{
-    dispatch_async(_queue, ^{
-        _hostname = hostname;
-        _responseHandler = responseHandler;
-
-        DDLogInfo(@"Begin authentication for '%@'.", hostname);
-
-        dispatch_queue_t queue = self.delegateQueue ?: dispatch_get_main_queue();
-        dispatch_async(queue, ^{
-            if ([self.delegate respondsToSelector:@selector(SASLMechanismNeedsCredentials:)]) {
-                [self.delegate SASLMechanismNeedsCredentials:self];
-            }
-        });
-    });
-}
+#pragma mark Authenticate
 
 - (void)authenticateWithUsername:(NSString *)username
                         password:(NSString *)password
+                      completion:(void (^)(BOOL success, NSError *error))completion
 {
     dispatch_async(_queue, ^{
         if (_responseHandler) {
             if (username && password) {
+
+                _completion = completion;
 
                 DDLogInfo(@"Authenticate with username (%@) and password (...) for '%@'.", username, _hostname);
 
@@ -100,6 +87,14 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                 DDLogWarn(@"Abort authentication for '%@', because either username or password is nil.", _hostname);
 
                 _responseHandler(nil, YES);
+
+                if (completion) {
+                    NSString *errorMessage = [NSString stringWithFormat:@"Abort authentication for '%@', because either username or password is nil.", _hostname];
+                    NSError *error = [NSError errorWithDomain:SASLMechanismErrorDomain
+                                                         code:SASLMechanismErrorCodeNoCredentials
+                                                     userInfo:@{NSLocalizedDescriptionKey : errorMessage}];
+                    completion(NO, error);
+                }
             }
             _responseHandler = nil;
         }
@@ -115,6 +110,55 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
             _responseHandler(nil, YES);
             _responseHandler = nil;
+        }
+    });
+}
+
+#pragma mark Authentication Exchange
+
+- (void)beginAuthenticationExchangeWithHostname:(NSString *)hostname responseHandler:(void (^)(NSData *, BOOL))responseHandler
+{
+    dispatch_async(_queue, ^{
+        _hostname = hostname;
+        _responseHandler = responseHandler;
+
+        DDLogInfo(@"Begin authentication for '%@'.", hostname);
+
+        dispatch_queue_t queue = self.delegateQueue ?: dispatch_get_main_queue();
+        dispatch_async(queue, ^{
+            if ([self.delegate respondsToSelector:@selector(SASLMechanismNeedsCredentials:)]) {
+                [self.delegate SASLMechanismNeedsCredentials:self];
+            }
+        });
+    });
+}
+
+#pragma mark Authentication Outcome
+
+- (void)succeedWithData:(NSData *)data
+{
+    dispatch_async(_queue, ^{
+        if (_completion) {
+            void (^completion)(BOOL success, NSError *error) = _completion;
+            dispatch_queue_t queue = self.delegateQueue ?: dispatch_get_main_queue();
+            dispatch_async(queue, ^{
+                completion(YES, nil);
+            });
+            _completion = nil;
+        }
+    });
+}
+
+- (void)failedWithError:(NSError *)error
+{
+    dispatch_async(_queue, ^{
+        if (_completion) {
+            void (^completion)(BOOL success, NSError *error) = _completion;
+            dispatch_queue_t queue = self.delegateQueue ?: dispatch_get_main_queue();
+            dispatch_async(queue, ^{
+                completion(NO, error);
+            });
+            _completion = nil;
         }
     });
 }
