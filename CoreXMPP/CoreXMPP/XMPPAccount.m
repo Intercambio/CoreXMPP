@@ -46,7 +46,7 @@ NSString *const XMPPAccountDidChangeNotification = @"XMPPAccountDidChangeNotific
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"<XMPPAccount: 0x100326e90 (JID: %@, service manager: %p)>", _JID, _serviceManger];
+    return [NSString stringWithFormat:@"<XMPPAccount: 0x100326e90 (JID: %@, account manager: %p)>", _JID, _accountManger];
 }
 
 @end
@@ -54,13 +54,13 @@ NSString *const XMPPAccountDidChangeNotification = @"XMPPAccountDidChangeNotific
 @implementation XMPPAccount (Private)
 
 - (instancetype)initWithJID:(XMPPJID *)JID
-             serviceManager:(XMPPServiceManager *)serviceManager
+             accountManager:(XMPPAccountManager *)accountManager
                    keyChain:(XMPPKeyChainService *)keyChain
 {
     self = [super init];
     if (self) {
         _JID = JID;
-        _serviceManger = serviceManager;
+        _accountManger = accountManager;
         _keyChain = keyChain;
         _options = @{};
     }

@@ -1,5 +1,5 @@
 //
-//  XMPPServiceManager.m
+//  XMPPAccountManager.m
 //  CoreXMPP
 //
 //  Created by Tobias Kräntzer on 12.01.16.
@@ -10,35 +10,33 @@
 
 #import "XMPPAccount+Private.h"
 #import "XMPPAccount.h"
+#import "XMPPAccountManager.h"
 #import "XMPPClient.h"
 #import "XMPPDispatcher.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
 #import "XMPPKeyChainItemAttributes.h"
 #import "XMPPKeyChainService.h"
-#import "XMPPModule.h"
 #import "XMPPNetworkReachability.h"
-#import "XMPPPingModule.h"
-#import "XMPPServiceManager.h"
 #import "XMPPWebsocketStream.h"
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
-NSString *const XMPPServiceManagerDidAddAccountNotification = @"XMPPServiceManagerDidAddAccountNotification";
-NSString *const XMPPServiceManagerDidRemoveAccountNotification = @"XMPPServiceManagerDidRemoveAccountNotification";
-NSString *const XMPPServiceManagerDidResumeAccountNotification = @"XMPPServiceManagerDidResumeAccountNotification";
-NSString *const XMPPServiceManagerDidSuspendAccountNotification = @"XMPPServiceManagerDidSuspendAccountNotification";
-NSString *const XMPPServiceManagerDidConnectAccountNotification = @"XMPPServiceManagerDidConnectAccountNotification";
-NSString *const XMPPServiceManagerDidDisconnectAccountNotification = @"XMPPServiceManagerDidDisconnectAccountNotification";
-NSString *const XMPPServiceManagerConnectionDidFailNotification = @"XMPPServiceManagerConnectionDidFailNotification";
+NSString *const XMPPAccountManagerDidAddAccountNotification = @"XMPPAccountManagerDidAddAccountNotification";
+NSString *const XMPPAccountManagerDidRemoveAccountNotification = @"XMPPAccountManagerDidRemoveAccountNotification";
+NSString *const XMPPAccountManagerDidResumeAccountNotification = @"XMPPAccountManagerDidResumeAccountNotification";
+NSString *const XMPPAccountManagerDidSuspendAccountNotification = @"XMPPAccountManagerDidSuspendAccountNotification";
+NSString *const XMPPAccountManagerDidConnectAccountNotification = @"XMPPAccountManagerDidConnectAccountNotification";
+NSString *const XMPPAccountManagerDidDisconnectAccountNotification = @"XMPPAccountManagerDidDisconnectAccountNotification";
+NSString *const XMPPAccountManagerConnectionDidFailNotification = @"XMPPAccountManagerConnectionDidFailNotification";
 
-NSString *const XMPPServiceManagerAccountKey = @"XMPPServiceManagerAccountKey";
-NSString *const XMPPServiceManagerResumedKey = @"XMPPServiceManagerResumedKey";
+NSString *const XMPPAccountManagerAccountKey = @"XMPPAccountManagerAccountKey";
+NSString *const XMPPAccountManagerResumedKey = @"XMPPAccountManagerResumedKey";
 
-NSString *const XMPPServiceManagerOptionClientFactoryCallbackKey = @"XMPPServiceManagerOptionClientFactoryCallbackKey";
-NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManagerOptionsKeyChainServiceKey";
+NSString *const XMPPAccountManagerOptionClientFactoryCallbackKey = @"XMPPAccountManagerOptionClientFactoryCallbackKey";
+NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManagerOptionsKeyChainServiceKey";
 
-@interface XMPPServiceManager () <XMPPClientDelegate, XMPPNetworkReachabilityDelegate> {
+@interface XMPPAccountManager () <XMPPClientDelegate, XMPPNetworkReachabilityDelegate> {
     dispatch_queue_t _operationQueue;
     XMPPKeyChainService *_keyChain;
     NSMutableArray *_accounts;
@@ -50,7 +48,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
 @end
 
-@implementation XMPPServiceManager
+@implementation XMPPAccountManager
 
 + (BOOL)shouldReconnectImmediately:(NSError *)error
 {
@@ -127,28 +125,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     ddLogLevel = logLevel;
 }
 
-#pragma mark Registered Modules
-
-+ (NSMutableDictionary *)xmpp_registeredModules
-{
-    static NSMutableDictionary *registeredModules;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
-        registeredModules = [[NSMutableDictionary alloc] init];
-    });
-    return registeredModules;
-}
-
-+ (NSDictionary *)registeredModules
-{
-    return [self xmpp_registeredModules];
-}
-
-+ (void)registerModuleClass:(Class)moduleClass forModuleType:(NSString *)moduleType
-{
-    [[self xmpp_registeredModules] setObject:moduleClass forKey:moduleType];
-}
-
 #pragma mark Life-cycle
 
 - (instancetype)initWithOptions:(NSDictionary *)options
@@ -156,8 +132,8 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     self = [super init];
     if (self) {
         _options = options;
-        _operationQueue = dispatch_queue_create("XMPPServiceManager", DISPATCH_QUEUE_SERIAL);
-        _keyChain = _options[XMPPServiceManagerOptionsKeyChainServiceKey];
+        _operationQueue = dispatch_queue_create("XMPPAccountManager", DISPATCH_QUEUE_SERIAL);
+        _keyChain = _options[XMPPAccountManagerOptionsKeyChainServiceKey];
         _clientsByAccount = [NSMapTable strongToStrongObjectsMapTable];
         _accounts = [[NSMutableArray alloc] init];
         _modules = [[NSMutableArray alloc] init];
@@ -266,46 +242,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     });
 }
 
-#pragma mark Manage Modules
-
-- (NSArray *)modules
-{
-    __block NSArray *modules = nil;
-    dispatch_sync(_operationQueue, ^{
-        modules = [self xmpp_modules];
-    });
-    return modules;
-}
-
-- (void)addModuleWithType:(NSString *)moduleType options:(NSDictionary *)options completion:(void (^)(XMPPModule *module, NSError *error))completion
-{
-    dispatch_async(_operationQueue, ^{
-        [self xmpp_addModuleWithType:moduleType
-                             options:options
-                          completion:^(XMPPModule *module, NSError *error) {
-                              if (completion) {
-                                  dispatch_async(dispatch_get_main_queue(), ^{
-                                      completion(module, error);
-                                  });
-                              }
-                          }];
-    });
-}
-
-- (void)removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
-{
-    dispatch_async(_operationQueue, ^{
-        [self xmpp_removeModule:module
-                     completion:^(NSError *error) {
-                         if (completion) {
-                             dispatch_async(dispatch_get_main_queue(), ^{
-                                 completion(error);
-                             });
-                         }
-                     }];
-    });
-}
-
 #pragma mark -
 
 #pragma mark Accounts
@@ -327,7 +263,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 
 - (XMPPAccount *)xmpp_createAccountWithJID:(XMPPJID *)JID
 {
-    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID serviceManager:self keyChain:_keyChain];
+    XMPPAccount *account = [[XMPPAccount alloc] initWithJID:JID accountManager:self keyChain:_keyChain];
 
     if (_keyChain) {
         [_keyChain addIdentitiyWithJID:JID];
@@ -343,9 +279,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogDebug(@"Did add account: %@", account);
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidAddAccountNotification
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidAddAccountNotification
                                                             object:self
-                                                          userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                          userInfo:@{XMPPAccountManagerAccountKey : account}];
     });
 
     return account;
@@ -363,9 +299,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogDebug(@"Did remove account: %@", account);
 
     dispatch_async(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidRemoveAccountNotification
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidRemoveAccountNotification
                                                             object:self
-                                                          userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                          userInfo:@{XMPPAccountManagerAccountKey : account}];
     });
 }
 
@@ -418,7 +354,7 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
 {
     XMPPClient *client = nil;
 
-    XMPPServiceManagerClientFactoryCallback callback = self.options[XMPPServiceManagerOptionClientFactoryCallbackKey];
+    XMPPAccountManagerClientFactoryCallback callback = self.options[XMPPAccountManagerOptionClientFactoryCallbackKey];
     if (callback) {
         client = callback(account, account.options);
     }
@@ -458,49 +394,6 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     DDLogDebug(@"Did remove client %@ for account %@", client, account);
 }
 
-#pragma mark Modules
-
-- (NSArray *)xmpp_modules
-{
-    return [_modules copy];
-}
-
-- (void)xmpp_addModuleWithType:(NSString *)moduleType
-                       options:(NSDictionary *)options
-                    completion:(void (^)(XMPPModule *module, NSError *error))completion
-{
-    Class moduleClass = [[[self class] registeredModules] objectForKey:moduleType];
-
-    NSAssert(moduleClass, @"No module class registered for module of type '%@'.", moduleType);
-
-    XMPPModule *module = [[moduleClass alloc] initWithServiceManager:self
-                                                          dispatcher:_dispatcher
-                                                             options:options];
-
-    NSAssert(module, @"Could not instanciate module '%@'.", moduleClass);
-
-    [module loadModuleWithCompletion:^(BOOL success, NSError *error) {
-        dispatch_async(_operationQueue, ^{
-            if (success) {
-                [_modules addObject:module];
-            }
-            if (completion) {
-                completion(success ? module : nil, error);
-            }
-        });
-    }];
-}
-
-- (void)xmpp_removeModule:(XMPPModule *)module completion:(void (^)(NSError *error))completion
-{
-    [_dispatcher removeHandler:module];
-    [_modules removeObject:module];
-
-    if (completion) {
-        completion(nil);
-    }
-}
-
 #pragma mark Exchange Pending Stanzas
 
 - (void)xmpp_exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
@@ -525,13 +418,13 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
             }
 
             dispatch_group_enter(g);
-            [XMPPPingModule sendPingUsingIQHandler:_dispatcher
-                                                to:[account.JID bareJID]
-                                              from:account.JID
-                                           timeout:timeout
-                                 completionHandler:^(BOOL success, NSError *error) {
-                                     dispatch_group_leave(g);
-                                 }];
+
+            [self xmpp_sendPingTo:[account.JID bareJID]
+                             from:account.JID
+                          timeout:timeout
+                completionHandler:^(BOOL success, NSError *error) {
+                    dispatch_group_leave(g);
+                }];
         }
     }
 
@@ -576,9 +469,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 DDLogInfo(@"Did suspend account: %@", account);
 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidSuspendAccountNotification
+                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidSuspendAccountNotification
                                                                         object:self
-                                                                      userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                                      userInfo:@{XMPPAccountManagerAccountKey : account}];
                 });
             }
         }
@@ -614,9 +507,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
                 DDLogInfo(@"Did resume account: %@", account);
 
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidResumeAccountNotification
+                    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidResumeAccountNotification
                                                                         object:self
-                                                                      userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                                      userInfo:@{XMPPAccountManagerAccountKey : account}];
                 });
             }
         }
@@ -730,6 +623,44 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
     }
 }
 
+#pragma mark Ping
+
+- (void)xmpp_sendPingTo:(XMPPJID *)to
+                   from:(XMPPJID *)from
+                timeout:(NSTimeInterval)timeout
+      completionHandler:(void (^)(BOOL success, NSError *error))completionHandler
+{
+    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+
+    PXElement *iq = doc.root;
+    [iq setValue:[to stringValue] forAttribute:@"to"];
+    [iq setValue:[from stringValue] forAttribute:@"from"];
+    [iq setValue:@"get" forAttribute:@"type"];
+
+    NSString *requestID = [[NSUUID UUID] UUIDString];
+    [iq setValue:requestID forAttribute:@"id"];
+
+    [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
+
+    [_dispatcher handleIQRequest:iq
+                         timeout:timeout
+                      completion:^(PXElement *response, NSError *error) {
+                          if (completionHandler) {
+                              if (error) {
+                                  completionHandler(NO, error);
+                              } else {
+                                  NSString *type = [response valueForAttribute:@"type"];
+                                  if ([type isEqualToString:@"result"]) {
+                                      completionHandler(YES, nil);
+                                  } else if ([type isEqualToString:@"error"]) {
+                                      NSError *error = [NSError errorFromStanza:response];
+                                      completionHandler(NO, error);
+                                  }
+                              }
+                          }
+                      }];
+}
+
 #pragma mark -
 #pragma mark XMPPClientDelegate (called on operation queue)
 
@@ -764,10 +695,10 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         }
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidConnectAccountNotification
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidConnectAccountNotification
                                                                 object:self
-                                                              userInfo:@{ XMPPServiceManagerAccountKey : account,
-                                                                          XMPPServiceManagerResumedKey : @(resumedStream) }];
+                                                              userInfo:@{ XMPPAccountManagerAccountKey : account,
+                                                                          XMPPAccountManagerResumedKey : @(resumedStream) }];
 
         });
     }
@@ -784,9 +715,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         account.clientState = client.state;
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerDidDisconnectAccountNotification
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidDisconnectAccountNotification
                                                                 object:self
-                                                              userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                              userInfo:@{XMPPAccountManagerAccountKey : account}];
 
         });
 
@@ -813,9 +744,9 @@ NSString *const XMPPServiceManagerOptionsKeyChainServiceKey = @"XMPPServiceManag
         account.clientState = client.state;
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPServiceManagerConnectionDidFailNotification
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerConnectionDidFailNotification
                                                                 object:self
-                                                              userInfo:@{XMPPServiceManagerAccountKey : account}];
+                                                              userInfo:@{XMPPAccountManagerAccountKey : account}];
 
         });
 

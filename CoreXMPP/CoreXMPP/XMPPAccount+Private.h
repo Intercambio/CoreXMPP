@@ -7,13 +7,13 @@
 //
 
 #import "XMPPAccount.h"
+#import "XMPPAccountManager.h"
 #import "XMPPKeyChainService.h"
-#import "XMPPServiceManager.h"
 
 @interface XMPPAccount (Private)
 
 - (instancetype)initWithJID:(XMPPJID *)JID
-             serviceManager:(XMPPServiceManager *)serviceManager
+             accountManager:(XMPPAccountManager *)accountManager
                    keyChain:(XMPPKeyChainService *)keyChain;
 
 @property (nonatomic, readonly) XMPPKeyChainService *keyChain;
