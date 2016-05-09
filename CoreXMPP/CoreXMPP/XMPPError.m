@@ -116,6 +116,32 @@ NSString *const XMPPErrorUnderlyingErrorsKey = @"XMPPErrorUnderlyingErrorsKey";
               @"unexpected-request" : @(XMPPStanzaErrorCodeUnexpectedRequest) };
 }
 
++ (NSDictionary *)xmpp_descriptionByStanzaErrorCodes
+{
+    return @{ @(XMPPStanzaErrorCodeBadRequest): @"Bad Request",
+              @(XMPPStanzaErrorCodeConflict): @"Conflict",
+              @(XMPPStanzaErrorCodeFeatureNotImplemented): @"Feature not implemented",
+              @(XMPPStanzaErrorCodeForbidden): @"Forbidden",
+              @(XMPPStanzaErrorCodeGone): @"Gone",
+              @(XMPPStanzaErrorCodeInternalServerError): @"Internal Server Error",
+              @(XMPPStanzaErrorCodeItemNotFound): @"Item not found",
+              @(XMPPStanzaErrorCodeJIDMalformed): @"JID malformed",
+              @(XMPPStanzaErrorCodeNotAcceptable): @"Not acceptable",
+              @(XMPPStanzaErrorCodeNotAllowed): @"Not allowed",
+              @(XMPPStanzaErrorCodeNotAuthorithed): @"Not authorized",
+              @(XMPPStanzaErrorCodePolicyViolation): @"Policy violation",
+              @(XMPPStanzaErrorCodeRecipientUnavailable): @"Recipient unavailable",
+              @(XMPPStanzaErrorCodeRedirect): @"Redirect",
+              @(XMPPStanzaErrorCodeRegistrationRequired): @"Registration required",
+              @(XMPPStanzaErrorCodeRemoteServerNotFound): @"Remote Server not found",
+              @(XMPPStanzaErrorCodeRemoteServerTimeout): @"Remote Server Timeout",
+              @(XMPPStanzaErrorCodeResourceConstraint): @"Resource Constraint",
+              @(XMPPStanzaErrorCodeServiceUnavailable): @"Service unavailable",
+              @(XMPPStanzaErrorCodeSubscriptionRequired): @"Subscription required",
+              @(XMPPStanzaErrorCodeUndefinedCondition): @"Undefined Condition",
+              @(XMPPStanzaErrorCodeUnexpectedRequest): @"Unexpected Request" };
+}
+
 + (NSInteger)stanzaErrorCodeWithName:(NSString *)name
 {
     NSNumber *_code = [[self xmpp_stanzaErrorCodesByErrorName] objectForKey:name];
@@ -201,6 +227,12 @@ NSString *const XMPPErrorUnderlyingErrorsKey = @"XMPPErrorUnderlyingErrorsKey";
             }
         }
 
+        if ([userInfo valueForKey:NSLocalizedDescriptionKey] == nil) {
+            NSDictionary *errorDescriptions = [[self class] xmpp_descriptionByStanzaErrorCodes];
+            NSString *errorText = NSLocalizedString([errorDescriptions objectForKey:@(errorCode)], nil);
+            [userInfo setObject:errorText forKey:NSLocalizedDescriptionKey];
+        }
+        
         return [NSError errorWithDomain:errorDomain
                                    code:errorCode
                                userInfo:userInfo];
