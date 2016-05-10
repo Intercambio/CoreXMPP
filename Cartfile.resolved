@@ -1,0 +1,6 @@
+git "https://github.com/CocoaLumberjack/CocoaLumberjack.git" "2.3.0"
+github "hamcrest/OCHamcrest" "v5.2.0"
+git "https://github.com/AliSoftware/OHHTTPStubs.git" "4.8.0"
+git "git@github.com:anagromataf/SocketRocket.git" "c1ec28aafde7c522889f79220511f037b7adf70d"
+git "ssh://git@garage.tobias-kraentzer.de/diffusion/1/purexml.git" "1.0"
+github "jonreid/OCMockito" "d93701ae36d35f0b77587a2f82cf03199cd753ba"
