@@ -1,2 +1,2 @@
-git "https://github.com/AliSoftware/OHHTTPStubs.git" ~> 4.7.0
+github "AliSoftware/OHHTTPStubs" ~> 4.7.0
 github "jonreid/OCMockito" "master"
