@@ -7,6 +7,7 @@
 //
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
+#import <SASLKit/SASLKit.h>
 
 #import "XMPPError.h"
 #import "XMPPStreamFeature.h"
@@ -15,8 +16,6 @@
 #import "XMPPStreamFeatureStreamManagement.h"
 #import "XMPPStreamStanzaHandlerProxy.h"
 #import "XMPPWebsocketStream.h"
-
-#import "SASLMechanism.h"
 
 #import "XMPPClient.h"
 

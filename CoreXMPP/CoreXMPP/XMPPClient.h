@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
+#import <SASLKit/SASLKit.h>
 
-#import "SASLMechanism.h"
 #import "XMPPClientStreamManagement.h"
 #import "XMPPConnection.h"
 
