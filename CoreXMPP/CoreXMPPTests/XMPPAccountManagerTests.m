@@ -18,7 +18,7 @@
 
 - (void)testAccountManagement
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:nil];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -44,7 +44,7 @@
 
 - (void)testAccountOptions
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:nil];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -94,7 +94,7 @@
 
 - (void)testSuspendAndResumeAccounts
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:nil];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -179,7 +179,7 @@
 
 - (void)testSuspendAccountOnRemove
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:nil];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -241,9 +241,7 @@
 - (void)testKeyChain
 {
     XMPPKeyChainService *keyChain = [[XMPPKeyChainService alloc] initWithServiceName:self.keyChainServiceName];
-
-    NSDictionary *options = @{XMPPAccountManagerOptionsKeyChainServiceKey : keyChain};
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:options];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:keyChain clientFactory:nil];
 
     [accountManager addAccountWithJID:JID(@"romeo@example.com")
                               options:@{ @"foo" : @"bar" }
@@ -254,7 +252,7 @@
     XMPPKeyChainItemAttributes *attributes = [keyChain attributesForIdentityWithJID:JID(@"romeo@example.com")];
     assertThat(attributes.options, equalTo(@{ @"foo" : @"bar" }));
 
-    accountManager = [[XMPPAccountManager alloc] initWithOptions:options];
+    accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:keyChain clientFactory:nil];
     assertThat(accountManager.accounts, hasCountOf(1));
 
     XMPPAccount *account = [accountManager.accounts firstObject];
@@ -267,6 +265,8 @@
 - (void)testReconnectOnFailure
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
+    XMPPClientFactoryStub *clientFactory = [[XMPPClientFactoryStub alloc] init];
+    clientFactory.stream = stream;
 
     [stream onDidOpen:^(XMPPStreamStub *stream) {
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
@@ -282,13 +282,7 @@
         [stream receiveElement:doc.root];
     }];
 
-    XMPPAccountManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{} stream:stream];
-    };
-
-    NSDictionary *options = @{XMPPAccountManagerOptionClientFactoryCallbackKey : callback};
-
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:options];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:nil clientFactory:clientFactory];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -377,6 +371,8 @@
 - (void)testReconnectAfterTime
 {
     XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
+    XMPPClientFactoryStub *clientFactory = [[XMPPClientFactoryStub alloc] init];
+    clientFactory.stream = stream;
 
     [stream onDidOpen:^(XMPPStreamStub *stream) {
         NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
@@ -392,13 +388,7 @@
         [stream receiveElement:doc.root];
     }];
 
-    XMPPAccountManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{} stream:stream];
-    };
-
-    NSDictionary *options = @{XMPPAccountManagerOptionClientFactoryCallbackKey : callback};
-
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:options];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:nil clientFactory:clientFactory];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 
@@ -438,7 +428,7 @@
 
 - (void)testDispatching
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithOptions:nil];
+    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
     id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     accountManager.SASLDelegate = SASLDelegate;
 

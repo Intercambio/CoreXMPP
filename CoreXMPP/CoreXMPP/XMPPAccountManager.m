@@ -12,6 +12,7 @@
 #import "XMPPAccount.h"
 #import "XMPPAccountManager.h"
 #import "XMPPClient.h"
+#import "XMPPClientFactory.h"
 #import "XMPPDispatcher.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
@@ -44,6 +45,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
     NSMapTable *_networkReachabilitiesByClient;
     XMPPDispatcher *_dispatcher;
     NSMutableArray *_modules;
+    XMPPClientFactory *_clientFactory;
 }
 
 @end
@@ -127,13 +129,20 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
 
 #pragma mark Life-cycle
 
-- (instancetype)initWithOptions:(NSDictionary *)options
+- (instancetype)init
+{
+    return [self initWithKeyChainService:nil clientFactory:nil];
+}
+
+- (instancetype)initWithKeyChainService:(XMPPKeyChainService *)keyChainService
+                          clientFactory:(XMPPClientFactory *)clientFactory
 {
     self = [super init];
     if (self) {
-        _options = options;
+        _keyChain = keyChainService;
+        _clientFactory = clientFactory ?: [[XMPPClientFactory alloc] init];
         _operationQueue = dispatch_queue_create("XMPPAccountManager", DISPATCH_QUEUE_SERIAL);
-        _keyChain = _options[XMPPAccountManagerOptionsKeyChainServiceKey];
+
         _clientsByAccount = [NSMapTable strongToStrongObjectsMapTable];
         _accounts = [[NSMutableArray alloc] init];
         _modules = [[NSMutableArray alloc] init];
@@ -352,18 +361,9 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
 
 - (XMPPClient *)xmpp_createClientForAccount:(XMPPAccount *)account
 {
-    XMPPClient *client = nil;
-
-    XMPPAccountManagerClientFactoryCallback callback = self.options[XMPPAccountManagerOptionClientFactoryCallbackKey];
-    if (callback) {
-        client = callback(account, account.options);
-    }
-
-    if (client == nil) {
-        NSString *hostname = account.JID.host;
-        client = [[XMPPClient alloc] initWithHostname:hostname
-                                              options:account.options];
-    }
+    XMPPClient *client = [_clientFactory createClientToHost:account.JID.host
+                                                withOptions:account.options
+                                                     stream:nil];
 
     client.delegateQueue = _operationQueue;
     client.delegate = self;

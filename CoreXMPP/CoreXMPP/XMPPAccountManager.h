@@ -15,6 +15,8 @@
 @class XMPPModule;
 @class XMPPAccountManager;
 @class XMPPDispatcher;
+@class XMPPKeyChainService;
+@class XMPPClientFactory;
 
 extern NSString *const XMPPAccountManagerDidAddAccountNotification;
 extern NSString *const XMPPAccountManagerDidRemoveAccountNotification;
@@ -27,10 +29,7 @@ extern NSString *const XMPPAccountManagerConnectionDidFailNotification;
 extern NSString *const XMPPAccountManagerAccountKey;
 extern NSString *const XMPPAccountManagerResumedKey;
 
-extern NSString *const XMPPAccountManagerOptionClientFactoryCallbackKey;
 extern NSString *const XMPPAccountManagerOptionsKeyChainServiceKey;
-
-typedef XMPPClient * (^XMPPAccountManagerClientFactoryCallback)(XMPPAccount *account, NSDictionary *options);
 
 @protocol XMPPAccountManagerDelegate <NSObject>
 @optional
@@ -40,10 +39,8 @@ typedef XMPPClient * (^XMPPAccountManagerClientFactoryCallback)(XMPPAccount *acc
 @interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
-- (instancetype)initWithOptions:(NSDictionary *)options;
-
-#pragma mark Options
-@property (nonatomic, readonly) NSDictionary *options;
+- (instancetype)initWithKeyChainService:(XMPPKeyChainService *)keyChainService
+                          clientFactory:(XMPPClientFactory *)clientFactory;
 
 #pragma mark Delegate
 @property (nonatomic, weak) id<XMPPAccountManagerDelegate> delegate;

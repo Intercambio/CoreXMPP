@@ -19,6 +19,7 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
+#import "XMPPClientFactoryStub.h"
 #import "XMPPConnectionStub.h"
 #import "XMPPModuleStub.h"
 #import "XMPPStreamFeatureStub.h"
