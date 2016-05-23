@@ -283,7 +283,7 @@
     }];
 
     XMPPAccountManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{XMPPClientOptionsStreamKey : stream}];
+        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{} stream:stream];
     };
 
     NSDictionary *options = @{XMPPAccountManagerOptionClientFactoryCallbackKey : callback};
@@ -393,7 +393,7 @@
     }];
 
     XMPPAccountManagerClientFactoryCallback callback = ^(XMPPAccount *account, NSDictionary *options) {
-        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{XMPPClientOptionsStreamKey : stream}];
+        return [[XMPPClient alloc] initWithHostname:@"localhost" options:@{} stream:stream];
     };
 
     NSDictionary *options = @{XMPPAccountManagerOptionClientFactoryCallbackKey : callback};

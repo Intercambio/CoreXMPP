@@ -12,8 +12,8 @@
 
 #import "XMPPClientStreamManagement.h"
 #import "XMPPConnection.h"
+#import "XMPPStream.h"
 
-extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
 extern NSString *const XMPPClientOptionsResourceKey;
 
@@ -50,6 +50,10 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 #pragma mark Life-cycle
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;
+
+- (instancetype)initWithHostname:(NSString *)hostname
+                         options:(NSDictionary *)options
+                          stream:(XMPPStream *)stream;
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;

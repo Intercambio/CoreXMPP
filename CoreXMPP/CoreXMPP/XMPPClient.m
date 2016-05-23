@@ -21,7 +21,6 @@
 
 static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
-NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
@@ -33,7 +32,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 @interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
-    XMPPWebsocketStream *_stream;
+    XMPPStream *_stream;
     XMPPStreamFeature *_currentFeature;
     NSMutableDictionary *_featureConfigurations;
     NSMutableArray *_preferredFeatures;
@@ -66,13 +65,22 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options
 {
+    return [self initWithHostname:hostname
+                          options:options
+                           stream:nil];
+}
+
+- (instancetype)initWithHostname:(NSString *)hostname
+                         options:(NSDictionary *)options
+                          stream:(XMPPStream *)stream
+{
     self = [super init];
     if (self) {
         _hostname = hostname;
         _options = options;
         _state = XMPPClientStateDisconnected;
         _operationQueue = dispatch_queue_create("XMPPClient", DISPATCH_QUEUE_SERIAL);
-        _stream = options[XMPPClientOptionsStreamKey] ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
+        _stream = stream ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
         _stream.queue = _operationQueue;
         _stream.delegate = self;
         _streamFeatureStanzaHandler = [[XMPPStreamStanzaHandlerProxy alloc] initWithStream:_stream];

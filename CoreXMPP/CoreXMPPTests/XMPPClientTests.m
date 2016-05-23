@@ -214,7 +214,8 @@
 - (void)testConnectClient
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -274,7 +275,8 @@
 - (void)testFailedConnectionWithXMPPStreamError
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -334,7 +336,8 @@
 - (void)testFailedConnectionWithError
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -419,7 +422,8 @@
 - (void)testVoluntaryFeatureWithoutRestart
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -492,7 +496,8 @@
 - (void)testVoluntaryFeatureWithRestart
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -577,7 +582,8 @@
 - (void)testVoluntaryFeatureWithFailure
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -642,7 +648,8 @@
 - (void)testMandatoryFeatureWithoutRestart
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -715,7 +722,8 @@
 - (void)testMandatoryFeatureWithRestart
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -800,7 +808,8 @@
 - (void)testMandatoryFeatureWithFailure
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -869,7 +878,8 @@
 - (void)testSASLFeature
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -991,7 +1001,8 @@
 - (void)testUnsupportedSASLMechanism
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -1042,8 +1053,8 @@
 - (void)testPreferredSASLMechanismsNotSupported
 {
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{ XMPPClientOptionsStreamKey : self.stream,
-                                                                 XMPPClientOptionsPreferedSASLMechanismsKey : @[ @"SCRAM-SHA-1" ] }];
+                                                      options:@{ XMPPClientOptionsPreferedSASLMechanismsKey : @[ @"SCRAM-SHA-1" ] }
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -1094,7 +1105,8 @@
     //
 
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
@@ -1215,7 +1227,8 @@
     //
 
     XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
-                                                      options:@{XMPPClientOptionsStreamKey : self.stream}];
+                                                      options:@{}
+                                                       stream:self.stream];
 
     id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
     client.delegate = delegate;
