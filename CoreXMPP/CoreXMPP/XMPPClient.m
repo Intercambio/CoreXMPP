@@ -333,6 +333,9 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
         self.state = XMPPClientStateConnected;
 
+        _numberOfConnectionAttempts = 0;
+        _recentError = nil;
+
         BOOL resumed = _streamManagement.resumed;
 
         [_connectionDelegate connection:self didConnectTo:_JID resumed:resumed];
@@ -473,6 +476,9 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         self.state = XMPPClientStateDisconnected;
 
         [_connectionDelegate connection:self didDisconnectFrom:_JID];
+
+        _numberOfConnectionAttempts += 1;
+        _recentError = error;
 
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();

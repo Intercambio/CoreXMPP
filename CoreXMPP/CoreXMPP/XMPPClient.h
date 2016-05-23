@@ -63,6 +63,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;
+@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
+@property (nonatomic, readonly) NSError *recentError;
 
 #pragma mark Manage Client
 - (void)connect;
