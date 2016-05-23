@@ -380,6 +380,9 @@
 
     NSError *error = [captor value];
     assertThat(error.domain, equalTo(@"testUnderlyingStreamErrors"));
+
+    assertThatInteger(client.numberOfConnectionAttempts, equalToInteger(1));
+    assertThat(client.recentError.domain, equalTo(@"testUnderlyingStreamErrors"));
 }
 
 #pragma mark Stream Errors

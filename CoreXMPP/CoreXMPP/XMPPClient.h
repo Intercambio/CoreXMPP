@@ -17,6 +17,11 @@ extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
 extern NSString *const XMPPClientOptionsResourceKey;
 
+extern NSString *const XMPPClientDidConnectNotification;
+extern NSString *const XMPPClientDidDisconnectNotification;
+extern NSString *const XMPPClientErrorKey;
+extern NSString *const XMPPClientResumedKey;
+
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,
     XMPPClientStateConnecting,
@@ -63,6 +68,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;
+@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
+@property (nonatomic, readonly) NSError *recentError;
 
 #pragma mark Manage Client
 - (void)connect;
