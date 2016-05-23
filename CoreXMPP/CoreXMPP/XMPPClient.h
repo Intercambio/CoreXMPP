@@ -17,6 +17,11 @@ extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
 extern NSString *const XMPPClientOptionsResourceKey;
 
+extern NSString *const XMPPClientDidConnectNotification;
+extern NSString *const XMPPClientDidDisconnectNotification;
+extern NSString *const XMPPClientErrorKey;
+extern NSString *const XMPPClientResumedKey;
+
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,
     XMPPClientStateConnecting,

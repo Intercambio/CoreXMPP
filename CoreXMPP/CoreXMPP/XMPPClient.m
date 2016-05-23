@@ -25,6 +25,11 @@ NSString *const XMPPClientOptionsStreamKey = @"XMPPClientOptionsStreamKey";
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
 
+NSString *const XMPPClientDidConnectNotification = @"XMPPClientDidConnectNotification";
+NSString *const XMPPClientDidDisconnectNotification = @"XMPPClientDidDisconnectNotification";
+NSString *const XMPPClientErrorKey = @"XMPPClientErrorKey";
+NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
+
 @interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
@@ -343,9 +348,15 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
+
             if ([delegate respondsToSelector:@selector(clientDidConnect:resumedStream:)]) {
                 [delegate clientDidConnect:self resumedStream:resumed];
             }
+
+            NSDictionary *userInfo = @{ XMPPClientResumedKey : @(resumed) };
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPClientDidConnectNotification
+                                                                object:self
+                                                              userInfo:userInfo];
         });
     }
 }
@@ -386,6 +397,11 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
             if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
                 [delegate client:self didFailWithError:error];
             }
+
+            NSDictionary *userInfo = error ? @{XMPPClientErrorKey : error} : @{};
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPClientDidDisconnectNotification
+                                                                object:self
+                                                              userInfo:userInfo];
         });
 
         [_stream close];
@@ -483,9 +499,15 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
+
             if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
                 [delegate client:self didFailWithError:error];
             }
+
+            NSDictionary *userInfo = error ? @{XMPPClientErrorKey : error} : @{};
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPClientDidDisconnectNotification
+                                                                object:self
+                                                              userInfo:userInfo];
         });
     }
 }
@@ -500,9 +522,15 @@ NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
         id<XMPPClientDelegate> delegate = self.delegate;
         dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
         dispatch_async(delegateQueue, ^{
+
             if ([delegate respondsToSelector:@selector(clientDidDisconnect:)]) {
                 [delegate clientDidDisconnect:self];
             }
+
+            NSDictionary *userInfo = @{};
+            [[NSNotificationCenter defaultCenter] postNotificationName:XMPPClientDidDisconnectNotification
+                                                                object:self
+                                                              userInfo:userInfo];
         });
     }
 }
