@@ -2,532 +2,121 @@
 //  XMPPAccountManagerTests.m
 //  CoreXMPP
 //
-//  Created by Tobias Kräntzer on 12.01.16.
+//  Created by Tobias Kraentzer on 23.05.16.
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
 #import "XMPPTestCase.h"
 
 @interface XMPPAccountManagerTests : XMPPTestCase
-
+@property (nonatomic, strong) XMPPDispatcher *dispatcher;
+@property (nonatomic, strong) XMPPClientFactory *clientFactory;
+@property (nonatomic, strong) XMPPClient *client;
+@property (nonatomic, strong) XMPPAccountManager *accountManager;
+@property (nonatomic, strong) id<SASLMechanismDelegate> SASLDelegate;
 @end
 
 @implementation XMPPAccountManagerTests
 
-#pragma mark Account Management
-
-- (void)testAccountManagement
+- (void)setUp
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
+    [super setUp];
+    self.dispatcher = mock([XMPPDispatcher class]);
+    self.clientFactory = mock([XMPPClientFactory class]);
+    self.client = mock([XMPPClient class]);
+    self.accountManager = [[XMPPAccountManager alloc] initWithDispatcher:self.dispatcher
+                                                           clientFactory:self.clientFactory];
+    self.SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    self.accountManager.SASLDelegate = self.SASLDelegate;
 
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
-    assertThat(account, notNilValue());
-    assertThat(account.JID, equalTo(JID(@"romeo@localhost")));
-    assertThat(accountManager.accounts, contains(account, nil));
-
-    // An account should initially be suspended (and therefore disconnected).
-    assertThatBool(account.suspended, isTrue());
-    assertThatBool(account.connected, isFalse());
-
-    assertThat(account.options, equalTo(@{}));
-
-    NSDictionary *options = @{ @"foo" : @"bar" };
-    [accountManager setOptions:options forAccount:account];
-
-    assertThat(account.options, equalTo(@{ @"foo" : @"bar" }));
-
-    [accountManager removeAccount:account];
-    assertThat(accountManager.accounts, isNot(contains(account, nil)));
+    [given([self.clientFactory createClientToHost:equalTo(@"localhost")
+                                      withOptions:equalTo(@{})
+                                           stream:nilValue()]) willReturn:self.client];
 }
 
-- (void)testAccountOptions
+#pragma mark Tests
+
+- (void)testAddAccount
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
+    assertThat(self.accountManager.accounts, contains(JID(@"romeo@localhost"), nil));
 
-    //
-    // Prepare SASL Authentication
-    //
+    [verify(self.clientFactory) createClientToHost:equalTo(@"localhost")
+                                       withOptions:equalTo(@{})
+                                            stream:nilValue()];
 
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
-        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
-        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"
-                                     completion:nil];
-        }
-        return nil;
-    }];
+    [verify(self.client) setDelegate:anything()];
+    [verify(self.client) setDelegateQueue:is(dispatch_get_main_queue())];
 
-    //
-    // Set Options
-    //
+    [verify(self.client) setSASLContext:equalTo(JID(@"romeo@localhost"))];
+    [verify(self.client) setSASLDelegate:is(self.SASLDelegate)];
+    [verify(self.client) setSASLDelegateQueue:is(dispatch_get_main_queue())];
 
-    NSDictionary *options = @{ XMPPWebsocketStreamURLKey : [NSURL URLWithString:@"ws://localhost:5280/xmpp"] };
-    [accountManager setOptions:options forAccount:account];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    [verify(self.dispatcher) setConnection:self.client forJID:JID(@"romeo@localhost")];
+    [verify(self.client) setConnectionDelegate:is(self.dispatcher)];
 }
 
-- (void)testSuspendAndResumeAccounts
+- (void)testAddExsitiongAccount
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
-
-    //
-    // Prepare SASL Authentication
-    //
-
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
-        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
-        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"
-                                     completion:nil];
-        }
-        return nil;
-    }];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for the Account to be resumed
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidResumeAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isFalse());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Suspend Account
-    //
-
-    [accountManager suspendAccount:account];
-
-    //
-    // Wait for the Account to be suspended
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidSuspendAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Wait for the Account to be disconnected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidDisconnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isFalse());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                  withOptions:@{}
+                                        error:&error];
+    XCTAssertFalse(success);
+    XCTAssertEqualObjects(error.domain, XMPPErrorDomain);
+    XCTAssertEqual(error.code, XMPPErrorCodeAccountExists);
 }
 
-- (void)testSuspendAccountOnRemove
+- (void)testUpdateOptions
 {
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
+    NSDictionary *options = @{ @"foo" : @(42) };
+    [self.accountManager updateOptions:options
+                            forAccount:JID(@"romeo@localhost")];
 
-    //
-    // Prepare SASL Authentication
-    //
-
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
-        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
-        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"
-                                     completion:nil];
-        }
-        return nil;
-    }];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for the Account to be resumed
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidResumeAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isFalse());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Remove Account
-    //
-
-    [accountManager removeAccount:account];
-
-    //
-    // Wait for the Account to be suspended
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidSuspendAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    [verify(self.client) updateOptions:equalTo(options)];
 }
 
-- (void)testKeyChain
+- (void)testRemoveAccount
 {
-    XMPPKeyChainService *keyChain = [[XMPPKeyChainService alloc] initWithServiceName:self.keyChainServiceName];
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:keyChain clientFactory:nil];
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    [accountManager addAccountWithJID:JID(@"romeo@example.com")
-                              options:@{ @"foo" : @"bar" }
-                                error:nil];
+    [self.accountManager removeAccount:JID(@"romeo@localhost")];
 
-    assertThat(keyChain.identities, contains(JID(@"romeo@example.com"), nil));
-
-    XMPPKeyChainItemAttributes *attributes = [keyChain attributesForIdentityWithJID:JID(@"romeo@example.com")];
-    assertThat(attributes.options, equalTo(@{ @"foo" : @"bar" }));
-
-    accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:keyChain clientFactory:nil];
-    assertThat(accountManager.accounts, hasCountOf(1));
-
-    XMPPAccount *account = [accountManager.accounts firstObject];
-    assertThat(account.JID, equalTo(JID(@"romeo@example.com")));
-    assertThat(account.options, equalTo(@{ @"foo" : @"bar" }));
+    assertThat(self.accountManager.accounts, isNot(contains(JID(@"romeo@localhost"), nil)));
 }
 
-#pragma mark Reconnect
-
-- (void)testReconnectOnFailure
+- (void)testConnectivity
 {
-    XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-    XMPPClientFactoryStub *clientFactory = [[XMPPClientFactoryStub alloc] init];
-    clientFactory.stream = stream;
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [stream receiveElement:doc.root];
-    }];
+    id<XMPPAccountConnectivity> connectivity = [self.accountManager connectivityForAccount:JID(@"romeo@localhost")];
 
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [stream receiveElement:doc.root];
-    }];
-
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:nil clientFactory:clientFactory];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
-
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
-
-    //
-    // Prepare SASL Authentication
-    //
-
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
-        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
-        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"
-                                     completion:nil];
-        }
-        return nil;
-    }];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for the Account to be resumed
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidResumeAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isFalse());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Let the stream fail
-    //
-
-    NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                         code:XMPPStreamErrorCodeInternalServerError
-                                     userInfo:nil];
-    [stream failWithError:error];
-
-    //
-    // Wait for the Account to be disconnected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerConnectionDidFailNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isFalse());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-}
-
-- (void)testReconnectAfterTime
-{
-    XMPPStreamStub *stream = [[XMPPStreamStub alloc] initWithHostname:@"localhost" options:nil];
-    XMPPClientFactoryStub *clientFactory = [[XMPPClientFactoryStub alloc] init];
-    clientFactory.stream = stream;
-
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-        NSError *error = [NSError errorWithDomain:XMPPStreamErrorDomain
-                                             code:XMPPStreamErrorCodeInternalServerError
-                                         userInfo:nil];
-        [stream failWithError:error];
-    }];
-
-    [stream onDidOpen:^(XMPPStreamStub *stream) {
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
-                                                        namespace:@"http://etherx.jabber.org/streams"
-                                                           prefix:@"stream"];
-        [stream receiveElement:doc.root];
-    }];
-
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] initWithKeyChainService:nil clientFactory:clientFactory];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
-
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for connection failure notification
-    //
-
-    [self expectationForNotification:XMPPAccountManagerConnectionDidFailNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThat(notification.userInfo[XMPPAccountManagerAccountKey], is(account));
-                                 return YES;
-                             }];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-}
-
-#pragma mark Despatching
-
-- (void)testDispatching
-{
-    XMPPAccountManager *accountManager = [[XMPPAccountManager alloc] init];
-    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
-    accountManager.SASLDelegate = SASLDelegate;
-
-    XMPPAccount *account = [accountManager addAccountWithJID:JID(@"romeo@localhost") options:nil error:nil];
-
-    //
-    // Prepare SASL Authentication
-    //
-
-    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
-        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] lastObject];
-        assertThat(mechanism, instanceOf([SASLMechanismPLAIN class]));
-        if ([mechanism isKindOfClass:[SASLMechanismPLAIN class]]) {
-            assertThat(mechanism.context, is(account));
-            [mechanism authenticateWithUsername:[[mechanism.context JID] stringValue]
-                                       password:@"123"
-                                     completion:nil];
-        }
-        return nil;
-    }];
-
-    //
-    // Resume Account
-    //
-
-    [accountManager resumeAccount:account];
-
-    //
-    // Wait for the Account to be connected
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidConnectAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.connected, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Send Ping
-    //
-
-    XMPPJID *to = JID(@"localhost");
-    XMPPJID *from = JID(@"romeo@localhost");
-
-    PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-
-    PXElement *iq = doc.root;
-    [iq setValue:[to stringValue] forAttribute:@"to"];
-    [iq setValue:[from stringValue] forAttribute:@"from"];
-    [iq setValue:@"get" forAttribute:@"type"];
-
-    NSString *requestID = [[NSUUID UUID] UUIDString];
-    [iq setValue:requestID forAttribute:@"id"];
-
-    [iq addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Pong"];
-    [accountManager.dispatcher handleIQRequest:iq
-                                       timeout:60.0
-                                    completion:^(PXElement *response, NSError *error) {
-                                        assertThat(response, notNilValue());
-                                        [expectation fulfill];
-                                    }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    //
-    // Suspend Account
-    //
-
-    [accountManager suspendAccount:account];
-
-    //
-    // Wait for the Account to be suspended
-    //
-
-    [self expectationForNotification:XMPPAccountManagerDidSuspendAccountNotification
-                              object:accountManager
-                             handler:^BOOL(NSNotification *_Nonnull notification) {
-                                 assertThatBool(account.suspended, isTrue());
-                                 return notification.userInfo[XMPPAccountManagerAccountKey] == account;
-                             }];
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];
-
-    //
-    // Send Ping
-    //
-
-    expectation = [self expectationWithDescription:@"Expect Pong"];
-    [accountManager.dispatcher handleIQRequest:iq
-                                       timeout:60.0
-                                    completion:^(PXElement *response, NSError *error) {
-                                        assertThat(response, nilValue());
-                                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
-                                        assertThatInteger(error.code, equalToInt(XMPPDispatcherErrorCodeNoRoute));
-                                        [expectation fulfill];
-                                    }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+    assertThat(connectivity, notNilValue());
+    assertThat(connectivity.account, equalTo(JID(@"romeo@localhost")));
 }
 
 @end

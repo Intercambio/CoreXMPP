@@ -2,68 +2,52 @@
 //  XMPPAccountManager.h
 //  CoreXMPP
 //
-//  Created by Tobias Kräntzer on 12.01.16.
+//  Created by Tobias Kraentzer on 23.05.16.
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPClientFactory.h"
+#import "XMPPDispatcher.h"
+#import "XMPPJID.h"
 #import <Foundation/Foundation.h>
+#import <SASLKit/SASLKit.h>
 
-@protocol SASLMechanismDelegate;
-@class SASLMechanism;
-@class XMPPAccount;
-@class XMPPClient;
-@class XMPPModule;
-@class XMPPAccountManager;
-@class XMPPDispatcher;
-@class XMPPKeyChainService;
-@class XMPPClientFactory;
+typedef NS_ENUM(NSUInteger, XMPPAccountConnectivityState) {
+    XMPPAccountConnectivityStateDisconnected,
+    XMPPAccountConnectivityStateConnecting,
+    XMPPAccountConnectivityStateConnected,
+    XMPPAccountConnectivityStateDisconnecting
+};
 
-extern NSString *const XMPPAccountManagerDidAddAccountNotification;
-extern NSString *const XMPPAccountManagerDidRemoveAccountNotification;
-extern NSString *const XMPPAccountManagerDidResumeAccountNotification;
-extern NSString *const XMPPAccountManagerDidSuspendAccountNotification;
-extern NSString *const XMPPAccountManagerDidConnectAccountNotification;
-extern NSString *const XMPPAccountManagerDidDisconnectAccountNotification;
-extern NSString *const XMPPAccountManagerConnectionDidFailNotification;
-
-extern NSString *const XMPPAccountManagerAccountKey;
-extern NSString *const XMPPAccountManagerResumedKey;
-
-extern NSString *const XMPPAccountManagerOptionsKeyChainServiceKey;
-
-@protocol XMPPAccountManagerDelegate <NSObject>
-@optional
-- (void)accountManager:(XMPPAccountManager *)accountManager didFailWithError:(NSError *)error;
+@protocol XMPPAccountConnectivity <NSObject>
+@property (nonatomic, readonly) XMPPJID *account;
+@property (nonatomic, readwrite) BOOL shouldReconnect;
+@property (nonatomic, readonly) XMPPAccountConnectivityState state;
+@property (nonatomic, readonly) NSError *recentError;
+@property (nonatomic, readonly) NSDate *nextConnectionAttempt;
+- (void)connect;
 @end
 
 @interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
-- (instancetype)initWithKeyChainService:(XMPPKeyChainService *)keyChainService
-                          clientFactory:(XMPPClientFactory *)clientFactory;
-
-#pragma mark Delegate
-@property (nonatomic, weak) id<XMPPAccountManagerDelegate> delegate;
-@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
+- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher;
+- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher
+                     clientFactory:(XMPPClientFactory *)clientFactory;
 
 #pragma mark Dispatcher
 @property (nonatomic, readonly) XMPPDispatcher *dispatcher;
 
+#pragma mark SASL Delegate
+@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
+
 #pragma mark Managing Accounts
 @property (nonatomic, readonly) NSArray *accounts;
-- (XMPPAccount *)addAccountWithJID:(XMPPJID *)JID options:(NSDictionary *)options error:(NSError **)error;
-- (void)setOptions:(NSDictionary *)options forAccount:(XMPPAccount *)account;
-- (void)removeAccount:(XMPPAccount *)account;
+- (BOOL)addAccount:(XMPPJID *)account withOptions:(NSDictionary *)options error:(NSError **)error;
+- (void)updateOptions:(NSDictionary *)options forAccount:(XMPPJID *)account;
+- (void)removeAccount:(XMPPJID *)account;
 
-- (void)suspendAccount:(XMPPAccount *)account;
-- (void)resumeAccount:(XMPPAccount *)resume;
-- (void)suspendAllAccounts;
-- (void)resumeAllAccounts;
-
-- (void)reconnectAccount:(XMPPAccount *)account;
-
-#pragma mark Exchange Pending Stanzas
-- (void)exchangePendingStanzasWithTimeout:(NSTimeInterval)timeout
-                               completion:(void (^)(NSError *error))completion;
+#pragma mark Connectivity
+- (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account;
 
 @end
