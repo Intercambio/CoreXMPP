@@ -1,5 +1,5 @@
 //
-//  XMPPNewAccountManagerTests.m
+//  XMPPAccountManagerTests.m
 //  CoreXMPP
 //
 //  Created by Tobias Kraentzer on 23.05.16.
@@ -8,15 +8,15 @@
 
 #import "XMPPTestCase.h"
 
-@interface XMPPNewAccountManagerTests : XMPPTestCase
+@interface XMPPAccountManagerTests : XMPPTestCase
 @property (nonatomic, strong) XMPPDispatcher *dispatcher;
 @property (nonatomic, strong) XMPPClientFactory *clientFactory;
 @property (nonatomic, strong) XMPPClient *client;
-@property (nonatomic, strong) XMPPNewAccountManager *accountManager;
+@property (nonatomic, strong) XMPPAccountManager *accountManager;
 @property (nonatomic, strong) id<SASLMechanismDelegate> SASLDelegate;
 @end
 
-@implementation XMPPNewAccountManagerTests
+@implementation XMPPAccountManagerTests
 
 - (void)setUp
 {
@@ -24,8 +24,8 @@
     self.dispatcher = mock([XMPPDispatcher class]);
     self.clientFactory = mock([XMPPClientFactory class]);
     self.client = mock([XMPPClient class]);
-    self.accountManager = [[XMPPNewAccountManager alloc] initWithDispatcher:self.dispatcher
-                                                              clientFactory:self.clientFactory];
+    self.accountManager = [[XMPPAccountManager alloc] initWithDispatcher:self.dispatcher
+                                                           clientFactory:self.clientFactory];
     self.SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
     self.accountManager.SASLDelegate = self.SASLDelegate;
 

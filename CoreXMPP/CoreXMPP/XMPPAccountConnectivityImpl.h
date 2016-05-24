@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
+#import "XMPPAccountManager.h"
 #import "XMPPClient.h"
 #import "XMPPJID.h"
-#import "XMPPNewAccountManager.h"
 #import "XMPPReconnectStrategy.h"
 
 @class XMPPAccountConnectivityImpl;

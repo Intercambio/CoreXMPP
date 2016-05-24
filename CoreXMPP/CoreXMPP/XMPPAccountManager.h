@@ -1,5 +1,5 @@
 //
-//  XMPPNewAccountManager.h
+//  XMPPAccountManager.h
 //  CoreXMPP
 //
 //  Created by Tobias Kraentzer on 23.05.16.
@@ -28,7 +28,7 @@ typedef NS_ENUM(NSUInteger, XMPPAccountConnectivityState) {
 - (void)connect;
 @end
 
-@interface XMPPNewAccountManager : NSObject
+@interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
 - (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher;

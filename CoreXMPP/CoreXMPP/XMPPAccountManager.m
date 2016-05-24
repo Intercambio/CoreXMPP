@@ -1,17 +1,17 @@
 //
-//  XMPPNewAccountManager.m
+//  XMPPAccountManager.m
 //  CoreXMPP
 //
 //  Created by Tobias Kraentzer on 23.05.16.
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPNewAccountManager.h"
+#import "XMPPAccountManager.h"
 #import "XMPPAccountConnectivityImpl.h"
 #import "XMPPClient.h"
 #import "XMPPError.h"
 
-@interface XMPPNewAccountManager () <XMPPAccountConnectivityImplDelegate> {
+@interface XMPPAccountManager () <XMPPAccountConnectivityImplDelegate> {
     XMPPClientFactory *_clientFactory;
     NSMutableDictionary *_clientsByAccount;
     NSMutableDictionary *_connectivityByAccount;
@@ -19,7 +19,7 @@
 
 @end
 
-@implementation XMPPNewAccountManager
+@implementation XMPPAccountManager
 
 #pragma mark Life-cycle
 
