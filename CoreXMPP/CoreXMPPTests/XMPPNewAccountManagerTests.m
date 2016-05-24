@@ -50,6 +50,9 @@
                                        withOptions:equalTo(@{})
                                             stream:nilValue()];
 
+    [verify(self.client) setDelegate:anything()];
+    [verify(self.client) setDelegateQueue:is(dispatch_get_main_queue())];
+
     [verify(self.client) setSASLContext:equalTo(JID(@"romeo@localhost"))];
     [verify(self.client) setSASLDelegate:is(self.SASLDelegate)];
     [verify(self.client) setSASLDelegateQueue:is(dispatch_get_main_queue())];
@@ -100,6 +103,20 @@
     [self.accountManager removeAccount:JID(@"romeo@localhost")];
 
     assertThat(self.accountManager.accounts, isNot(contains(JID(@"romeo@localhost"), nil)));
+}
+
+- (void)testConnectivity
+{
+    NSError *error = nil;
+    BOOL success = [self.accountManager addAccount:JID(@"romeo@localhost")
+                                       withOptions:@{}
+                                             error:&error];
+    XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
+
+    id<XMPPAccountConnectivity> connectivity = [self.accountManager connectivityForAccount:JID(@"romeo@localhost")];
+
+    assertThat(connectivity, notNilValue());
+    assertThat(connectivity.account, equalTo(JID(@"romeo@localhost")));
 }
 
 @end

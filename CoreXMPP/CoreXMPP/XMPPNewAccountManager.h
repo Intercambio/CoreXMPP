@@ -12,6 +12,22 @@
 #import <Foundation/Foundation.h>
 #import <SASLKit/SASLKit.h>
 
+typedef NS_ENUM(NSUInteger, XMPPAccountConnectivityState) {
+    XMPPAccountConnectivityStateDisconnected,
+    XMPPAccountConnectivityStateConnecting,
+    XMPPAccountConnectivityStateConnected,
+    XMPPAccountConnectivityStateDisconnecting
+};
+
+@protocol XMPPAccountConnectivity <NSObject>
+@property (nonatomic, readonly) XMPPJID *account;
+@property (nonatomic, readwrite) BOOL shouldReconnect;
+@property (nonatomic, readonly) XMPPAccountConnectivityState state;
+@property (nonatomic, readonly) NSError *recentError;
+@property (nonatomic, readonly) NSDate *nextConnectionAttempt;
+- (void)connect;
+@end
+
 @interface XMPPNewAccountManager : NSObject
 
 #pragma mark Life-cycle
@@ -30,5 +46,8 @@
 - (BOOL)addAccount:(XMPPJID *)account withOptions:(NSDictionary *)options error:(NSError **)error;
 - (void)updateOptions:(NSDictionary *)options forAccount:(XMPPJID *)account;
 - (void)removeAccount:(XMPPJID *)account;
+
+#pragma mark Connectivity
+- (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account;
 
 @end
