@@ -102,8 +102,8 @@
 		F6A696CF1CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696CC1CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.h */; };
 		F6A696D01CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.m in Sources */ = {isa = PBXBuildFile; fileRef = F6A696CD1CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.m */; };
 		F6A696D11CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.m in Sources */ = {isa = PBXBuildFile; fileRef = F6A696CD1CF44A1600E0A0D2 /* NSError+ConnectivityErrorType.m */; };
-		F6A696D31CF4519A00E0A0D2 /* XMPPReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D21CF4519A00E0A0D2 /* XMPPReconnectStrategy.h */; };
-		F6A696D41CF4519A00E0A0D2 /* XMPPReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D21CF4519A00E0A0D2 /* XMPPReconnectStrategy.h */; };
+		F6A696D31CF4519A00E0A0D2 /* XMPPReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D21CF4519A00E0A0D2 /* XMPPReconnectStrategy.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6A696D41CF4519A00E0A0D2 /* XMPPReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D21CF4519A00E0A0D2 /* XMPPReconnectStrategy.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6A696D71CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D51CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.h */; };
 		F6A696D81CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696D51CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.h */; };
 		F6A696D91CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.m in Sources */ = {isa = PBXBuildFile; fileRef = F6A696D61CF45FE800E0A0D2 /* XMPPImmediatelyReconnectStrategy.m */; };
