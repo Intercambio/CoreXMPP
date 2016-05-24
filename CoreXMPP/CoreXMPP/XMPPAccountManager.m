@@ -413,7 +413,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
                 [_dispatcher setConnection:client forJID:account.JID];
             }
             if (client.state != XMPPClientStateConnected) {
-                client.options = account.options;
+                [client updateOptions:account.options];
                 [client connect];
             }
 
@@ -500,7 +500,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
                 [_dispatcher setConnection:client forJID:account.JID];
 
                 if (client.state == XMPPClientStateDisconnected) {
-                    client.options = account.options;
+                    [client updateOptions:account.options];
                     [client connect];
                 }
 
@@ -531,7 +531,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
         [_dispatcher setConnection:client forJID:account.JID];
 
         if (client.state == XMPPClientStateDisconnected) {
-            client.options = account.options;
+            [client updateOptions:account.options];
             [client connect];
         }
 
@@ -567,7 +567,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
 
                 DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
 
-                client.options = account.options;
+                [client updateOptions:account.options];
                 [client connect];
 
             } else if ([[self class] isNetworkReachabilityError:error]) {
@@ -609,7 +609,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
                         }
 
                         DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
-                        client.options = account.options;
+                        [client updateOptions:account.options];
                         [client connect];
                     }
                 });
@@ -787,7 +787,7 @@ NSString *const XMPPAccountManagerOptionsKeyChainServiceKey = @"XMPPAccountManag
                 if (status == XMPPNetworkReachabilityStatusReachableViaWiFi ||
                     status == XMPPNetworkReachabilityStatusReachableViaWWAN) {
                     DDLogInfo(@"Reconnect client %@ for account %@.", client, account);
-                    client.options = account.options;
+                    [client updateOptions:account.options];
                     [client connect];
                     break;
                 }

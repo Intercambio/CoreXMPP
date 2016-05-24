@@ -57,7 +57,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readwrite) NSDictionary *options;
+@property (nonatomic, readonly) NSDictionary *options;
+- (void)updateOptions:(NSDictionary *)options;
 
 #pragma mark Bound JID
 @property (nonatomic, readonly) XMPPJID *JID;

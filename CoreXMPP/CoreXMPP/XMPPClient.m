@@ -95,6 +95,15 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     return [NSString stringWithFormat:@"<XMPPClient: %p (%@) state: %ld>", self, self.hostname, (unsigned long)self.state];
 }
 
+#pragma mark Options
+
+- (void)updateOptions:(NSDictionary *)options
+{
+    dispatch_async(_operationQueue, ^{
+        _options = options;
+    });
+}
+
 #pragma mark State
 
 - (void)setState:(XMPPClientState)state
