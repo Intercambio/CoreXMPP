@@ -19,6 +19,8 @@ typedef NS_ENUM(NSUInteger, XMPPAccountConnectivityState) {
     XMPPAccountConnectivityStateDisconnecting
 };
 
+extern NSString *const XMPPAccountConnectivityDidChangeNotification;
+
 @protocol XMPPAccountConnectivity <NSObject>
 @property (nonatomic, readonly) XMPPJID *account;
 @property (nonatomic, readwrite) BOOL shouldReconnect;

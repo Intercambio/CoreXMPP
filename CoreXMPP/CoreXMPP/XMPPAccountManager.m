@@ -11,6 +11,8 @@
 #import "XMPPClient.h"
 #import "XMPPError.h"
 
+NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConnectivityDidChangeNotification";
+
 @interface XMPPAccountManager () <XMPPAccountConnectivityImplDelegate> {
     XMPPClientFactory *_clientFactory;
     NSMutableDictionary *_clientsByAccount;

@@ -80,6 +80,9 @@
         self.state = XMPPAccountConnectivityStateDisconnecting;
         break;
     }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
+                                                        object:self];
 }
 
 - (void)clientDidConnect:(XMPPClient *)client resumedStream:(BOOL)resumedStream
@@ -87,6 +90,9 @@
     self.recentError = nil;
     self.numberOfAttempts = 0;
     [self clearReconnectStrategy];
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
+                                                        object:self];
 }
 
 - (void)clientDidDisconnect:(XMPPClient *)client
@@ -94,6 +100,9 @@
     if (self.shouldReconnect) {
         [self.client connect];
     }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
+                                                        object:self];
 }
 
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error
@@ -104,6 +113,9 @@
     if (self.shouldReconnect) {
         [self setupReconnectStrategy];
     }
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
+                                                        object:self];
 }
 
 #pragma mark -
