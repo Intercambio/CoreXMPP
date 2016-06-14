@@ -612,7 +612,25 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                 }
             });
 
-            self.state = XMPPClientStateDisconnecting;
+            self.state = XMPPClientStateDisconnected;
+
+            [_connectionDelegate connection:self didDisconnectFrom:_JID];
+
+            _numberOfConnectionAttempts += 1;
+            _recentError = error;
+
+            dispatch_async(delegateQueue, ^{
+
+                if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
+                    [delegate client:self didFailWithError:error];
+                }
+
+                NSDictionary *userInfo = error ? @{XMPPClientErrorKey : error} : @{};
+                [[NSNotificationCenter defaultCenter] postNotificationName:XMPPClientDidDisconnectNotification
+                                                                    object:self
+                                                                  userInfo:userInfo];
+            });
+
             [_stream close];
         }
     }

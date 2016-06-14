@@ -859,7 +859,7 @@
                                   expectedValue:@(XMPPClientStateDisconnected)];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Wait for Disconnect"];
-    [givenVoid([delegate clientDidDisconnect:client]) willDo:^id(NSInvocation *inv) {
+    [givenVoid([delegate client:client didFailWithError:notNilValue()]) willDo:^id(NSInvocation *inv) {
         [expectation fulfill];
         return nil;
     }];

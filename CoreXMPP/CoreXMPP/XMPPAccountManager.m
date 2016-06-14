@@ -84,9 +84,9 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
         client.SASLContext = account;
         client.SASLDelegate = self.SASLDelegate;
         client.SASLDelegateQueue = dispatch_get_main_queue();
-        
+
         [client connect];
-        
+
         return YES;
     }
 }
