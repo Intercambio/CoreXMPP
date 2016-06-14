@@ -125,7 +125,9 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
                                        withError:(NSError *)error
                                 numberOfAttempts:(NSUInteger)numberOfAttempts
 {
-    return nil;
+    return [_clientFactory reconnectStrategyForClient:client
+                                            withError:error
+                                     numberOfAttempts:numberOfAttempts];
 }
 
 @end
