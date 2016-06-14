@@ -7,6 +7,7 @@
 //
 
 #import "NSError+ConnectivityErrorType.h"
+#import "XMPPError.h"
 
 @implementation NSError (ConnectivityErrorType)
 
@@ -39,6 +40,13 @@
 
         default:
             break;
+        }
+    } else if ([self.domain isEqualToString:XMPPStreamFeatureSASLErrorDomain]) {
+        switch (self.code) {
+        case XMPPStreamFeatureSASLErrorCodeTemporaryAuthFailure:
+            return XMPPConnectivityErrorTypeTemporal;
+        default:
+            return XMPPConnectivityErrorTypePermanent;
         }
     }
     return XMPPConnectivityErrorTypeTemporal;

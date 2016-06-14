@@ -95,4 +95,15 @@
     XCTAssertEqual(errorType, XMPPConnectivityErrorTypeNetworkReachability);
 }
 
+#pragma mark XMPPStreamFeatureSASLErrorDomain
+
+- (void)testStreamFeatureSASLErrorCodeNotAuthorized
+{
+    NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
+                                         code:XMPPStreamFeatureSASLErrorCodeNotAuthorized
+                                     userInfo:nil];
+    XMPPConnectivityErrorType errorType = [error xmpp_ConnectivityErrorType];
+    XCTAssertEqual(errorType, XMPPConnectivityErrorTypePermanent);
+}
+
 @end
