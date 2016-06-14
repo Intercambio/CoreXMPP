@@ -75,27 +75,12 @@
 - (void)testConnectAfterDisconnect
 {
     [self.accountConnectivity clientDidDisconnect:self.client];
-    [verifyCount(self.client, never()) connect];
-
-    self.accountConnectivity.shouldReconnect = YES;
-
-    [self.accountConnectivity clientDidDisconnect:self.client];
     [verifyCount(self.client, times(1)) connect];
 }
 
 - (void)testStartStrategyAfterError
 {
     NSError *error = [NSError errorWithDomain:@"XMPPAccountConnectivityImplTests" code:42 userInfo:nil];
-
-    [self.accountConnectivity client:self.client didFailWithError:error];
-    [[verifyCount(self.accountConnectivityDelegate, never()) withMatcher:anything() forArgument:3] accountConnectivity:anything()
-                                                                                            reconnectStrategyForClient:anything()
-                                                                                                             withError:anything()
-                                                                                                      numberOfAttempts:0];
-
-    XCTAssertEqualObjects(self.accountConnectivity.recentError, error);
-
-    self.accountConnectivity.shouldReconnect = YES;
 
     [self.accountConnectivity client:self.client didFailWithError:error];
     [[verifyCount(self.accountConnectivityDelegate, times(1)) withMatcher:anything() forArgument:3] accountConnectivity:anything()
@@ -112,8 +97,6 @@
 - (void)testClearAfterReconnect
 {
     NSError *error = [NSError errorWithDomain:@"XMPPAccountConnectivityImplTests" code:42 userInfo:nil];
-
-    self.accountConnectivity.shouldReconnect = YES;
 
     [self.accountConnectivity client:self.client didFailWithError:error];
     XCTAssertEqualObjects(self.accountConnectivity.recentError, error);

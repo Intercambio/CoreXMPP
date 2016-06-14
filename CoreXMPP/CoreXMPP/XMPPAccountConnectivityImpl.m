@@ -20,7 +20,6 @@
 @implementation XMPPAccountConnectivityImpl
 
 @synthesize account = _account;
-@synthesize shouldReconnect = _shouldReconnect;
 
 + (NSSet *)keyPathsForValuesAffectingNextConnectionAttempt
 {
@@ -97,9 +96,7 @@
 
 - (void)clientDidDisconnect:(XMPPClient *)client
 {
-    if (self.shouldReconnect) {
-        [self.client connect];
-    }
+    [self.client connect];
 
     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
                                                         object:self];
@@ -110,9 +107,7 @@
     self.recentError = error;
     self.numberOfAttempts += 1;
 
-    if (self.shouldReconnect) {
-        [self setupReconnectStrategy];
-    }
+    [self setupReconnectStrategy];
 
     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
                                                         object:self];

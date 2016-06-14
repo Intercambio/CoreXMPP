@@ -23,7 +23,6 @@ extern NSString *const XMPPAccountConnectivityDidChangeNotification;
 
 @protocol XMPPAccountConnectivity <NSObject>
 @property (nonatomic, readonly) XMPPJID *account;
-@property (nonatomic, readwrite) BOOL shouldReconnect;
 @property (nonatomic, readonly) XMPPAccountConnectivityState state;
 @property (nonatomic, readonly) NSError *recentError;
 @property (nonatomic, readonly) NSDate *nextConnectionAttempt;
