@@ -52,4 +52,7 @@ extern NSString *const XMPPAccountConnectivityDidChangeNotification;
 #pragma mark Connectivity
 - (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account;
 
+#pragma mark Acknowledgements
+- (void)exchangeAcknowledgements;
+
 @end

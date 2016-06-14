@@ -109,6 +109,15 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
     return [_connectivityByAccount objectForKey:account];
 }
 
+#pragma mark Acknowledgements
+
+- (void)exchangeAcknowledgements
+{
+    [_clientsByAccount enumerateKeysAndObjectsUsingBlock:^(XMPPJID *account, XMPPClient *client, BOOL *_Nonnull stop) {
+        [client exchangeAcknowledgement];
+    }];
+}
+
 #pragma mark XMPPAccountConnectivityImplDelegate
 
 - (id<XMPPReconnectStrategy>)accountConnectivity:(XMPPAccountConnectivityImpl *)accountConnectivity
