@@ -19,11 +19,12 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
+#import "XMPPClientFactoryStub.h"
 #import "XMPPConnectionStub.h"
 #import "XMPPModuleStub.h"
 #import "XMPPStreamFeatureStub.h"
 #import "XMPPStreamStub.h"
 
 @interface XMPPTestCase : XCTestCase
-@property (nonatomic, strong) NSString *keyChainServiceName;
+
 @end

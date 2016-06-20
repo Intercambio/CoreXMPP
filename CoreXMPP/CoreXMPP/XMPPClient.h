@@ -8,14 +8,19 @@
 
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
+#import <SASLKit/SASLKit.h>
 
-#import "SASLMechanism.h"
 #import "XMPPClientStreamManagement.h"
 #import "XMPPConnection.h"
+#import "XMPPStream.h"
 
-extern NSString *const XMPPClientOptionsStreamKey;
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
 extern NSString *const XMPPClientOptionsResourceKey;
+
+extern NSString *const XMPPClientDidConnectNotification;
+extern NSString *const XMPPClientDidDisconnectNotification;
+extern NSString *const XMPPClientErrorKey;
+extern NSString *const XMPPClientResumedKey;
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,
@@ -46,9 +51,14 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 - (instancetype)initWithHostname:(NSString *)hostname
                          options:(NSDictionary *)options;
 
+- (instancetype)initWithHostname:(NSString *)hostname
+                         options:(NSDictionary *)options
+                          stream:(XMPPStream *)stream;
+
 #pragma mark Properties
 @property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readwrite) NSDictionary *options;
+@property (nonatomic, readonly) NSDictionary *options;
+- (void)updateOptions:(NSDictionary *)options;
 
 #pragma mark Bound JID
 @property (nonatomic, readonly) XMPPJID *JID;
@@ -63,6 +73,8 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;
+@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
+@property (nonatomic, readonly) NSError *recentError;
 
 #pragma mark Manage Client
 - (void)connect;

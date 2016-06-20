@@ -30,8 +30,6 @@
 {
     [super setUp];
 
-    self.keyChainServiceName = [[NSUUID UUID] UUIDString];
-
     [OHHTTPStubs stubRequestsPassingTest:^BOOL(NSURLRequest *request) {
         return [request.URL.host isEqualToString:@"localhost"] && [request.URL.path isEqualToString:@"/.well-known/host-meta"];
     }
@@ -56,16 +54,6 @@
 
 - (void)tearDown
 {
-    NSMutableDictionary *query = [[NSMutableDictionary alloc] init];
-
-    [query setObject:(__bridge id)kSecClassGenericPassword forKey:(__bridge id)kSecClass];
-    [query setObject:self.keyChainServiceName forKey:(__bridge id)kSecAttrService];
-
-    OSStatus errorcode = SecItemDelete((__bridge CFDictionaryRef)query);
-    if (errorcode != errSecItemNotFound && errorcode != noErr) {
-        XCTFail(@"Couldn't delete Keychain Items.");
-    }
-
     [OHHTTPStubs removeAllStubs];
     [super tearDown];
 }
