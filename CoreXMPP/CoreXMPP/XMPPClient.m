@@ -206,7 +206,8 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             // or if the client supports stream management (and can resend the stanza later).
 
             if (self.state == XMPPClientStateConnected) {
-                [_stream sendElement:stanza];
+                PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+                [_stream sendDocument:document];
             } else {
                 DDLogDebug(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
             }

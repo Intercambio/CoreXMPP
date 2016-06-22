@@ -113,12 +113,11 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     }
 }
 
-#pragma mark Sending Element
+#pragma mark Sending Document
 
-- (void)sendElement:(PXElement *)element
+- (void)sendDocument:(PXDocument *)document
 {
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only send an element if the stream is open.");
-    PXDocument *document = [[PXDocument alloc] initWithElement:element];
     [self xmpp_sendDocument:document];
 }
 

@@ -30,7 +30,8 @@
             completion(error);
         }
     } else {
-        [_stream sendElement:stanza];
+        PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+        [_stream sendDocument:document];
         if (completion) {
             completion(nil);
         }

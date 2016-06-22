@@ -451,7 +451,9 @@
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
 
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
@@ -525,8 +527,9 @@
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -611,8 +614,9 @@
     // Negotiate Feature (failure)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -677,8 +681,9 @@
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -751,8 +756,9 @@
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -837,8 +843,9 @@
     // Negotiate Feature (failure)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -918,8 +925,9 @@
     // Negotiate SASL
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"auth"));
         assertThat(element.namespace, equalTo(@"urn:ietf:params:xml:ns:xmpp-sasl"));
 
@@ -952,8 +960,9 @@
     // Negotiate Test Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -1268,21 +1277,27 @@
     //
 
     PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"message"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
     [client handleStanza:messageDocument.root completion:nil];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"presence"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
     [client handleStanza:presenceDocument.root completion:nil];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"iq"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
