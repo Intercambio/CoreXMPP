@@ -231,7 +231,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -294,7 +294,7 @@
                            namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
                              content:nil];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
         [stream closeByPeer];
     }];
 
@@ -444,7 +444,7 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -461,7 +461,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -518,7 +518,7 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"yes" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -535,7 +535,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -547,7 +547,7 @@
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -604,7 +604,7 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -621,7 +621,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -670,7 +670,7 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -687,7 +687,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -744,7 +744,7 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"yes" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -761,7 +761,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -773,7 +773,7 @@
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -830,7 +830,7 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -847,7 +847,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -911,7 +911,7 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"PLAIN"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -926,7 +926,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"urn:ietf:params:xml:ns:xmpp-sasl"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -945,7 +945,7 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -962,7 +962,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -1034,7 +1034,7 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"X-TEST-AUTH"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1080,7 +1080,7 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"PLAIN"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1128,7 +1128,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1147,15 +1147,15 @@
 
     PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
     [messageDocument.root setStringValue:@"1"];
-    [self.stream receiveElement:messageDocument.root];
+    [self.stream receiveDocument:messageDocument];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
     [presenceDocument.root setStringValue:@"2"];
-    [self.stream receiveElement:presenceDocument.root];
+    [self.stream receiveDocument:presenceDocument];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [IQDocument.root setStringValue:@"3"];
-    [self.stream receiveElement:IQDocument.root];
+    [self.stream receiveDocument:IQDocument];
 
     //
     // Receive Unsupported Element
@@ -1163,7 +1163,7 @@
 
     PXDocument *document = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"http://example.com/bar" prefix:nil];
     [document.root setStringValue:@"x"];
-    [self.stream receiveElement:document.root];
+    [self.stream receiveDocument:document];
 
     //
     // Disconnect Client
@@ -1250,7 +1250,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //

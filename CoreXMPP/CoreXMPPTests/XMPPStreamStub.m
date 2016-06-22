@@ -160,15 +160,15 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     }
 }
 
-#pragma mark Receiving Element
+#pragma mark Receiving Document
 
-- (void)receiveElement:(PXElement *)element
+- (void)receiveDocument:(PXDocument *)document
 {
     dispatch_async([self xmpp_queue], ^{
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only receive an element if the stream is open.");
 
-        if ([self.delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-            [self.delegate stream:self didReceiveElement:element];
+        if ([self.delegate respondsToSelector:@selector(stream:didReceiveDocument:)]) {
+            [self.delegate stream:self didReceiveDocument:document];
         }
     });
 }

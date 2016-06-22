@@ -397,10 +397,12 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     self.state = XMPPClientStateEstablished;
 }
 
-- (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element
+- (void)stream:(XMPPStream *)stream didReceiveDocument:(PXDocument *)document
 {
     id<XMPPClientDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+
+    PXElement *element = document.root;
 
     if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
         [element.name isEqualToString:@"error"]) {

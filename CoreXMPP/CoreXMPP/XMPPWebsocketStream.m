@@ -237,8 +237,8 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         if (_state != XMPPStreamStateOpen) {
             DDLogWarn(@"Can only handle elements other than framing elements if the stream is open. Dropping received element. Current state is %lu and the received document is: %@", (unsigned long)_state, document);
         } else {
-            if ([self.delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-                [self.delegate stream:self didReceiveElement:document.root];
+            if ([self.delegate respondsToSelector:@selector(stream:didReceiveDocument:)]) {
+                [self.delegate stream:self didReceiveDocument:document];
             }
         }
     }
