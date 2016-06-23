@@ -144,13 +144,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     PXDocument *response = [[PXDocument alloc] initWithElementName:@"r"
                                                          namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                             prefix:nil];
-
-    [self.stanzaHandler handleStanza:response.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to request ack with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:response];
 }
 
 - (void)sendAcknowledgement
@@ -159,13 +153,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                                                          namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                             prefix:nil];
     [response.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
-
-    [self.stanzaHandler handleStanza:response.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to send ack with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:response];
 }
 
 - (void)cancelUnacknowledgedStanzas
@@ -262,13 +250,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     [request.root setValue:@"true" forAttribute:@"resume"];
 
     _resumed = NO;
-
-    [self.stanzaHandler handleStanza:request.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to enable stream management with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 - (void)xmpp_resume
@@ -280,13 +262,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     [request.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
 
     _resumed = NO;
-
-    [self.stanzaHandler handleStanza:request.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to send resume with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 - (void)xmpp_updateWithNumberOfAcknowledgedStanzas:(NSUInteger)numberOfAcknowledgedStanzas
@@ -323,12 +299,8 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     if ([_unacknowledgedStanzas count] > 0) {
         DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedStanzas count]);
         for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
-            [self.stanzaHandler handleStanza:wrapper.stanza
-                                  completion:^(NSError *error) {
-                                      if (error) {
-                                          DDLogError(@"Failed to resend pending stanza with error: %@", [error localizedDescription]);
-                                      }
-                                  }];
+            PXDocument *document = [[PXDocument alloc] initWithElement:wrapper.stanza];
+            [self.delegate streamFeature:self handleDocument:document];
         }
     }
 }

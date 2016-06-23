@@ -81,10 +81,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     [iq setValue:_requestId forAttribute:@"id"];
     [iq addElementWithName:@"session" namespace:XMPPStreamFeatureSessionNamespace content:nil];
 
-    [self.stanzaHandler handleStanza:iq
-                          completion:^(NSError *error){
-
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 #pragma mark Handle Document

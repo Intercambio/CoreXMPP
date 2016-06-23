@@ -31,17 +31,15 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -74,10 +72,6 @@
 
         });
 
-        if (_completion) {
-            _completion(nil);
-        }
-
         return nil;
     }];
 
@@ -108,19 +102,17 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     [given([delegate resourceNameForStreamFeature:feature]) willReturn:@"example"];
 
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -157,10 +149,6 @@
             XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
 
-        if (_completion) {
-            _completion(nil);
-        }
-
         return nil;
     }];
 
@@ -191,19 +179,17 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     [given([delegate resourceNameForStreamFeature:feature]) willReturn:@"example"];
 
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         NSString *requestId = [iq valueForAttribute:@"id"];
 
@@ -222,10 +208,6 @@
             BOOL success = [feature handleDocument:response error:&error];
             XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];

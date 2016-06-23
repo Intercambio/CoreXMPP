@@ -191,10 +191,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                                             [request.root setStringValue:initialResponseString];
                                                         }
 
-                                                        [self.stanzaHandler handleStanza:request.root
-                                                                              completion:^(NSError *error){
-
-                                                                              }];
+                                                        [self.delegate streamFeature:self handleDocument:request];
                                                     }
                                                 });
                                             }];
@@ -268,10 +265,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                     }
                                 }
 
-                                [self.stanzaHandler handleStanza:response.root
-                                                      completion:^(NSError *error){
-
-                                                      }];
+                                [self.delegate streamFeature:self handleDocument:response];
                             });
                         }];
         }

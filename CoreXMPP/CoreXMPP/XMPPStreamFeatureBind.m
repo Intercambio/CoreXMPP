@@ -109,10 +109,7 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
 
     DDLogInfo(@"Requesting '%@' to bind the client to the resource: %@", _hostname, preferredResourceName);
 
-    [self.stanzaHandler handleStanza:iq
-                          completion:^(NSError *error){
-
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 #pragma mark Handle Document

@@ -109,9 +109,6 @@
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
     [given([delegate SASLMechanismForStreamFeature:feature supportedMechanisms:anything()]) willReturn:mechanism];
@@ -120,13 +117,15 @@
     // element contains the base64 encoded credentials, the 'server' response
     // with a "success" element.
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *element = [[invocation mkt_arguments] firstObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
 
         //
         // validate the request
         //
+
+        PXElement *element = document.root;
 
         assertThat(element.name, equalTo(@"auth"));
         assertThat(element.namespace, equalTo(XMPPStreamFeatureSASLNamespace));
@@ -167,7 +166,7 @@
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
     [verifyCount(delegate, times(1)) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, never()) streamFeature:feature didFailNegotiationWithError:anything()];
-    [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
+    [verifyCount(delegate, times(1)) streamFeature:feature handleDocument:anything()];
 
     assertThatBool(completionSuccess, isTrue());
     assertThat(completionError, nilValue());
@@ -206,9 +205,6 @@
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
     [given([delegate SASLMechanismForStreamFeature:feature supportedMechanisms:anything()]) willReturn:mechanism];
@@ -217,7 +213,7 @@
     // In this case the credentials are treated as invalid and the 'server'
     // response with an "failure" with the error 'not-authorized'.
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
         //
         // post the response
@@ -261,7 +257,7 @@
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
     [verifyCount(delegate, never()) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
-    [verifyCount(stanzaHandler, times(1)) handleStanza:anything() completion:anything()];
+    [verifyCount(delegate, times(1)) streamFeature:feature handleDocument:anything()];
 
     assertThatBool(completionSuccess, isFalse());
     assertThat(completionError.domain, equalTo(XMPPStreamFeatureSASLErrorDomain));
@@ -297,9 +293,6 @@
     id<XMPPStreamFeatureDelegateSASL> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateSASL));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     // Always retrun a PLAIN SASL mechanism if asked by the feature
 
     [given([delegate SASLMechanismForStreamFeature:feature supportedMechanisms:anything()]) willReturn:mechanism];
@@ -327,8 +320,7 @@
     [verifyCount(delegate, times(1)) SASLMechanismForStreamFeature:feature supportedMechanisms:anything()];
     [verifyCount(delegate, never()) streamFeatureDidSucceedNegotiation:feature];
     [verifyCount(delegate, times(1)) streamFeature:feature didFailNegotiationWithError:anything()];
-
-    [verifyCount(stanzaHandler, never()) handleStanza:anything() completion:anything()];
+    [verifyCount(delegate, never()) streamFeature:feature handleDocument:anything()];
 
     assertThatBool(completionSuccess, isFalse());
     assertThat(completionError.domain, equalTo(SASLMechanismErrorDomain));

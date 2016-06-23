@@ -9,11 +9,10 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
-#import "XMPPStanzaHandler.h"
-
 @class XMPPStreamFeature;
 
 @protocol XMPPStreamFeatureDelegate <NSObject>
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature handleDocument:(PXDocument *)document;
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature;
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error;
 @end
@@ -40,9 +39,8 @@
 #pragma mark Operation Queue
 @property (nonatomic, strong) dispatch_queue_t queue;
 
-#pragma mark Delegate & Stanza Handler
+#pragma mark Delegate
 @property (nonatomic, weak) id<XMPPStreamFeatureDelegate> delegate;
-@property (nonatomic, weak) id<XMPPStanzaHandler> stanzaHandler;
 
 #pragma mark Negotiate Feature
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options;

@@ -31,17 +31,15 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -65,10 +63,6 @@
 
             [feature handleDocument:response error:nil];
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -97,17 +91,15 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         NSString *requestId = [iq valueForAttribute:@"id"];
 
@@ -124,10 +116,6 @@
 
             [feature handleDocument:response error:nil];
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];

@@ -27,17 +27,15 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *stanza = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"enable"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
@@ -46,10 +44,6 @@
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
             [feature handleDocument:response error:nil];
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -90,17 +84,15 @@
     id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *stanza = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"enable"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
@@ -110,10 +102,6 @@
             [response.root addElementWithName:@"unexpected-request" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
             [feature handleDocument:response error:nil];
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -157,8 +145,8 @@
     assertThat([[feature class] name], equalTo(@"sm"));
     assertThat([[feature class] namespace], equalTo(@"urn:xmpp:sm:3"));
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
+    id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
 
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
@@ -175,10 +163,11 @@
     assertThatInteger(sm.numberOfReceivedStanzas, equalToInteger(3));
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expecting Response from Client"];
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *stanza = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"a"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
@@ -187,10 +176,6 @@
         assertThatInteger(h, equalToInteger(3));
 
         [expectation fulfill];
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -207,25 +192,22 @@
     XMPPStreamFeature *feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
     assertThat(feature, notNilValue());
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
+    id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
 
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expecting Request from Client"];
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *stanza = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"r"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
 
         [expectation fulfill];
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -239,35 +221,17 @@
     XMPPStreamFeature *feature = [XMPPStreamFeature streamFeatureWithConfiguration:configuration];
     assertThat(feature, notNilValue());
 
-    id<XMPPStreamFeatureDelegate> delegate = nil;
-
-    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
-    [[givenVoid([connectionDelegate handleStanza:anything() completion:nil]) withMatcher:anything() forArgument:1] willDo:^id(NSInvocation *invocation) {
-
-        PXElement *stanza = [[invocation mkt_arguments] firstObject];
-        void (^completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
-
-        PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
-
-        NSError *error = nil;
-        BOOL success = [feature handleDocument:document error:&error];
-
-        if (completion) {
-            completion(success ? nil : error);
-        }
-
-        return nil;
-    }];
-
-    XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
-    stanzaHandler.connectionDelegate = connectionDelegate;
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+    id<XMPPStreamFeatureDelegate> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
+
+    [[givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
+
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"enable"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
@@ -277,20 +241,17 @@
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
             [response.root setValue:@"a" forAttribute:@"id"];
             [response.root setValue:@"true" forAttribute:@"resume"];
-            [responseHandler handleStanza:response.root completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
-        if (completion) {
-            completion(nil);
-        }
+        return nil;
+    }] willDo:^id(NSInvocation *invocation) {
+        return nil;
     }];
 
     //
     // Begin Negotiation
     //
-
-    delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
-    feature.delegate = delegate;
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expecting successfull negotiation"];
     [givenVoid([feature.delegate streamFeatureDidSucceedNegotiation:feature]) willDo:^id(NSInvocation *invocation) {
@@ -354,7 +315,15 @@
     // Prepare Resume
     //
 
-    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
+    delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
+    feature.delegate = delegate;
+
+    XCTestExpectation *expectResending = [self expectationWithDescription:@"Resending Stanzas"];
+
+    [[givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
+
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+        PXElement *stanza = document.root;
 
         assertThat(stanza.name, equalTo(@"resume"));
         assertThat(stanza.namespace, equalTo(@"urn:xmpp:sm:3"));
@@ -365,32 +334,21 @@
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"resumed" namespace:@"urn:xmpp:sm:3" prefix:nil];
             [response.root setValue:@"a" forAttribute:@"previd"];
             [response.root setValue:@"2" forAttribute:@"h"];
-            [responseHandler handleStanza:response.root completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
-        if (completion) {
-            completion(nil);
-        }
-    }];
-
-    XCTestExpectation *expectResending = [self expectationWithDescription:@"Resending Stanzas"];
-    [stanzaHandler onHandleStanza:^(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) {
-
-        assertThat(stanza, equalTo(stanza_3.root));
-
-        if (completion) {
-            completion(nil);
-        }
+        return nil;
+    }] willDo:^id(NSInvocation *invocation) {
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+        assertThat(document.data, equalTo(stanza_3.data));
 
         [expectResending fulfill];
+        return nil;
     }];
 
     //
     // Resume
     //
-
-    delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegate));
-    feature.delegate = delegate;
 
     expectation = [self expectationWithDescription:@"Expecting successfull negotiation"];
     [givenVoid([feature.delegate streamFeatureDidSucceedNegotiation:feature]) willDo:^id(NSInvocation *invocation) {

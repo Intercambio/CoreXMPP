@@ -335,7 +335,6 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             _currentFeature = feature;
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
-            _currentFeature.stanzaHandler = _streamFeatureStanzaHandler;
 
             DDLogInfo(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
@@ -562,6 +561,13 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 }
 
 #pragma mark XMPPStreamFeatureDelegate  (called on operation queue)
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature handleDocument:(PXDocument *)document
+{
+    if (_stream.state == XMPPStreamStateOpen) {
+        [_stream sendDocument:document];
+    }
+}
 
 - (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature
 {
