@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "XMPPConnection.h"
-#import "XMPPStanzaHandler.h"
+#import "XMPPDocumentHandler.h"
 
 @class PXQName;
 @class PXElement;

@@ -31,14 +31,14 @@
 
 #pragma mark XMPPConnection
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler) = [_onHandleStanzaCallbacks firstObject];
+        void (^_callback)(PXDocument *document, void (^completion)(NSError *), id<XMPPDocumentHandler> responseHandler) = [_onHandleStanzaCallbacks firstObject];
         if (_callback) {
             [_onHandleStanzaCallbacks removeObjectAtIndex:0];
             dispatch_async(dispatch_get_main_queue(), ^{
-                _callback(stanza, completion, _connectionDelegate);
+                _callback(document, completion, _connectionDelegate);
             });
         } else {
             if (completion) {
@@ -48,7 +48,7 @@
     });
 }
 
-- (void)processPendingStanzas:(void (^)(NSError *))completion
+- (void)processPendingDocuments:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if (completion) {
@@ -59,7 +59,7 @@
 
 #pragma mark -
 
-- (void)onHandleStanza:(void (^)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler))callback;
+- (void)onHandleDocument:(void (^)(PXDocument *document, void (^completion)(NSError *), id<XMPPDocumentHandler> responseHandler))callback;
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {

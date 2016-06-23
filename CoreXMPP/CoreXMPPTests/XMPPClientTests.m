@@ -71,12 +71,12 @@
     [ping.root setValue:@"get" forAttribute:@"type"];
     [ping.root setValue:@"localhost" forAttribute:@"to"];
     [ping.root addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-    [client handleStanza:ping.root
-              completion:^(NSError *error){
+    [client handleDocument:ping
+                completion:^(NSError *error){
 
-              }];
+                }];
 
-    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([stanzaHandler processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -87,15 +87,15 @@
     }];
 
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
-        PXElement *pong = [[invocation mkt_arguments] firstObject];
+    [givenVoid([stanzaHandler handleDocument:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+        PXDocument *pong = [[invocation mkt_arguments] firstObject];
         void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (_completion) {
                 _completion(nil);
             }
-            if ([pong isKindOfClass:[PXElement class]] &&
-                [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
+            if ([pong.root isKindOfClass:[PXElement class]] &&
+                [[pong.root valueForAttribute:@"id"] isEqualToString:pingIQId]) {
                 [waitForPong fulfill];
             }
         });
@@ -111,10 +111,10 @@
     [messageDocument.root setValue:@"localhost" forAttribute:@"to"];
 
     XCTestExpectation *expectMessageAck = [self expectationWithDescription:@"Expect Ack"];
-    [client handleStanza:messageDocument.root
-              completion:^(NSError *error) {
-                  [expectMessageAck fulfill];
-              }];
+    [client handleDocument:messageDocument
+                completion:^(NSError *error) {
+                    [expectMessageAck fulfill];
+                }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
     //
@@ -141,7 +141,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1123,7 +1123,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1188,29 +1188,29 @@
     // Verify Stanzas
     //
 
-    HCArgumentCaptor *captoredStanzas = [[HCArgumentCaptor alloc] init];
-    [verifyCount(connectionDelegate, atLeastOnce()) handleStanza:(id)captoredStanzas completion:anything()];
+    HCArgumentCaptor *captoredDocuments = [[HCArgumentCaptor alloc] init];
+    [verifyCount(connectionDelegate, atLeastOnce()) handleDocument:(id)captoredDocuments completion:anything()];
 
-    NSArray *stanzas = [captoredStanzas allValues];
-    assertThat(stanzas, hasCountOf(3));
+    NSArray *documents = [captoredDocuments allValues];
+    assertThat(documents, hasCountOf(3));
 
-    if ([stanzas count] == 3) {
-        PXElement *stanza = nil;
+    if ([documents count] == 3) {
+        PXDocument *document = nil;
 
-        stanza = stanzas[0];
-        assertThat(stanza.name, equalTo(@"message"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"1"));
+        document = documents[0];
+        assertThat(document.root.name, equalTo(@"message"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"1"));
 
-        stanza = stanzas[1];
-        assertThat(stanza.name, equalTo(@"presence"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"2"));
+        document = documents[1];
+        assertThat(document.root.name, equalTo(@"presence"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"2"));
 
-        stanza = stanzas[2];
-        assertThat(stanza.name, equalTo(@"iq"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"3"));
+        document = documents[2];
+        assertThat(document.root.name, equalTo(@"iq"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"3"));
     }
 
     //
@@ -1245,7 +1245,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1283,7 +1283,7 @@
         assertThat(element.name, equalTo(@"message"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:messageDocument.root completion:nil];
+    [client handleDocument:messageDocument completion:nil];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
     [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
@@ -1292,7 +1292,7 @@
         assertThat(element.name, equalTo(@"presence"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:presenceDocument.root completion:nil];
+    [client handleDocument:presenceDocument completion:nil];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
@@ -1301,7 +1301,7 @@
         assertThat(element.name, equalTo(@"iq"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:IQDocument.root completion:nil];
+    [client handleDocument:IQDocument completion:nil];
 
     //
     // Disconnect Client

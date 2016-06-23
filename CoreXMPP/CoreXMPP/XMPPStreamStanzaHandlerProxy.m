@@ -20,7 +20,7 @@
     return self;
 }
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleDocument:(PXElement *)stanza completion:(void (^)(NSError *))completion
 {
     if (_stream.state != XMPPStreamStateOpen) {
         if (completion) {
@@ -38,7 +38,7 @@
     }
 }
 
-- (void)processPendingStanzas:(void (^)(NSError *))completion
+- (void)processPendingDocuments:(void (^)(NSError *))completion
 {
     if (completion) {
         completion(nil);

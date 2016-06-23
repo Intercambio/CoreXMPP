@@ -37,7 +37,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     NSMutableDictionary *_featureConfigurations;
     NSMutableArray *_preferredFeatures;
     NSArray *_negotiatedFeatures;
-    id<XMPPStanzaHandler> _streamFeatureStanzaHandler;
+    id<XMPPDocumentHandler> _streamFeatureStanzaHandler;
     XMPPStreamFeature<XMPPClientStreamManagement> *_streamManagement;
     XMPPJID *_JID;
 }
@@ -195,7 +195,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 #pragma mark -
 #pragma mark XMPPStanzaHandler
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
@@ -206,14 +206,13 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             // or if the client supports stream management (and can resend the stanza later).
 
             if (self.state == XMPPClientStateConnected) {
-                PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
                 [_stream sendDocument:document];
             } else {
                 DDLogDebug(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
             }
 
             if (_streamManagement.enabled) {
-                [_streamManagement didSentStanza:stanza acknowledgement:completion];
+                [_streamManagement didSentStanza:document.root acknowledgement:completion];
             } else if (completion) {
                 completion(nil);
             }
@@ -229,7 +228,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     });
 }
 
-- (void)processPendingStanzas:(void (^)(NSError *))completion
+- (void)processPendingDocuments:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if (completion) {
@@ -402,16 +401,14 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     id<XMPPClientDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
 
-    PXElement *element = document.root;
-
-    if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
-        [element.name isEqualToString:@"error"]) {
+    if ([document.root.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+        [document.root.name isEqualToString:@"error"]) {
 
         // Handle Stream Errors
 
         self.state = XMPPClientStateDisconnected;
 
-        NSError *error = [NSError streamErrorFromElement:element];
+        NSError *error = [NSError streamErrorFromElement:document.root];
         dispatch_async(delegateQueue, ^{
             if ([delegate respondsToSelector:@selector(client:didFailWithError:)]) {
                 [delegate client:self didFailWithError:error];
@@ -430,9 +427,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
         switch (self.state) {
         case XMPPClientStateEstablished:
             // Expecting a features element to start the negotiation
-            if ([element.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
-                [element.name isEqualToString:@"features"]) {
-                [self xmpp_updateSupportedFeaturesWithElement:element];
+            if ([document.root.namespace isEqualToString:@"http://etherx.jabber.org/streams"] &&
+                [document.root.name isEqualToString:@"features"]) {
+                [self xmpp_updateSupportedFeaturesWithElement:document.root];
                 [self xmpp_negotiateNextFeature];
             } else {
                 // Unexpected element
@@ -455,28 +452,28 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
         case XMPPClientStateConnected: {
 
-            if ([element.namespace isEqual:@"jabber:client"] && ([element.name isEqual:@"message"] ||
-                                                                 [element.name isEqual:@"presence"] ||
-                                                                 [element.name isEqual:@"iq"])) {
-                [_connectionDelegate handleStanza:element
-                                       completion:^(NSError *error) {
-                                           dispatch_async(_operationQueue, ^{
-                                               if (error) {
-                                                   DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
-                                               } else {
-                                                   [_streamManagement didHandleReceviedStanza:element];
-                                               }
-                                           });
-                                       }];
+            if ([document.root.namespace isEqual:@"jabber:client"] && ([document.root.name isEqual:@"message"] ||
+                                                                       [document.root.name isEqual:@"presence"] ||
+                                                                       [document.root.name isEqual:@"iq"])) {
+                [_connectionDelegate handleDocument:document
+                                         completion:^(NSError *error) {
+                                             dispatch_async(_operationQueue, ^{
+                                                 if (error) {
+                                                     DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
+                                                 } else {
+                                                     [_streamManagement didHandleReceviedStanza:document.root];
+                                                 }
+                                             });
+                                         }];
             } else {
-                [_connectionDelegate processPendingStanzas:^(NSError *error) {
+                [_connectionDelegate processPendingDocuments:^(NSError *error) {
                     dispatch_async(_operationQueue, ^{
                         if (error) {
                             DDLogError(@"Failed to process pending stanzas with error: %@", [error localizedDescription]);
                         } else {
                             BOOL handled = NO;
                             for (XMPPStreamFeature *feature in _negotiatedFeatures) {
-                                if ([[[feature class] namespace] isEqualToString:element.namespace]) {
+                                if ([[[feature class] namespace] isEqualToString:document.root.namespace]) {
                                     NSError *error = nil;
                                     BOOL success = [feature handleDocument:document error:&error];
                                     if (!success) {
@@ -492,7 +489,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                                 // Unsupported element
                                 dispatch_async(delegateQueue, ^{
                                     if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
-                                        [delegate client:self didReceiveUnsupportedElement:element];
+                                        [delegate client:self didReceiveUnsupportedElement:document.root];
                                     }
                                 });
                             }

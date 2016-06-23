@@ -22,10 +22,10 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPClientStreamManagement.h>
 #import <CoreXMPP/XMPPConnection.h>
 #import <CoreXMPP/XMPPDispatcher.h>
+#import <CoreXMPP/XMPPDocumentHandler.h>
 #import <CoreXMPP/XMPPError.h>
 #import <CoreXMPP/XMPPJID.h>
 #import <CoreXMPP/XMPPReconnectStrategy.h>
-#import <CoreXMPP/XMPPStanzaHandler.h>
 #import <CoreXMPP/XMPPStream.h>
 #import <CoreXMPP/XMPPStreamFeature.h>
 #import <CoreXMPP/XMPPStreamFeatureBind.h>

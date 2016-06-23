@@ -8,10 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-#import "XMPPStanzaHandler.h"
+#import "XMPPDocumentHandler.h"
 #import "XMPPStream.h"
 
-@interface XMPPStreamStanzaHandlerProxy : NSObject <XMPPStanzaHandler>
+@interface XMPPStreamStanzaHandlerProxy : NSObject <XMPPDocumentHandler>
 - (instancetype)initWithStream:(XMPPStream *)stream;
 @property (nonatomic, readonly) XMPPStream *stream;
 @end

@@ -258,44 +258,44 @@
 
 #pragma mark XMPPStanzaHandler
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
         NSError *error = nil;
 
-        if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
+        if ([document.root isEqual:PXQN(@"jabber:client", @"message")]) {
 
             for (id<XMPPMessageHandler> handler in _messageHandlers) {
-                [handler handleMessage:stanza completion:nil];
+                [handler handleMessage:document.root completion:nil];
             }
 
-        } else if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
+        } else if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
 
             for (id<XMPPPresenceHandler> handler in _presenceHandlers) {
-                [handler handlePresence:stanza completion:nil];
+                [handler handlePresence:document.root completion:nil];
             }
 
-        } else if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+        } else if ([document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
 
-            NSString *type = [stanza valueForAttribute:@"type"];
+            NSString *type = [document.root valueForAttribute:@"type"];
 
             if ([type isEqualToString:@"set"] ||
                 [type isEqualToString:@"get"]) {
 
-                if (stanza.numberOfElements == 1) {
-                    PXElement *query = [stanza elementAtIndex:0];
+                if (document.root.numberOfElements == 1) {
+                    PXElement *query = [document.root elementAtIndex:0];
                     id<XMPPIQHandler> handler = [_IQHandlersByQuery objectForKey:query.qualifiedName];
                     if (handler) {
-                        [handler handleIQRequest:stanza
+                        [handler handleIQRequest:document.root
                                          timeout:0
                                       completion:^(PXElement *response, NSError *error) {
                                           dispatch_async(_operationQueue, ^{
-                                              if (error || ![stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+                                              if (error || ![document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
 
-                                                  NSString *from = [stanza valueForAttribute:@"from"];
-                                                  NSString *to = [stanza valueForAttribute:@"to"];
-                                                  NSString *requestID = [stanza valueForAttribute:@"id"];
+                                                  NSString *from = [document.root valueForAttribute:@"from"];
+                                                  NSString *to = [document.root valueForAttribute:@"to"];
+                                                  NSString *requestID = [document.root valueForAttribute:@"id"];
 
                                                   if (from && requestID) {
                                                       PXElement *response = [NSError IQResponseWithError:error];
@@ -315,9 +315,9 @@
                                           });
                                       }];
                     } else {
-                        NSString *from = [stanza valueForAttribute:@"from"];
-                        NSString *to = [stanza valueForAttribute:@"to"];
-                        NSString *requestID = [stanza valueForAttribute:@"id"];
+                        NSString *from = [document.root valueForAttribute:@"from"];
+                        NSString *to = [document.root valueForAttribute:@"to"];
+                        NSString *requestID = [document.root valueForAttribute:@"id"];
 
                         if (from && requestID) {
 
@@ -345,9 +345,9 @@
             } else if ([type isEqualToString:@"result"] ||
                        [type isEqualToString:@"error"]) {
 
-                XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-                XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
-                NSString *requestID = [stanza valueForAttribute:@"id"];
+                XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+                XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]];
+                NSString *requestID = [document.root valueForAttribute:@"id"];
 
                 if (from && to && requestID) {
                     NSArray *key = @[ from, to, requestID ];
@@ -361,7 +361,7 @@
 
                     if (completion) {
                         [_responseHandlers removeObjectForKey:key];
-                        completion(stanza, nil);
+                        completion(document.root, nil);
                     }
                 }
 
@@ -382,7 +382,7 @@
     });
 }
 
-- (void)processPendingStanzas:(void (^)(NSError *))completion
+- (void)processPendingDocuments:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if (completion) {
@@ -506,7 +506,8 @@
         XMPPJID *bareJID = [from bareJID];
         id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
         if (connection) {
-            [connection handleStanza:stanza completion:completion];
+            PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+            [connection handleDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain

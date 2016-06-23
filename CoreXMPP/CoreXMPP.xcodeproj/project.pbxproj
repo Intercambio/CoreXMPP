@@ -130,8 +130,8 @@
 		F6A696F91CF4943100E0A0D2 /* XMPPClientFactoryStub.m in Sources */ = {isa = PBXBuildFile; fileRef = F6A696B21CF3332000E0A0D2 /* XMPPClientFactoryStub.m */; };
 		F6B470481C5815D100D414F2 /* XMPPConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = F6B470471C5815D100D414F2 /* XMPPConnection.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6B470491C5815D100D414F2 /* XMPPConnection.h in Headers */ = {isa = PBXBuildFile; fileRef = F6B470471C5815D100D414F2 /* XMPPConnection.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F6CD445B1C5653F70084757A /* XMPPStanzaHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445A1C5653F70084757A /* XMPPStanzaHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F6CD445C1C5653F70084757A /* XMPPStanzaHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445A1C5653F70084757A /* XMPPStanzaHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6CD445B1C5653F70084757A /* XMPPDocumentHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445A1C5653F70084757A /* XMPPDocumentHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F6CD445C1C5653F70084757A /* XMPPDocumentHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445A1C5653F70084757A /* XMPPDocumentHandler.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6CD445F1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445D1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.h */; };
 		F6CD44601C565BF30084757A /* XMPPStreamStanzaHandlerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = F6CD445D1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.h */; };
 		F6CD44611C565BF30084757A /* XMPPStreamStanzaHandlerProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = F6CD445E1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.m */; };
@@ -277,7 +277,7 @@
 		F6A696F01CF4646C00E0A0D2 /* XMPPNetworkReachabilityReconnectStrategyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPNetworkReachabilityReconnectStrategyTests.m; sourceTree = "<group>"; };
 		F6A696F31CF48FCA00E0A0D2 /* XMPPImmediatelyReconnectStrategyTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPImmediatelyReconnectStrategyTests.m; sourceTree = "<group>"; };
 		F6B470471C5815D100D414F2 /* XMPPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPConnection.h; sourceTree = "<group>"; };
-		F6CD445A1C5653F70084757A /* XMPPStanzaHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStanzaHandler.h; sourceTree = "<group>"; };
+		F6CD445A1C5653F70084757A /* XMPPDocumentHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPDocumentHandler.h; sourceTree = "<group>"; };
 		F6CD445D1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPStreamStanzaHandlerProxy.h; sourceTree = "<group>"; };
 		F6CD445E1C565BF30084757A /* XMPPStreamStanzaHandlerProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamStanzaHandlerProxy.m; sourceTree = "<group>"; };
 		F6CD44631C565FE80084757A /* XMPPStreamFeatureStreamManagementTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamFeatureStreamManagementTests.m; sourceTree = "<group>"; };
@@ -616,7 +616,7 @@
 		F6CD44591C5653DD0084757A /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				F6CD445A1C5653F70084757A /* XMPPStanzaHandler.h */,
+				F6CD445A1C5653F70084757A /* XMPPDocumentHandler.h */,
 				F6B470471C5815D100D414F2 /* XMPPConnection.h */,
 			);
 			name = Protocols;
@@ -644,7 +644,7 @@
 			files = (
 				F6A696DD1CF460A700E0A0D2 /* XMPPTemporalReconnectStrategy.h in Headers */,
 				F6476A881BE40E3100B0DF82 /* CoreXMPP.h in Headers */,
-				F6CD445B1C5653F70084757A /* XMPPStanzaHandler.h in Headers */,
+				F6CD445B1C5653F70084757A /* XMPPDocumentHandler.h in Headers */,
 				F6A696C21CF4421A00E0A0D2 /* XMPPAccountConnectivityImpl.h in Headers */,
 				F6867C751C3D0C27009617B5 /* XMPPStreamFeatureSASL.h in Headers */,
 				F6DC3C2A1C43FC97007C0F48 /* XMPPStreamFeatureBind.h in Headers */,
@@ -676,7 +676,7 @@
 			files = (
 				F6A696DE1CF460A700E0A0D2 /* XMPPTemporalReconnectStrategy.h in Headers */,
 				F6476ABA1BE40EAF00B0DF82 /* CoreXMPP.h in Headers */,
-				F6CD445C1C5653F70084757A /* XMPPStanzaHandler.h in Headers */,
+				F6CD445C1C5653F70084757A /* XMPPDocumentHandler.h in Headers */,
 				F6A696C31CF4421A00E0A0D2 /* XMPPAccountConnectivityImpl.h in Headers */,
 				F6867C761C3D0C27009617B5 /* XMPPStreamFeatureSASL.h in Headers */,
 				F6DC3C2B1C43FC97007C0F48 /* XMPPStreamFeatureBind.h in Headers */,
