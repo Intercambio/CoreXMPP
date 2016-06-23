@@ -32,7 +32,7 @@
 @end
 
 @protocol XMPPPresenceHandler <XMPPDispatcherHandler>
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *error))completion;
 @end
 
 @interface XMPPDispatcher : NSObject <XMPPConnectionDelegate, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>

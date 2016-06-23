@@ -236,8 +236,8 @@
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [module onPresence:^(PXElement *message) {
-        assertThat(message, equalTo(PXQN(@"jabber:client", @"presence")));
+    [module onPresence:^(PXDocument *document) {
+        assertThat(document.root, equalTo(PXQN(@"jabber:client", @"presence")));
         [expectation fulfill];
     }];
 
@@ -278,7 +278,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [dispatcher handlePresence:presence
+    [dispatcher handlePresence:doc
                     completion:^(NSError *error) {
                         [expectation fulfill];
                     }];

@@ -273,7 +273,7 @@
         } else if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
 
             for (id<XMPPPresenceHandler> handler in _presenceHandlers) {
-                [handler handlePresence:document.root completion:nil];
+                [handler handlePresence:document completion:nil];
             }
 
         } else if ([document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
@@ -411,11 +411,11 @@
 
 #pragma mark XMPPPresenceHandler
 
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
-            [self xmpp_routeStanza:stanza completion:completion];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
+            [self xmpp_routeDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain

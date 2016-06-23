@@ -45,24 +45,24 @@
 
 #pragma mark Handler
 
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onMessageCallbacks firstObject];
+        void (^_callback)(PXDocument *) = [_onMessageCallbacks firstObject];
         if (_callback) {
             [_onMessageCallbacks removeObjectAtIndex:0];
-            _callback(stanza);
+            _callback(document);
         }
     });
 }
 
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onPresenceCallbacks firstObject];
+        void (^_callback)(PXDocument *) = [_onPresenceCallbacks firstObject];
         if (_callback) {
             [_onPresenceCallbacks removeObjectAtIndex:0];
-            _callback(stanza);
+            _callback(document);
         }
     });
 }
@@ -133,7 +133,7 @@
     });
 }
 
-- (void)onPresence:(void (^)(PXElement *))callback
+- (void)onPresence:(void (^)(PXDocument *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
