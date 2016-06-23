@@ -24,7 +24,7 @@
 @end
 
 @protocol XMPPIQHandler <XMPPDispatcherHandler>
-- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;
+- (void)handleIQRequest:(PXDocument *)document timeout:(NSTimeInterval)timeout completion:(void (^)(PXDocument *response, NSError *error))completion;
 @end
 
 @protocol XMPPMessageHandler <XMPPDispatcherHandler>

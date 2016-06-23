@@ -67,13 +67,13 @@
     });
 }
 
-- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *, NSError *))completion
+- (void)handleIQRequest:(PXDocument *)document timeout:(NSTimeInterval)timeout completion:(void (^)(PXDocument *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)) = [_onIQRequestCallbacks firstObject];
+        void (^_callback)(PXDocument *document, NSTimeInterval timeout, void (^)(PXDocument *, NSError *)) = [_onIQRequestCallbacks firstObject];
         if (_callback) {
             [_onIQRequestCallbacks removeObjectAtIndex:0];
-            _callback(stanza, timeout, completion);
+            _callback(document, timeout, completion);
         }
     });
 }
@@ -142,7 +142,7 @@
     });
 }
 
-- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback
+- (void)onIQRequest:(void (^)(PXDocument *, NSTimeInterval, void (^)(PXDocument *, NSError *)))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {

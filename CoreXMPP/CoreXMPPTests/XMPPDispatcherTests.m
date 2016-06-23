@@ -320,7 +320,10 @@
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
 
-    [module onIQRequest:^(PXElement *stanza, NSTimeInterval timeout, void (^completion)(PXElement *, NSError *)) {
+    [module onIQRequest:^(PXDocument *document, NSTimeInterval timeout, void (^completion)(PXDocument *, NSError *)) {
+
+        PXElement *stanza = document.root;
+
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThat(completion, notNilValue());
 
@@ -336,7 +339,7 @@
         [response setValue:_id forAttribute:@"id"];
 
         if (completion) {
-            completion(response, nil);
+            completion(doc, nil);
         }
     }];
 
@@ -435,9 +438,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:request
+    [dispatcher handleIQRequest:doc
                         timeout:0
-                     completion:^(PXElement *response, NSError *error) {
+                     completion:^(PXDocument *response, NSError *error) {
                          assertThat(response, equalTo(PXQN(@"jabber:client", @"iq")));
                          [expectation fulfill];
                      }];
@@ -490,9 +493,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:request
+    [dispatcher handleIQRequest:doc
                         timeout:0
-                     completion:^(PXElement *response, NSError *error) {
+                     completion:^(PXDocument *response, NSError *error) {
                          assertThat(response, equalTo(PXQN(@"jabber:client", @"iq")));
                          [expectation fulfill];
                      }];
@@ -528,9 +531,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:request
+    [dispatcher handleIQRequest:doc
                         timeout:1.0
-                     completion:^(PXElement *response, NSError *error) {
+                     completion:^(PXDocument *response, NSError *error) {
                          assertThat(response, nilValue());
                          assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                          assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeTimeout));

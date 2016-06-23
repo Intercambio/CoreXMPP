@@ -287,9 +287,9 @@
                     PXElement *query = [document.root elementAtIndex:0];
                     id<XMPPIQHandler> handler = [_IQHandlersByQuery objectForKey:query.qualifiedName];
                     if (handler) {
-                        [handler handleIQRequest:document.root
+                        [handler handleIQRequest:document
                                          timeout:0
-                                      completion:^(PXElement *response, NSError *error) {
+                                      completion:^(PXDocument *response, NSError *error) {
                                           dispatch_async(_operationQueue, ^{
                                               if (error || ![document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
 
@@ -310,7 +310,7 @@
                                                   }
 
                                               } else {
-                                                  [self xmpp_routeStanza:response completion:nil];
+                                                  [self xmpp_routeDocument:response completion:nil];
                                               }
                                           });
                                       }];
@@ -429,23 +429,23 @@
 
 #pragma mark XMPPIQHandler
 
-- (void)handleIQRequest:(PXElement *)stanza
+- (void)handleIQRequest:(PXDocument *)document
                 timeout:(NSTimeInterval)timeout
-             completion:(void (^)(PXElement *, NSError *))completion
+             completion:(void (^)(PXDocument *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
-        NSString *type = [stanza valueForAttribute:@"type"];
-        if ([stanza isEqual:PXQN(@"jabber:client", @"iq")] && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
+        NSString *type = [document.root valueForAttribute:@"type"];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"iq")] && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
 
-            NSString *requestId = [stanza valueForAttribute:@"id"];
+            NSString *requestId = [document.root valueForAttribute:@"id"];
             if (requestId == nil) {
                 requestId = [[NSUUID UUID] UUIDString];
-                [stanza setValue:requestId forAttribute:@"id"];
+                [document.root setValue:requestId forAttribute:@"id"];
             }
 
-            XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-            XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]] ?: [from bareJID];
+            XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+            XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]] ?: [from bareJID];
             NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
 
             if (completion) {
@@ -464,18 +464,18 @@
                 }
             });
 
-            [self xmpp_routeStanza:stanza
-                        completion:^(NSError *error) {
-                            if (error) {
-                                dispatch_async(_operationQueue, ^{
-                                    void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
-                                    if (completion) {
-                                        [_responseHandlers removeObjectForKey:key];
-                                        completion(nil, error);
-                                    }
-                                });
-                            }
-                        }];
+            [self xmpp_routeDocument:document
+                          completion:^(NSError *error) {
+                              if (error) {
+                                  dispatch_async(_operationQueue, ^{
+                                      void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                                      if (completion) {
+                                          [_responseHandlers removeObjectForKey:key];
+                                          completion(nil, error);
+                                      }
+                                  });
+                              }
+                          }];
 
         } else {
             if (completion) {

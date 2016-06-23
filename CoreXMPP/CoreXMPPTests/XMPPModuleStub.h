@@ -14,7 +14,7 @@
 
 - (void)onMessage:(void (^)(PXDocument *document))callback;
 - (void)onPresence:(void (^)(PXDocument *document))callback;
-- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback;
+- (void)onIQRequest:(void (^)(PXDocument *document, NSTimeInterval timeout, void (^)(PXDocument *, NSError *)))callback;
 
 - (void)onAddConnection:(void (^)(XMPPJID *JID))callback;
 - (void)onRemoveConnection:(void (^)(XMPPJID *JID))callback;
