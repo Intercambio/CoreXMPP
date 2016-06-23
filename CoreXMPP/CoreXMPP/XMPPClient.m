@@ -14,7 +14,6 @@
 #import "XMPPStreamFeatureBind.h"
 #import "XMPPStreamFeatureSASL.h"
 #import "XMPPStreamFeatureStreamManagement.h"
-#import "XMPPStreamStanzaHandlerProxy.h"
 #import "XMPPWebsocketStream.h"
 
 #import "XMPPClient.h"
@@ -83,7 +82,6 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
         _stream = stream ?: [[XMPPWebsocketStream alloc] initWithHostname:hostname options:options];
         _stream.queue = _operationQueue;
         _stream.delegate = self;
-        _streamFeatureStanzaHandler = [[XMPPStreamStanzaHandlerProxy alloc] initWithStream:_stream];
     }
     return self;
 }
