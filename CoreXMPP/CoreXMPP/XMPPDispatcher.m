@@ -267,7 +267,7 @@
         if ([document.root isEqual:PXQN(@"jabber:client", @"message")]) {
 
             for (id<XMPPMessageHandler> handler in _messageHandlers) {
-                [handler handleMessage:document.root completion:nil];
+                [handler handleMessage:document completion:nil];
             }
 
         } else if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
@@ -393,11 +393,11 @@
 
 #pragma mark XMPPMessageHandler
 
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
-            [self xmpp_routeStanza:stanza completion:completion];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"message")]) {
+            [self xmpp_routeDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
@@ -507,6 +507,32 @@
         id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
         if (connection) {
             PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+            [connection handleDocument:document completion:completion];
+        } else {
+            if (completion) {
+                NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                     code:XMPPDispatcherErrorCodeNoRoute
+                                                 userInfo:nil];
+                completion(error);
+            }
+        }
+    } else {
+        if (completion) {
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeNoSender
+                                             userInfo:nil];
+            completion(error);
+        }
+    }
+}
+
+- (void)xmpp_routeDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
+{
+    XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+    if (from) {
+        XMPPJID *bareJID = [from bareJID];
+        id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
+        if (connection) {
             [connection handleDocument:document completion:completion];
         } else {
             if (completion) {

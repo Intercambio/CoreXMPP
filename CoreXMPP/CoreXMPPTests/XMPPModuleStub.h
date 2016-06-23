@@ -12,7 +12,7 @@
 
 @interface XMPPModuleStub : NSObject <XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
-- (void)onMessage:(void (^)(PXElement *stanza))callback;
+- (void)onMessage:(void (^)(PXDocument *document))callback;
 - (void)onPresence:(void (^)(PXElement *stanza))callback;
 - (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback;
 

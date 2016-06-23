@@ -124,7 +124,7 @@
 
 #pragma mark -
 
-- (void)onMessage:(void (^)(PXElement *))callback
+- (void)onMessage:(void (^)(PXDocument *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {

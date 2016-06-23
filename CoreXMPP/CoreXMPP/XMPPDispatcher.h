@@ -28,7 +28,7 @@
 @end
 
 @protocol XMPPMessageHandler <XMPPDispatcherHandler>
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *error))completion;
 @end
 
 @protocol XMPPPresenceHandler <XMPPDispatcherHandler>

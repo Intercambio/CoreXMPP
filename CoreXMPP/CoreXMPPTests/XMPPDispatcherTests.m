@@ -87,9 +87,9 @@
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [module onMessage:^(PXElement *message) {
-        assertThat(message, equalTo(PXQN(@"jabber:client", @"message")));
-        assertThat([message stringValue], equalTo(@"Hello!"));
+    [module onMessage:^(PXDocument *document) {
+        assertThat(document.root, equalTo(PXQN(@"jabber:client", @"message")));
+        assertThat([document.root stringValue], equalTo(@"Hello!"));
         [expectation fulfill];
     }];
 
@@ -137,7 +137,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:message
+    [dispatcher handleMessage:doc
                    completion:^(NSError *error) {
                        assertThat(error, nilValue());
                        [expectation fulfill];
@@ -172,7 +172,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:message
+    [dispatcher handleMessage:doc
                    completion:^(NSError *error) {
                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoRoute));
@@ -206,7 +206,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:message
+    [dispatcher handleMessage:doc
                    completion:^(NSError *error) {
                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoSender));
