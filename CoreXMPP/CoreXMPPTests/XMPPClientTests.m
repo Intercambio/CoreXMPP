@@ -1214,19 +1214,19 @@
     }
 
     //
-    // Verify Unsupported Elements
+    // Verify Unsupported Documents
     //
 
-    HCArgumentCaptor *captoredElements = [[HCArgumentCaptor alloc] init];
-    [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedElement:(id)captoredElements];
+    captoredDocuments = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedDocument:(id)captoredDocuments];
 
-    NSArray *elements = [captoredElements allValues];
-    assertThat(elements, hasCountOf(1));
+    documents = [captoredDocuments allValues];
+    assertThat(documents, hasCountOf(1));
 
-    PXElement *element = [elements firstObject];
-    assertThat(element.name, equalTo(@"foo"));
-    assertThat(element.namespace, equalTo(@"http://example.com/bar"));
-    assertThat(element.stringValue, equalTo(@"x"));
+    document = [documents firstObject];
+    assertThat(document.root.name, equalTo(@"foo"));
+    assertThat(document.root.namespace, equalTo(@"http://example.com/bar"));
+    assertThat(document.root.stringValue, equalTo(@"x"));
 }
 
 - (void)testSendStanzas

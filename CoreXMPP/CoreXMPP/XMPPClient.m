@@ -486,8 +486,8 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                             if (!handled) {
                                 // Unsupported element
                                 dispatch_async(delegateQueue, ^{
-                                    if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedElement:)]) {
-                                        [delegate client:self didReceiveUnsupportedElement:document.root];
+                                    if ([delegate respondsToSelector:@selector(client:didReceiveUnsupportedDocument:)]) {
+                                        [delegate client:self didReceiveUnsupportedDocument:document];
                                     }
                                 });
                             }
