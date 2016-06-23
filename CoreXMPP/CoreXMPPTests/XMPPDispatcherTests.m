@@ -24,7 +24,7 @@
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     id<XMPPConnection> connection = mockProtocol(@protocol(XMPPConnection));
 
-    [dispatcher addMessageHandler:module];
+    [dispatcher addHandler:module];
 
     // Add Connection
 
@@ -72,28 +72,28 @@
 - (void)testManagingMessageHandler
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
-    [dispatcher addMessageHandler:module];
-    assertThat(dispatcher.messageHandlers, contains(module, nil));
+    id<XMPPMessageHandler> handler = mockProtocol(@protocol(XMPPMessageHandler));
+    [dispatcher addHandler:handler];
+    assertThat(dispatcher.messageHandlers, contains(handler, nil));
 
-    [dispatcher removeMessageHandler:module];
-    assertThat(dispatcher.messageHandlers, isNot(contains(module, nil)));
+    [dispatcher removeHandler:handler];
+    assertThat(dispatcher.messageHandlers, isNot(contains(handler, nil)));
 }
 
 - (void)testIncomingMessage
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
+    XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [module onMessage:^(PXDocument *document) {
+    [handler onMessage:^(PXDocument *document) {
         assertThat(document.root, equalTo(PXQN(@"jabber:client", @"message")));
         assertThat([document.root stringValue], equalTo(@"Hello!"));
         [expectation fulfill];
     }];
 
-    [dispatcher addMessageHandler:module];
+    [dispatcher addHandler:handler];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -221,27 +221,27 @@
 - (void)testManagingPresenceHandler
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
+    id<XMPPPresenceHandler> handler = mockProtocol(@protocol(XMPPPresenceHandler));
 
-    [dispatcher addPresenceHandler:module];
-    assertThat(dispatcher.presenceHandlers, contains(module, nil));
+    [dispatcher addHandler:handler];
+    assertThat(dispatcher.presenceHandlers, contains(handler, nil));
 
-    [dispatcher removePresenceHandler:module];
-    assertThat(dispatcher.presenceHandlers, isNot(contains(module, nil)));
+    [dispatcher removeHandler:handler];
+    assertThat(dispatcher.presenceHandlers, isNot(contains(handler, nil)));
 }
 
 - (void)testIncomingPresence
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
+    XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [module onPresence:^(PXDocument *document) {
+    [handler onPresence:^(PXDocument *document) {
         assertThat(document.root, equalTo(PXQN(@"jabber:client", @"presence")));
         [expectation fulfill];
     }];
 
-    [dispatcher addPresenceHandler:module];
+    [dispatcher addHandler:handler];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -290,37 +290,40 @@
 - (void)testManageIQHandler
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
 
-    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
-    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(module));
+    id<XMPPIQHandler> handler = mockProtocol(@protocol(XMPPIQHandler));
 
-    [dispatcher removeIQHandlerForQuery:PXQN(@"foo:bar", @"query")];
-    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], nilValue());
+    [dispatcher addHandler:handler
+         withIQQueryQNames:@[ PXQN(@"foo:bar", @"query"),
+                              PXQN(@"foo:baz", @"query") ]];
 
-    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
-    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:baz", @"query")];
-    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(module));
-    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], is(module));
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(handler));
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], is(handler));
 
-    [dispatcher removeIQHandler:module];
-    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], nilValue());
+    id<XMPPIQHandler> handler2 = mockProtocol(@protocol(XMPPIQHandler));
+    [dispatcher addHandler:handler2 withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]];
+
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(handler2));
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], is(handler));
+
+    [dispatcher removeHandler:handler];
+    assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(handler2));
     assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], nilValue());
 }
 
 - (void)testIncomingIQRequest
 {
     XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
-    XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
+    XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
-    [dispatcher setIQHandler:module forQuery:PXQN(@"foo:bar", @"query")];
+    [dispatcher addHandler:handler withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
 
-    [module onIQRequest:^(PXDocument *document, NSTimeInterval timeout, void (^completion)(PXDocument *, NSError *)) {
+    [handler onIQRequest:^(PXDocument *document, NSTimeInterval timeout, void (^completion)(PXDocument *, NSError *)) {
 
         PXElement *stanza = document.root;
 
