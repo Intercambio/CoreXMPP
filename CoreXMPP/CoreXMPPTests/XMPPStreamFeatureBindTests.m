@@ -68,7 +68,10 @@
             PXElement *bind = [iq addElementWithName:@"bind" namespace:XMPPStreamFeatureBindNamespace content:nil];
             [bind addElementWithName:@"jid" namespace:XMPPStreamFeatureBindNamespace content:@"test@example.com/example"];
 
-            [feature handleStanza:iq completion:nil];
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
+
         });
 
         if (_completion) {
@@ -149,7 +152,9 @@
             PXElement *bind = [iq addElementWithName:@"bind" namespace:XMPPStreamFeatureBindNamespace content:nil];
             [bind addElementWithName:@"jid" namespace:XMPPStreamFeatureBindNamespace content:@"test@example.com/example"];
 
-            [feature handleStanza:iq completion:nil];
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
 
         if (_completion) {
@@ -209,11 +214,13 @@
             [iq setValue:@"error" forAttribute:@"type"];
             [iq setValue:requestId forAttribute:@"id"];
 
-            PXElement *error = [iq addElementWithName:@"error" namespace:@"jabber:client" content:nil];
-            [error setValue:@"modify" forAttribute:@"type"];
-            [error addElementWithName:@"conflict" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
+            PXElement *errorElement = [iq addElementWithName:@"error" namespace:@"jabber:client" content:nil];
+            [errorElement setValue:@"modify" forAttribute:@"type"];
+            [errorElement addElementWithName:@"conflict" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
 
-            [feature handleStanza:iq completion:nil];
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
 
         if (_completion) {

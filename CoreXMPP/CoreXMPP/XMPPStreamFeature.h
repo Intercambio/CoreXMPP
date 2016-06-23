@@ -18,7 +18,7 @@
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error;
 @end
 
-@interface XMPPStreamFeature : NSObject <XMPPStanzaHandler>
+@interface XMPPStreamFeature : NSObject
 
 #pragma mark Registered Stream Features
 + (NSDictionary *)registeredStreamFeatures;
@@ -46,5 +46,8 @@
 
 #pragma mark Negotiate Feature
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options;
+
+#pragma mark Handle Document
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error;
 
 @end

@@ -44,7 +44,7 @@
 
         dispatch_async(dispatch_get_main_queue(), ^{
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"enabled" namespace:@"urn:xmpp:sm:3" prefix:nil];
-            [feature handleStanza:response.root completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
         if (_completion) {
@@ -108,7 +108,7 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             PXDocument *response = [[PXDocument alloc] initWithElementName:@"failed" namespace:@"urn:xmpp:sm:3" prefix:nil];
             [response.root addElementWithName:@"unexpected-request" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
-            [feature handleStanza:response.root completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
         if (_completion) {
@@ -196,10 +196,8 @@
     }];
 
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"r" namespace:@"urn:xmpp:sm:3" prefix:nil];
-    [feature handleStanza:request.root
-               completion:^(NSError *error){
+    [feature handleDocument:request error:nil];
 
-               }];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
@@ -243,8 +241,26 @@
 
     id<XMPPStreamFeatureDelegate> delegate = nil;
 
+    id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
+    [[givenVoid([connectionDelegate handleStanza:anything() completion:nil]) withMatcher:anything() forArgument:1] willDo:^id(NSInvocation *invocation) {
+
+        PXElement *stanza = [[invocation mkt_arguments] firstObject];
+        void (^completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+
+        PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+
+        NSError *error = nil;
+        BOOL success = [feature handleDocument:document error:&error];
+
+        if (completion) {
+            completion(success ? nil : error);
+        }
+
+        return nil;
+    }];
+
     XMPPConnectionStub *stanzaHandler = [[XMPPConnectionStub alloc] init];
-    stanzaHandler.connectionDelegate = (id<XMPPConnectionDelegate>)feature;
+    stanzaHandler.connectionDelegate = connectionDelegate;
     feature.stanzaHandler = stanzaHandler;
 
     //
@@ -325,13 +341,7 @@
                                                     namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                        prefix:nil];
     [ack.root setValue:@"2" forAttribute:@"h"];
-
-    expectation = [self expectationWithDescription:@"Expecting Acknowledgement"];
-    [feature handleStanza:ack.root
-               completion:^(NSError *error) {
-                   [expectation fulfill];
-               }];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+    [feature handleDocument:ack error:nil];
 
     assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(2));
     assertThat(sm.unacknowledgedStanzas, equalTo(@[ stanza_3.root ]));

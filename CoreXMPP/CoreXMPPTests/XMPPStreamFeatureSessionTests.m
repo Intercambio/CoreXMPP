@@ -63,7 +63,7 @@
             [iq setValue:@"result" forAttribute:@"type"];
             [iq setValue:requestId forAttribute:@"id"];
 
-            [feature handleStanza:iq completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
         if (_completion) {
@@ -122,7 +122,7 @@
             [error setValue:@"auth" forAttribute:@"type"];
             [error addElementWithName:@"forbidden" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
 
-            [feature handleStanza:iq completion:nil];
+            [feature handleDocument:response error:nil];
         });
 
         if (_completion) {

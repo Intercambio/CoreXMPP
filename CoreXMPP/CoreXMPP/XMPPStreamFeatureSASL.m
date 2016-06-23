@@ -211,10 +211,12 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
     }
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
 
         if ([stanza.name isEqualToString:@"success"]) {
@@ -275,9 +277,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
         }
     }
 
-    if (completion) {
-        completion(nil);
-    }
+    return YES;
 }
 
 #pragma mark -

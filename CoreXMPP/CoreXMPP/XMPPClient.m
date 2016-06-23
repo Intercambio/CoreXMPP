@@ -443,14 +443,14 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             break;
 
         case XMPPClientStateNegotiating: {
-            [_currentFeature handleStanza:element
-                               completion:^(NSError *error) {
-                                   if (error) {
-                                       DDLogError(@"Stream feature %@ failed to handle element with error: %@",
-                                                  _currentFeature,
-                                                  [error localizedDescription]);
-                                   }
-                               }];
+            NSError *error = nil;
+            BOOL success = [_currentFeature handleDocument:document error:&error];
+
+            if (!success) {
+                DDLogError(@"Stream feature %@ failed to handle element with error: %@",
+                           _currentFeature,
+                           [error localizedDescription]);
+            }
             break;
         }
 
@@ -478,7 +478,13 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                             BOOL handled = NO;
                             for (XMPPStreamFeature *feature in _negotiatedFeatures) {
                                 if ([[[feature class] namespace] isEqualToString:element.namespace]) {
-                                    [feature handleStanza:element completion:nil];
+                                    NSError *error = nil;
+                                    BOOL success = [feature handleDocument:document error:&error];
+                                    if (!success) {
+                                        DDLogError(@"Stream feature %@ failed to handle element with error: %@",
+                                                   feature,
+                                                   [error localizedDescription]);
+                                    }
                                     handled = YES;
                                     break;
                                 }

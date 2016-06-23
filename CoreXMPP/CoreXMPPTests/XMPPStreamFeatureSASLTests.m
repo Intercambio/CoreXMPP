@@ -123,7 +123,6 @@
     [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
         PXElement *element = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
 
         //
         // validate the request
@@ -145,11 +144,9 @@
                                                              namespace:XMPPStreamFeatureSASLNamespace
                                                                 prefix:nil];
 
-        [feature handleStanza:response.root completion:nil];
-
-        if (_completion) {
-            _completion(nil);
-        }
+        NSError *error = nil;
+        BOOL success = [feature handleDocument:response error:&error];
+        XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
 
         return nil;
     }];
@@ -222,8 +219,6 @@
 
     [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
-
         //
         // post the response
         //
@@ -236,11 +231,9 @@
                                 namespace:XMPPStreamFeatureSASLNamespace
                                   content:nil];
 
-        [feature handleStanza:response.root completion:nil];
-
-        if (_completion) {
-            _completion(nil);
-        }
+        NSError *error = nil;
+        BOOL success = [feature handleDocument:response error:&error];
+        XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
 
         return nil;
     }];

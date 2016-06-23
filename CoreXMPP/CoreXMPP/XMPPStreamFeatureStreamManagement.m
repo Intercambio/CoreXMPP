@@ -184,10 +184,12 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     }
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:[XMPPStreamFeatureStreamManagement namespace]]) {
 
         if ([stanza.name isEqualToString:@"enabled"]) {
@@ -247,9 +249,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
         }
     }
 
-    if (completion) {
-        completion(nil);
-    }
+    return YES;
 }
 
 #pragma mark -
