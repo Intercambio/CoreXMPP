@@ -150,17 +150,17 @@
 
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
-    assertThatInteger(sm.numberOfReceivedStanzas, equalToInteger(0));
+    assertThatInteger(sm.numberOfReceivedDocuments, equalToInteger(0));
 
     PXDocument *stanza_1 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
     PXDocument *stanza_2 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
     PXDocument *stanza_3 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
 
-    [sm didHandleReceviedStanza:stanza_1.root];
-    [sm didHandleReceviedStanza:stanza_2.root];
-    [sm didHandleReceviedStanza:stanza_3.root];
+    [sm didHandleReceviedDocument:stanza_1];
+    [sm didHandleReceviedDocument:stanza_2];
+    [sm didHandleReceviedDocument:stanza_3];
 
-    assertThatInteger(sm.numberOfReceivedStanzas, equalToInteger(3));
+    assertThatInteger(sm.numberOfReceivedDocuments, equalToInteger(3));
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expecting Response from Client"];
     [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
@@ -264,8 +264,8 @@
     id<XMPPClientStreamManagement> sm = (id<XMPPClientStreamManagement>)feature;
 
     assertThatBool(sm.resumable, isTrue());
-    assertThatInteger(sm.numberOfSentStanzas, equalToInteger(0));
-    assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
+    assertThatInteger(sm.numberOfSentDocuments, equalToInteger(0));
+    assertThatInteger(sm.numberOfAcknowledgedDocuments, equalToInteger(0));
 
     PXDocument *stanza_1 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
     PXDocument *stanza_2 = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"bar:baz" prefix:nil];
@@ -275,28 +275,28 @@
     __block BOOL ack_2 = NO;
     __block BOOL ack_3 = NO;
 
-    [sm didSentStanza:stanza_1.root
+    [sm didSentDocument:stanza_1
         acknowledgement:^(NSError *error) {
             ack_1 = YES;
         }];
-    [sm didSentStanza:stanza_2.root
+    [sm didSentDocument:stanza_2
         acknowledgement:^(NSError *error) {
             ack_2 = YES;
         }];
-    [sm didSentStanza:stanza_3.root
+    [sm didSentDocument:stanza_3
         acknowledgement:^(NSError *error) {
             ack_3 = YES;
         }];
 
-    assertThatInteger(sm.numberOfSentStanzas, equalToInteger(3));
-    assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(0));
-    assertThat(sm.unacknowledgedStanzas, equalTo(@[ stanza_1.root, stanza_2.root, stanza_3.root ]));
+    assertThatInteger(sm.numberOfSentDocuments, equalToInteger(3));
+    assertThatInteger(sm.numberOfAcknowledgedDocuments, equalToInteger(0));
+    assertThat(sm.unacknowledgedDocuments, equalTo(@[ stanza_1, stanza_2, stanza_3 ]));
 
     assertThatBool(ack_1, isFalse());
     assertThatBool(ack_2, isFalse());
     assertThatBool(ack_3, isFalse());
 
-    [sm didHandleReceviedStanza:stanza_1.root];
+    [sm didHandleReceviedDocument:stanza_1];
 
     PXDocument *ack = [[PXDocument alloc] initWithElementName:@"a"
                                                     namespace:[XMPPStreamFeatureStreamManagement namespace]
@@ -304,8 +304,8 @@
     [ack.root setValue:@"2" forAttribute:@"h"];
     [feature handleDocument:ack error:nil];
 
-    assertThatInteger(sm.numberOfAcknowledgedStanzas, equalToInteger(2));
-    assertThat(sm.unacknowledgedStanzas, equalTo(@[ stanza_3.root ]));
+    assertThatInteger(sm.numberOfAcknowledgedDocuments, equalToInteger(2));
+    assertThat(sm.unacknowledgedDocuments, equalTo(@[ stanza_3 ]));
 
     assertThatBool(ack_1, isTrue());
     assertThatBool(ack_2, isTrue());

@@ -151,7 +151,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             self.state = XMPPClientStateDisconnecting;
 
             [_streamManagement sendAcknowledgement];
-            [_streamManagement cancelUnacknowledgedStanzas];
+            [_streamManagement cancelUnacknowledgedDocuments];
             [_stream close];
             _streamManagement = nil;
             _negotiatedFeatures = @[];
@@ -212,7 +212,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             }
 
             if (_streamManagement.enabled) {
-                [_streamManagement didSentStanza:document.root acknowledgement:completion];
+                [_streamManagement didSentDocument:document acknowledgement:completion];
             } else if (completion) {
                 completion(nil);
             }
@@ -461,7 +461,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                                                  if (error) {
                                                      DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
                                                  } else {
-                                                     [_streamManagement didHandleReceviedStanza:document.root];
+                                                     [_streamManagement didHandleReceviedDocument:document];
                                                  }
                                              });
                                          }];
