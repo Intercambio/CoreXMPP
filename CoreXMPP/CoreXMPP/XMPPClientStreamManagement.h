@@ -13,17 +13,17 @@
 @property (nonatomic, readonly, getter=isEnabled) BOOL enabled;
 @property (nonatomic, readonly, getter=isResumable) BOOL resumable;
 @property (nonatomic, readonly, getter=isResumed) BOOL resumed;
-@property (nonatomic, readonly) NSUInteger numberOfReceivedStanzas;
-@property (nonatomic, readonly) NSUInteger numberOfSentStanzas;
-@property (nonatomic, readonly) NSUInteger numberOfAcknowledgedStanzas;
-@property (nonatomic, readonly) NSArray *unacknowledgedStanzas;
+@property (nonatomic, readonly) NSUInteger numberOfReceivedDocuments;
+@property (nonatomic, readonly) NSUInteger numberOfSentDocuments;
+@property (nonatomic, readonly) NSUInteger numberOfAcknowledgedDocuments;
+@property (nonatomic, readonly) NSArray *unacknowledgedDocuments;
 
-- (void)didSentStanza:(PXElement *)stanza acknowledgement:(void (^)(NSError *error))acknowledgement;
-- (void)didHandleReceviedStanza:(PXElement *)stanza;
+- (void)didSentDocument:(PXDocument *)document acknowledgement:(void (^)(NSError *error))acknowledgement;
+- (void)didHandleReceviedDocument:(PXDocument *)document;
 
 - (void)requestAcknowledgement;
 - (void)sendAcknowledgement;
 
-- (void)cancelUnacknowledgedStanzas;
+- (void)cancelUnacknowledgedDocuments;
 
 @end

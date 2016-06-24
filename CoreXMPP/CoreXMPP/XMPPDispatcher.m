@@ -15,9 +15,8 @@
 @interface XMPPDispatcher () {
     dispatch_queue_t _operationQueue;
     NSMapTable *_connectionsByJID;
-    NSHashTable *_messageHandlers;
-    NSHashTable *_presenceHandlers;
-    NSMapTable *_IQHandlersByQuery;
+    NSHashTable *_handlers;
+    NSMapTable *_handlersByQuery;
     NSMapTable *_responseHandlers;
 }
 
@@ -34,9 +33,8 @@
         _operationQueue = dispatch_queue_create("XMPPDispatcher", DISPATCH_QUEUE_SERIAL);
 
         _connectionsByJID = [NSMapTable strongToWeakObjectsMapTable];
-        _messageHandlers = [NSHashTable weakObjectsHashTable];
-        _presenceHandlers = [NSHashTable weakObjectsHashTable];
-        _IQHandlersByQuery = [NSMapTable strongToWeakObjectsMapTable];
+        _handlers = [NSHashTable weakObjectsHashTable];
+        _handlersByQuery = [NSMapTable strongToWeakObjectsMapTable];
         _responseHandlers = [NSMapTable strongToStrongObjectsMapTable];
     }
     return self;
@@ -60,7 +58,7 @@
         connection.connectionDelegate = self;
         [_connectionsByJID setObject:connection forKey:[JID bareJID]];
         if (replaceConnection == NO) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
                 if ([handler respondsToSelector:@selector(didAddConnectionTo:)]) {
                     [handler didAddConnectionTo:[JID bareJID]];
                 }
@@ -73,7 +71,7 @@
 {
     dispatch_async(_operationQueue, ^{
         [_connectionsByJID removeObjectForKey:[JID bareJID]];
-        for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+        for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
             if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
                 [handler didRemoveConnectionTo:[JID bareJID]];
             }
@@ -92,7 +90,7 @@
         }
         for (XMPPJID *JID in keys) {
             [_connectionsByJID removeObjectForKey:JID];
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
                 if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
                     [handler didRemoveConnectionTo:JID];
                 }
@@ -103,97 +101,91 @@
 
 #pragma mark Manage Handlers
 
+- (void)addHandler:(id)handler
+{
+    [self addHandler:handler withIQQueryQNames:nil];
+}
+
+- (void)addHandler:(id)handler withIQQueryQNames:(NSArray *)queryQNames
+{
+    if ([handler conformsToProtocol:@protocol(XMPPDispatcherHandler)] ||
+        [handler conformsToProtocol:@protocol(XMPPMessageHandler)] ||
+        [handler conformsToProtocol:@protocol(XMPPPresenceHandler)] ||
+        [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
+
+        [_handlers addObject:handler];
+
+        if ([queryQNames count] > 0 && [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
+            for (PXQName *queryQName in queryQNames) {
+                [_handlersByQuery setObject:handler forKey:queryQName];
+            }
+        }
+    }
+}
+
+- (void)removeHandler:(id)handler
+{
+    dispatch_async(_operationQueue, ^{
+        [_handlers removeObject:handler];
+
+        NSMutableArray *keys = [[NSMutableArray alloc] init];
+        for (PXQName *query in [_handlersByQuery keyEnumerator]) {
+            if ([_handlersByQuery objectForKey:query] == handler) {
+                [keys addObject:query];
+            }
+        }
+        for (PXQName *query in keys) {
+            [_handlersByQuery removeObjectForKey:query];
+        }
+    });
+}
+
+- (NSArray *)dispatcherHandlers
+{
+    __block NSArray *dispatcherHandlers = nil;
+    dispatch_sync(_operationQueue, ^{
+        dispatcherHandlers = [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)];
+    });
+    return dispatcherHandlers;
+}
+
 - (NSArray *)messageHandlers
 {
     __block NSArray *messageHandlers = nil;
     dispatch_sync(_operationQueue, ^{
-        messageHandlers = [_messageHandlers allObjects];
+        messageHandlers = [self xmpp_handlersConformingToProtocol:@protocol(XMPPMessageHandler)];
     });
     return messageHandlers;
-}
-
-- (void)addMessageHandler:(id<XMPPMessageHandler>)messageHandler
-{
-    dispatch_async(_operationQueue, ^{
-        if (![_messageHandlers containsObject:messageHandler]) {
-            [_messageHandlers addObject:messageHandler];
-        }
-    });
-}
-
-- (void)removeMessageHandler:(id<XMPPMessageHandler>)messageHandler
-{
-    dispatch_async(_operationQueue, ^{
-        if ([_messageHandlers containsObject:messageHandler]) {
-            [_messageHandlers removeObject:messageHandler];
-        }
-    });
 }
 
 - (NSArray *)presenceHandlers
 {
     __block NSArray *presenceHandlers = nil;
     dispatch_sync(_operationQueue, ^{
-        presenceHandlers = [_presenceHandlers allObjects];
+        presenceHandlers = [self xmpp_handlersConformingToProtocol:@protocol(XMPPPresenceHandler)];
     });
     return presenceHandlers;
-}
-
-- (void)addPresenceHandler:(id<XMPPPresenceHandler>)presenceHandler
-{
-    dispatch_async(_operationQueue, ^{
-        if (![_presenceHandlers containsObject:presenceHandler]) {
-            [_presenceHandlers addObject:presenceHandler];
-        }
-    });
-}
-
-- (void)removePresenceHandler:(id<XMPPPresenceHandler>)presenceHandler
-{
-    dispatch_async(_operationQueue, ^{
-        if ([_presenceHandlers containsObject:presenceHandler]) {
-            [_presenceHandlers removeObject:presenceHandler];
-        }
-    });
 }
 
 - (NSDictionary *)IQHandlersByQuery
 {
     __block NSDictionary *IQHandlerByQuery = nil;
     dispatch_sync(_operationQueue, ^{
-        IQHandlerByQuery = [_IQHandlersByQuery dictionaryRepresentation];
+        IQHandlerByQuery = [_handlersByQuery dictionaryRepresentation];
     });
     return IQHandlerByQuery;
 }
 
-- (void)setIQHandler:(id<XMPPIQHandler>)handler forQuery:(PXQName *)query
+- (NSArray *)xmpp_handlersConformingToProtocol:(Protocol *)protocol
 {
-    dispatch_async(_operationQueue, ^{
-        [_IQHandlersByQuery setObject:handler forKey:query];
-    });
+    __block NSArray *handlers = nil;
+    handlers = [[_handlers allObjects] filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id _Nonnull evaluatedObject, NSDictionary<NSString *, id> *_Nullable bindings) {
+                                           return [evaluatedObject conformsToProtocol:protocol];
+                                       }]];
+    return handlers;
 }
 
-- (void)removeIQHandlerForQuery:(PXQName *)query
-{
-    dispatch_async(_operationQueue, ^{
-        [_IQHandlersByQuery removeObjectForKey:query];
-    });
-}
-
-- (void)removeIQHandler:(id<XMPPIQHandler>)handler
-{
-    dispatch_async(_operationQueue, ^{
-        NSMutableArray *keys = [[NSMutableArray alloc] init];
-        for (PXQName *query in [_IQHandlersByQuery keyEnumerator]) {
-            if ([_IQHandlersByQuery objectForKey:query] == handler) {
-                [keys addObject:query];
-            }
-        }
-        for (PXQName *query in keys) {
-            [_IQHandlersByQuery removeObjectForKey:query];
-        }
-    });
-}
+#pragma mark Processing
 
 - (NSUInteger)numberOfPendingIQResponses
 {
@@ -206,35 +198,13 @@
     return numberOfPendingIQResponses;
 }
 
-- (void)removeHandler:(id)handler
-{
-    dispatch_async(_operationQueue, ^{
-        if ([_messageHandlers containsObject:handler]) {
-            [_messageHandlers removeObject:handler];
-        }
-
-        if ([_presenceHandlers containsObject:handler]) {
-            [_presenceHandlers removeObject:handler];
-        }
-        NSMutableArray *keys = [[NSMutableArray alloc] init];
-        for (PXQName *query in [_IQHandlersByQuery keyEnumerator]) {
-            if ([_IQHandlersByQuery objectForKey:query] == handler) {
-                [keys addObject:query];
-            }
-        }
-        for (PXQName *query in keys) {
-            [_IQHandlersByQuery removeObjectForKey:query];
-        }
-    });
-}
-
 #pragma mark XMPPConnectionDelegate
 
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed
 {
     dispatch_async(_operationQueue, ^{
         if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
                 if ([handler respondsToSelector:@selector(didConnect:resumed:)]) {
                     [handler didConnect:JID resumed:resumed];
                 }
@@ -247,7 +217,7 @@
 {
     dispatch_async(_operationQueue, ^{
         if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_dispatcherHandlers]) {
+            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
                 if ([handler respondsToSelector:@selector(didDisconnect:)]) {
                     [handler didDisconnect:JID];
                 }
@@ -258,66 +228,66 @@
 
 #pragma mark XMPPStanzaHandler
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
         NSError *error = nil;
 
-        if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
+        if ([document.root isEqual:PXQN(@"jabber:client", @"message")]) {
 
-            for (id<XMPPMessageHandler> handler in _messageHandlers) {
-                [handler handleMessage:stanza completion:nil];
+            for (id<XMPPMessageHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPMessageHandler)]) {
+                [handler handleMessage:document completion:nil];
             }
 
-        } else if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
+        } else if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
 
-            for (id<XMPPPresenceHandler> handler in _presenceHandlers) {
-                [handler handlePresence:stanza completion:nil];
+            for (id<XMPPPresenceHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPPresenceHandler)]) {
+                [handler handlePresence:document completion:nil];
             }
 
-        } else if ([stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+        } else if ([document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
 
-            NSString *type = [stanza valueForAttribute:@"type"];
+            NSString *type = [document.root valueForAttribute:@"type"];
 
             if ([type isEqualToString:@"set"] ||
                 [type isEqualToString:@"get"]) {
 
-                if (stanza.numberOfElements == 1) {
-                    PXElement *query = [stanza elementAtIndex:0];
-                    id<XMPPIQHandler> handler = [_IQHandlersByQuery objectForKey:query.qualifiedName];
+                if (document.root.numberOfElements == 1) {
+                    PXElement *query = [document.root elementAtIndex:0];
+                    id<XMPPIQHandler> handler = [_handlersByQuery objectForKey:query.qualifiedName];
                     if (handler) {
-                        [handler handleIQRequest:stanza
+                        [handler handleIQRequest:document
                                          timeout:0
-                                      completion:^(PXElement *response, NSError *error) {
+                                      completion:^(PXDocument *response, NSError *error) {
                                           dispatch_async(_operationQueue, ^{
-                                              if (error || ![stanza isEqual:PXQN(@"jabber:client", @"iq")]) {
+                                              if (error || ![document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
 
-                                                  NSString *from = [stanza valueForAttribute:@"from"];
-                                                  NSString *to = [stanza valueForAttribute:@"to"];
-                                                  NSString *requestID = [stanza valueForAttribute:@"id"];
+                                                  NSString *from = [document.root valueForAttribute:@"from"];
+                                                  NSString *to = [document.root valueForAttribute:@"to"];
+                                                  NSString *requestID = [document.root valueForAttribute:@"id"];
 
                                                   if (from && requestID) {
-                                                      PXElement *response = [NSError IQResponseWithError:error];
+                                                      PXDocument *response = [NSError IQResponseWithError:error];
 
-                                                      [response setValue:from forAttribute:@"to"];
-                                                      [response setValue:requestID forAttribute:@"id"];
+                                                      [response.root setValue:from forAttribute:@"to"];
+                                                      [response.root setValue:requestID forAttribute:@"id"];
 
                                                       if (to)
-                                                          [response setValue:to forAttribute:@"from"];
+                                                          [response.root setValue:to forAttribute:@"from"];
 
-                                                      [self xmpp_routeStanza:response completion:nil];
+                                                      [self xmpp_routeDocument:response completion:nil];
                                                   }
 
                                               } else {
-                                                  [self xmpp_routeStanza:response completion:nil];
+                                                  [self xmpp_routeDocument:response completion:nil];
                                               }
                                           });
                                       }];
                     } else {
-                        NSString *from = [stanza valueForAttribute:@"from"];
-                        NSString *to = [stanza valueForAttribute:@"to"];
-                        NSString *requestID = [stanza valueForAttribute:@"id"];
+                        NSString *from = [document.root valueForAttribute:@"from"];
+                        NSString *to = [document.root valueForAttribute:@"to"];
+                        NSString *requestID = [document.root valueForAttribute:@"id"];
 
                         if (from && requestID) {
 
@@ -325,15 +295,15 @@
                                                                  code:XMPPStanzaErrorCodeItemNotFound
                                                              userInfo:nil];
 
-                            PXElement *response = [NSError IQResponseWithError:error];
+                            PXDocument *response = [NSError IQResponseWithError:error];
 
-                            [response setValue:from forAttribute:@"to"];
-                            [response setValue:requestID forAttribute:@"id"];
+                            [response.root setValue:from forAttribute:@"to"];
+                            [response.root setValue:requestID forAttribute:@"id"];
 
                             if (to)
-                                [response setValue:to forAttribute:@"from"];
+                                [response.root setValue:to forAttribute:@"from"];
 
-                            [self xmpp_routeStanza:response completion:nil];
+                            [self xmpp_routeDocument:response completion:nil];
                         }
                     }
                 } else {
@@ -345,9 +315,9 @@
             } else if ([type isEqualToString:@"result"] ||
                        [type isEqualToString:@"error"]) {
 
-                XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-                XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]];
-                NSString *requestID = [stanza valueForAttribute:@"id"];
+                XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+                XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]];
+                NSString *requestID = [document.root valueForAttribute:@"id"];
 
                 if (from && to && requestID) {
                     NSArray *key = @[ from, to, requestID ];
@@ -361,7 +331,7 @@
 
                     if (completion) {
                         [_responseHandlers removeObjectForKey:key];
-                        completion(stanza, nil);
+                        completion(document.root, nil);
                     }
                 }
 
@@ -382,7 +352,7 @@
     });
 }
 
-- (void)processPendingStanzas:(void (^)(NSError *))completion
+- (void)processPendingDocuments:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
         if (completion) {
@@ -393,11 +363,11 @@
 
 #pragma mark XMPPMessageHandler
 
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        if ([stanza isEqual:PXQN(@"jabber:client", @"message")]) {
-            [self xmpp_routeStanza:stanza completion:completion];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"message")]) {
+            [self xmpp_routeDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
@@ -411,11 +381,11 @@
 
 #pragma mark XMPPPresenceHandler
 
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        if ([stanza isEqual:PXQN(@"jabber:client", @"presence")]) {
-            [self xmpp_routeStanza:stanza completion:completion];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"presence")]) {
+            [self xmpp_routeDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
@@ -429,23 +399,23 @@
 
 #pragma mark XMPPIQHandler
 
-- (void)handleIQRequest:(PXElement *)stanza
+- (void)handleIQRequest:(PXDocument *)document
                 timeout:(NSTimeInterval)timeout
-             completion:(void (^)(PXElement *, NSError *))completion
+             completion:(void (^)(PXDocument *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
 
-        NSString *type = [stanza valueForAttribute:@"type"];
-        if ([stanza isEqual:PXQN(@"jabber:client", @"iq")] && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
+        NSString *type = [document.root valueForAttribute:@"type"];
+        if ([document.root isEqual:PXQN(@"jabber:client", @"iq")] && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
 
-            NSString *requestId = [stanza valueForAttribute:@"id"];
+            NSString *requestId = [document.root valueForAttribute:@"id"];
             if (requestId == nil) {
                 requestId = [[NSUUID UUID] UUIDString];
-                [stanza setValue:requestId forAttribute:@"id"];
+                [document.root setValue:requestId forAttribute:@"id"];
             }
 
-            XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-            XMPPJID *to = [XMPPJID JIDFromString:[stanza valueForAttribute:@"to"]] ?: [from bareJID];
+            XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+            XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]] ?: [from bareJID];
             NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
 
             if (completion) {
@@ -464,18 +434,18 @@
                 }
             });
 
-            [self xmpp_routeStanza:stanza
-                        completion:^(NSError *error) {
-                            if (error) {
-                                dispatch_async(_operationQueue, ^{
-                                    void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
-                                    if (completion) {
-                                        [_responseHandlers removeObjectForKey:key];
-                                        completion(nil, error);
-                                    }
-                                });
-                            }
-                        }];
+            [self xmpp_routeDocument:document
+                          completion:^(NSError *error) {
+                              if (error) {
+                                  dispatch_async(_operationQueue, ^{
+                                      void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:key];
+                                      if (completion) {
+                                          [_responseHandlers removeObjectForKey:key];
+                                          completion(nil, error);
+                                      }
+                                  });
+                              }
+                          }];
 
         } else {
             if (completion) {
@@ -490,23 +460,14 @@
 
 #pragma mark -
 
-- (NSArray *)xmpp_dispatcherHandlers
+- (void)xmpp_routeDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
-    NSMutableSet *handlers = [[NSMutableSet alloc] init];
-    [handlers addObjectsFromArray:[_messageHandlers allObjects]];
-    [handlers addObjectsFromArray:[_presenceHandlers allObjects]];
-    [handlers addObjectsFromArray:[[_IQHandlersByQuery objectEnumerator] allObjects]];
-    return [handlers allObjects];
-}
-
-- (void)xmpp_routeStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
-{
-    XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
+    XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
     if (from) {
         XMPPJID *bareJID = [from bareJID];
         id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
         if (connection) {
-            [connection handleStanza:stanza completion:completion];
+            [connection handleDocument:document completion:completion];
         } else {
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain

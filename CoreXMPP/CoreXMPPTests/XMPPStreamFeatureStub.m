@@ -43,7 +43,6 @@
 - (BOOL)needsRestart
 {
     return [[self.configuration.root valueForAttribute:@"needsRestart"] boolValue];
-    ;
 }
 
 #pragma mark Negotiate Feature
@@ -53,13 +52,15 @@
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"begin"
                                                         namespace:@"http://example.com/"
                                                            prefix:nil];
-    [self.stanzaHandler handleStanza:request.root completion:nil];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:@"http://example.com/"]) {
         if ([stanza.name isEqualToString:@"success"]) {
             [self xmpp_handleSuccess];
@@ -69,9 +70,7 @@
         }
     }
 
-    if (completion) {
-        completion(nil);
-    }
+    return YES;
 }
 
 #pragma mark -

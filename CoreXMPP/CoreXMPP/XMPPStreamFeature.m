@@ -88,18 +88,11 @@
 {
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
-    if (completion)
-        completion(nil);
-}
-
-- (void)processPendingStanzas:(void (^)(NSError *))completion
-{
-    if (completion)
-        completion(nil);
+    return YES;
 }
 
 @end

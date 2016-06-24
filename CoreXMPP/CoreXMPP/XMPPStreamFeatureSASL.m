@@ -191,10 +191,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                                             [request.root setStringValue:initialResponseString];
                                                         }
 
-                                                        [self.stanzaHandler handleStanza:request.root
-                                                                              completion:^(NSError *error){
-
-                                                                              }];
+                                                        [self.delegate streamFeature:self handleDocument:request];
                                                     }
                                                 });
                                             }];
@@ -211,10 +208,12 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
     }
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *error))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:XMPPStreamFeatureSASLNamespace]) {
 
         if ([stanza.name isEqualToString:@"success"]) {
@@ -266,18 +265,13 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                     }
                                 }
 
-                                [self.stanzaHandler handleStanza:response.root
-                                                      completion:^(NSError *error){
-
-                                                      }];
+                                [self.delegate streamFeature:self handleDocument:response];
                             });
                         }];
         }
     }
 
-    if (completion) {
-        completion(nil);
-    }
+    return YES;
 }
 
 #pragma mark -

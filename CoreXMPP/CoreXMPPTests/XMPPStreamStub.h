@@ -11,12 +11,12 @@
 extern NSString *const XMPPStreamStubStreamDidOpenNotification;
 extern NSString *const XMPPStreamStubStreamDidCloseNotification;
 extern NSString *const XMPPStreamStubStreamDidSendElementNotification;
-extern NSString *const XMPPStreamStubStreamNotificationElementKey;
+extern NSString *const XMPPStreamStubStreamNotificationDocumentKey;
 
 @interface XMPPStreamStub : XMPPStream
 
-#pragma mark Receiving Element
-- (void)receiveElement:(PXElement *)element;
+#pragma mark Receiving Document
+- (void)receiveDocument:(PXDocument *)document;
 
 #pragma mark Fail with Error
 - (void)failWithError:(NSError *)error;
@@ -28,6 +28,6 @@ extern NSString *const XMPPStreamStubStreamNotificationElementKey;
 - (void)onDidOpen:(void (^)(XMPPStreamStub *stream))handler;
 - (void)onDidClose:(void (^)(XMPPStreamStub *stream))handler;
 - (void)onDidFail:(void (^)(XMPPStreamStub *stream))handler;
-- (void)onDidSendElement:(void (^)(XMPPStreamStub *stream, PXElement *element))handler;
+- (void)onDidSendDocument:(void (^)(XMPPStreamStub *stream, PXDocument *document))handler;
 
 @end

@@ -48,7 +48,7 @@
 {
 }
 
-- (void)sendElement:(PXElement *)element
+- (void)sendDocument:(PXDocument *)document
 {
 }
 
