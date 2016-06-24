@@ -12,7 +12,6 @@
 #import "XMPPDocumentHandler.h"
 
 @class PXQName;
-@class PXElement;
 @class XMPPJID;
 
 @protocol XMPPDispatcherHandler <NSObject>

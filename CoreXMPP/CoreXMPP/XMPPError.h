@@ -116,6 +116,7 @@ typedef NS_ENUM(NSInteger, XMPPStanzaErrorCode) {
     XMPPStanzaErrorCodeUnexpectedRequest      // unexpected-request
 };
 
+@class PXDocument;
 @class PXElement;
 
 @interface NSError (XMPP)
@@ -123,5 +124,5 @@ typedef NS_ENUM(NSInteger, XMPPStanzaErrorCode) {
 + (NSInteger)stanzaErrorCodeWithName:(NSString *)name;
 + (NSError *)errorFromStanza:(PXElement *)element;
 + (NSError *)errorFromElement:(PXElement *)errorElement;
-+ (PXElement *)IQResponseWithError:(NSError *)error;
++ (PXDocument *)IQResponseWithError:(NSError *)error;
 @end

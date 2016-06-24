@@ -242,7 +242,7 @@ NSString *const XMPPErrorUnderlyingErrorsKey = @"XMPPErrorUnderlyingErrorsKey";
     }
 }
 
-+ (PXElement *)IQResponseWithError:(NSError *)error
++ (PXDocument *)IQResponseWithError:(NSError *)error
 {
     NSUInteger errorCode = XMPPStanzaErrorCodeUndefinedCondition;
     if ([error.domain isEqualToString:XMPPStanzaErrorDomain]) {
@@ -266,7 +266,7 @@ NSString *const XMPPErrorUnderlyingErrorsKey = @"XMPPErrorUnderlyingErrorsKey";
     PXElement *errorElement = [response addElementWithName:@"error" namespace:@"jabber:client" content:nil];
     [errorElement addElementWithName:errorName namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
 
-    return response;
+    return doc;
 }
 
 @end

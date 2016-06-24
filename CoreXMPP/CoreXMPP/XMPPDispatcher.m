@@ -298,15 +298,15 @@
                                                   NSString *requestID = [document.root valueForAttribute:@"id"];
 
                                                   if (from && requestID) {
-                                                      PXElement *response = [NSError IQResponseWithError:error];
+                                                      PXDocument *response = [NSError IQResponseWithError:error];
 
-                                                      [response setValue:from forAttribute:@"to"];
-                                                      [response setValue:requestID forAttribute:@"id"];
+                                                      [response.root setValue:from forAttribute:@"to"];
+                                                      [response.root setValue:requestID forAttribute:@"id"];
 
                                                       if (to)
-                                                          [response setValue:to forAttribute:@"from"];
+                                                          [response.root setValue:to forAttribute:@"from"];
 
-                                                      [self xmpp_routeStanza:response completion:nil];
+                                                      [self xmpp_routeDocument:response completion:nil];
                                                   }
 
                                               } else {
@@ -325,15 +325,15 @@
                                                                  code:XMPPStanzaErrorCodeItemNotFound
                                                              userInfo:nil];
 
-                            PXElement *response = [NSError IQResponseWithError:error];
+                            PXDocument *response = [NSError IQResponseWithError:error];
 
-                            [response setValue:from forAttribute:@"to"];
-                            [response setValue:requestID forAttribute:@"id"];
+                            [response.root setValue:from forAttribute:@"to"];
+                            [response.root setValue:requestID forAttribute:@"id"];
 
                             if (to)
-                                [response setValue:to forAttribute:@"from"];
+                                [response.root setValue:to forAttribute:@"from"];
 
-                            [self xmpp_routeStanza:response completion:nil];
+                            [self xmpp_routeDocument:response completion:nil];
                         }
                     }
                 } else {
@@ -497,33 +497,6 @@
     [handlers addObjectsFromArray:[_presenceHandlers allObjects]];
     [handlers addObjectsFromArray:[[_IQHandlersByQuery objectEnumerator] allObjects]];
     return [handlers allObjects];
-}
-
-- (void)xmpp_routeStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
-{
-    XMPPJID *from = [XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]];
-    if (from) {
-        XMPPJID *bareJID = [from bareJID];
-        id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];
-        if (connection) {
-            PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
-            [connection handleDocument:document completion:completion];
-        } else {
-            if (completion) {
-                NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                                     code:XMPPDispatcherErrorCodeNoRoute
-                                                 userInfo:nil];
-                completion(error);
-            }
-        }
-    } else {
-        if (completion) {
-            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                                 code:XMPPDispatcherErrorCodeNoSender
-                                             userInfo:nil];
-            completion(error);
-        }
-    }
 }
 
 - (void)xmpp_routeDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
