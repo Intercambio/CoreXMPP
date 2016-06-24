@@ -31,17 +31,15 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -68,12 +66,11 @@
             PXElement *bind = [iq addElementWithName:@"bind" namespace:XMPPStreamFeatureBindNamespace content:nil];
             [bind addElementWithName:@"jid" namespace:XMPPStreamFeatureBindNamespace content:@"test@example.com/example"];
 
-            [feature handleStanza:iq completion:nil];
-        });
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
 
-        if (_completion) {
-            _completion(nil);
-        }
+        });
 
         return nil;
     }];
@@ -105,19 +102,17 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     [given([delegate resourceNameForStreamFeature:feature]) willReturn:@"example"];
 
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         assertThat(iq.name, equalTo(@"iq"));
         assertThat(iq.namespace, equalTo(@"jabber:client"));
@@ -149,12 +144,10 @@
             PXElement *bind = [iq addElementWithName:@"bind" namespace:XMPPStreamFeatureBindNamespace content:nil];
             [bind addElementWithName:@"jid" namespace:XMPPStreamFeatureBindNamespace content:@"test@example.com/example"];
 
-            [feature handleStanza:iq completion:nil];
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];
@@ -186,19 +179,17 @@
     id<XMPPStreamFeatureDelegateBind> delegate = mockProtocol(@protocol(XMPPStreamFeatureDelegateBind));
     feature.delegate = delegate;
 
-    id<XMPPStanzaHandler> stanzaHandler = mockProtocol(@protocol(XMPPStanzaHandler));
-    feature.stanzaHandler = stanzaHandler;
-
     [given([delegate resourceNameForStreamFeature:feature]) willReturn:@"example"];
 
     //
     // Prepare Negotiation
     //
 
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate streamFeature:feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *iq = [[invocation mkt_arguments] firstObject];
-        void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+
+        PXElement *iq = document.root;
 
         NSString *requestId = [iq valueForAttribute:@"id"];
 
@@ -209,16 +200,14 @@
             [iq setValue:@"error" forAttribute:@"type"];
             [iq setValue:requestId forAttribute:@"id"];
 
-            PXElement *error = [iq addElementWithName:@"error" namespace:@"jabber:client" content:nil];
-            [error setValue:@"modify" forAttribute:@"type"];
-            [error addElementWithName:@"conflict" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
+            PXElement *errorElement = [iq addElementWithName:@"error" namespace:@"jabber:client" content:nil];
+            [errorElement setValue:@"modify" forAttribute:@"type"];
+            [errorElement addElementWithName:@"conflict" namespace:@"urn:ietf:params:xml:ns:xmpp-stanzas" content:nil];
 
-            [feature handleStanza:iq completion:nil];
+            NSError *error = nil;
+            BOOL success = [feature handleDocument:response error:&error];
+            XCTAssertTrue(success, @"Failed to handle document: %@", [error localizedDescription]);
         });
-
-        if (_completion) {
-            _completion(nil);
-        }
 
         return nil;
     }];

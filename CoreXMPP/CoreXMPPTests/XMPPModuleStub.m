@@ -45,35 +45,35 @@
 
 #pragma mark Handler
 
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onMessageCallbacks firstObject];
+        void (^_callback)(PXDocument *) = [_onMessageCallbacks firstObject];
         if (_callback) {
             [_onMessageCallbacks removeObjectAtIndex:0];
-            _callback(stanza);
+            _callback(document);
         }
     });
 }
 
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *) = [_onPresenceCallbacks firstObject];
+        void (^_callback)(PXDocument *) = [_onPresenceCallbacks firstObject];
         if (_callback) {
             [_onPresenceCallbacks removeObjectAtIndex:0];
-            _callback(stanza);
+            _callback(document);
         }
     });
 }
 
-- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *, NSError *))completion
+- (void)handleIQRequest:(PXDocument *)document timeout:(NSTimeInterval)timeout completion:(void (^)(PXDocument *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)) = [_onIQRequestCallbacks firstObject];
+        void (^_callback)(PXDocument *document, NSTimeInterval timeout, void (^)(PXDocument *, NSError *)) = [_onIQRequestCallbacks firstObject];
         if (_callback) {
             [_onIQRequestCallbacks removeObjectAtIndex:0];
-            _callback(stanza, timeout, completion);
+            _callback(document, timeout, completion);
         }
     });
 }
@@ -124,7 +124,7 @@
 
 #pragma mark -
 
-- (void)onMessage:(void (^)(PXElement *))callback
+- (void)onMessage:(void (^)(PXDocument *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
@@ -133,7 +133,7 @@
     });
 }
 
-- (void)onPresence:(void (^)(PXElement *))callback
+- (void)onPresence:(void (^)(PXDocument *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
@@ -142,7 +142,7 @@
     });
 }
 
-- (void)onIQRequest:(void (^)(PXElement *stanza, NSTimeInterval timeout, void (^)(PXElement *, NSError *)))callback
+- (void)onIQRequest:(void (^)(PXDocument *, NSTimeInterval, void (^)(PXDocument *, NSError *)))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {

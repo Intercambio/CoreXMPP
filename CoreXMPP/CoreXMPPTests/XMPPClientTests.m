@@ -71,12 +71,12 @@
     [ping.root setValue:@"get" forAttribute:@"type"];
     [ping.root setValue:@"localhost" forAttribute:@"to"];
     [ping.root addElementWithName:@"ping" namespace:@"urn:xmpp:ping" content:nil];
-    [client handleStanza:ping.root
-              completion:^(NSError *error){
+    [client handleDocument:ping
+                completion:^(NSError *error){
 
-              }];
+                }];
 
-    [givenVoid([stanzaHandler processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([stanzaHandler processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -87,15 +87,15 @@
     }];
 
     XCTestExpectation *waitForPong = [self expectationWithDescription:@"Wait for Pong"];
-    [givenVoid([stanzaHandler handleStanza:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
-        PXElement *pong = [[invocation mkt_arguments] firstObject];
+    [givenVoid([stanzaHandler handleDocument:anything() completion:anything()]) willDo:^id(NSInvocation *invocation) {
+        PXDocument *pong = [[invocation mkt_arguments] firstObject];
         void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
         dispatch_async(dispatch_get_main_queue(), ^{
             if (_completion) {
                 _completion(nil);
             }
-            if ([pong isKindOfClass:[PXElement class]] &&
-                [[pong valueForAttribute:@"id"] isEqualToString:pingIQId]) {
+            if ([pong.root isKindOfClass:[PXElement class]] &&
+                [[pong.root valueForAttribute:@"id"] isEqualToString:pingIQId]) {
                 [waitForPong fulfill];
             }
         });
@@ -111,10 +111,10 @@
     [messageDocument.root setValue:@"localhost" forAttribute:@"to"];
 
     XCTestExpectation *expectMessageAck = [self expectationWithDescription:@"Expect Ack"];
-    [client handleStanza:messageDocument.root
-              completion:^(NSError *error) {
-                  [expectMessageAck fulfill];
-              }];
+    [client handleDocument:messageDocument
+                completion:^(NSError *error) {
+                    [expectMessageAck fulfill];
+                }];
     [self waitForExpectationsWithTimeout:10.0 handler:nil];
 
     //
@@ -141,7 +141,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -231,7 +231,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -294,7 +294,7 @@
                            namespace:@"urn:ietf:params:xml:ns:xmpp-streams"
                              content:nil];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
         [stream closeByPeer];
     }];
 
@@ -444,14 +444,16 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
 
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
@@ -461,7 +463,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -518,15 +520,16 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"yes" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -535,7 +538,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -547,7 +550,7 @@
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -604,15 +607,16 @@
         [feature setValue:@"no" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (failure)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -621,7 +625,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -670,15 +674,16 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -687,7 +692,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -744,15 +749,16 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"yes" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -761,7 +767,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -773,7 +779,7 @@
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -830,15 +836,16 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Feature (failure)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -847,7 +854,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"failure"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -911,22 +918,23 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"PLAIN"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate SASL
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"auth"));
         assertThat(element.namespace, equalTo(@"urn:ietf:params:xml:ns:xmpp-sasl"));
 
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"urn:ietf:params:xml:ns:xmpp-sasl"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -945,15 +953,16 @@
         [feature setValue:@"yes" forAttribute:@"mandatory"];
         [feature setValue:@"no" forAttribute:@"needsRestart"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
     // Negotiate Test Feature (success)
     //
 
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
 
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"begin"));
         assertThat(element.namespace, equalTo(@"http://example.com/"));
 
@@ -962,7 +971,7 @@
         PXDocument *response = [[PXDocument alloc] initWithElementName:@"success"
                                                              namespace:@"http://example.com/"
                                                                 prefix:nil];
-        [stream receiveElement:response.root];
+        [stream receiveDocument:response];
     }];
 
     //
@@ -1034,7 +1043,7 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"X-TEST-AUTH"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1080,7 +1089,7 @@
                               namespace:[XMPPStreamFeatureSASL namespace]
                                 content:@"PLAIN"];
 
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1114,7 +1123,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1128,7 +1137,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1147,15 +1156,15 @@
 
     PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
     [messageDocument.root setStringValue:@"1"];
-    [self.stream receiveElement:messageDocument.root];
+    [self.stream receiveDocument:messageDocument];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
     [presenceDocument.root setStringValue:@"2"];
-    [self.stream receiveElement:presenceDocument.root];
+    [self.stream receiveDocument:presenceDocument];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     [IQDocument.root setStringValue:@"3"];
-    [self.stream receiveElement:IQDocument.root];
+    [self.stream receiveDocument:IQDocument];
 
     //
     // Receive Unsupported Element
@@ -1163,7 +1172,7 @@
 
     PXDocument *document = [[PXDocument alloc] initWithElementName:@"foo" namespace:@"http://example.com/bar" prefix:nil];
     [document.root setStringValue:@"x"];
-    [self.stream receiveElement:document.root];
+    [self.stream receiveDocument:document];
 
     //
     // Disconnect Client
@@ -1179,45 +1188,45 @@
     // Verify Stanzas
     //
 
-    HCArgumentCaptor *captoredStanzas = [[HCArgumentCaptor alloc] init];
-    [verifyCount(connectionDelegate, atLeastOnce()) handleStanza:(id)captoredStanzas completion:anything()];
+    HCArgumentCaptor *captoredDocuments = [[HCArgumentCaptor alloc] init];
+    [verifyCount(connectionDelegate, atLeastOnce()) handleDocument:(id)captoredDocuments completion:anything()];
 
-    NSArray *stanzas = [captoredStanzas allValues];
-    assertThat(stanzas, hasCountOf(3));
+    NSArray *documents = [captoredDocuments allValues];
+    assertThat(documents, hasCountOf(3));
 
-    if ([stanzas count] == 3) {
-        PXElement *stanza = nil;
+    if ([documents count] == 3) {
+        PXDocument *document = nil;
 
-        stanza = stanzas[0];
-        assertThat(stanza.name, equalTo(@"message"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"1"));
+        document = documents[0];
+        assertThat(document.root.name, equalTo(@"message"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"1"));
 
-        stanza = stanzas[1];
-        assertThat(stanza.name, equalTo(@"presence"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"2"));
+        document = documents[1];
+        assertThat(document.root.name, equalTo(@"presence"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"2"));
 
-        stanza = stanzas[2];
-        assertThat(stanza.name, equalTo(@"iq"));
-        assertThat(stanza.namespace, equalTo(@"jabber:client"));
-        assertThat(stanza.stringValue, equalTo(@"3"));
+        document = documents[2];
+        assertThat(document.root.name, equalTo(@"iq"));
+        assertThat(document.root.namespace, equalTo(@"jabber:client"));
+        assertThat(document.root.stringValue, equalTo(@"3"));
     }
 
     //
-    // Verify Unsupported Elements
+    // Verify Unsupported Documents
     //
 
-    HCArgumentCaptor *captoredElements = [[HCArgumentCaptor alloc] init];
-    [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedElement:(id)captoredElements];
+    captoredDocuments = [[HCArgumentCaptor alloc] init];
+    [verifyCount(delegate, atLeastOnce()) client:client didReceiveUnsupportedDocument:(id)captoredDocuments];
 
-    NSArray *elements = [captoredElements allValues];
-    assertThat(elements, hasCountOf(1));
+    documents = [captoredDocuments allValues];
+    assertThat(documents, hasCountOf(1));
 
-    PXElement *element = [elements firstObject];
-    assertThat(element.name, equalTo(@"foo"));
-    assertThat(element.namespace, equalTo(@"http://example.com/bar"));
-    assertThat(element.stringValue, equalTo(@"x"));
+    document = [documents firstObject];
+    assertThat(document.root.name, equalTo(@"foo"));
+    assertThat(document.root.namespace, equalTo(@"http://example.com/bar"));
+    assertThat(document.root.stringValue, equalTo(@"x"));
 }
 
 - (void)testSendStanzas
@@ -1236,7 +1245,7 @@
     id<XMPPConnectionDelegate> connectionDelegate = mockProtocol(@protocol(XMPPConnectionDelegate));
     client.connectionDelegate = connectionDelegate;
 
-    [givenVoid([connectionDelegate processPendingStanzas:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([connectionDelegate processPendingDocuments:anything()]) willDo:^id(NSInvocation *invocation) {
         dispatch_async(dispatch_get_main_queue(), ^{
             void (^_completion)(NSError *error) = [[invocation mkt_arguments] lastObject];
             if (_completion) {
@@ -1250,7 +1259,7 @@
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"features"
                                                         namespace:@"http://etherx.jabber.org/streams"
                                                            prefix:@"stream"];
-        [stream receiveElement:doc.root];
+        [stream receiveDocument:doc];
     }];
 
     //
@@ -1268,25 +1277,31 @@
     //
 
     PXDocument *messageDocument = [[PXDocument alloc] initWithElementName:@"message" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"message"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:messageDocument.root completion:nil];
+    [client handleDocument:messageDocument completion:nil];
 
     PXDocument *presenceDocument = [[PXDocument alloc] initWithElementName:@"presence" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"presence"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:presenceDocument.root completion:nil];
+    [client handleDocument:presenceDocument completion:nil];
 
     PXDocument *IQDocument = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-    [self.stream onDidSendElement:^(XMPPStreamStub *stream, PXElement *element) {
+    [self.stream onDidSendDocument:^(XMPPStreamStub *stream, PXDocument *document) {
+
+        PXElement *element = document.root;
         assertThat(element.name, equalTo(@"iq"));
         assertThat(element.namespace, equalTo(@"jabber:client"));
     }];
-    [client handleStanza:IQDocument.root completion:nil];
+    [client handleDocument:IQDocument completion:nil];
 
     //
     // Disconnect Client

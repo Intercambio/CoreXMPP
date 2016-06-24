@@ -11,5 +11,5 @@
 @class PXElement;
 
 @interface XMPPConnectionStub : NSObject <XMPPConnection>
-- (void)onHandleStanza:(void (^)(PXElement *stanza, void (^completion)(NSError *), id<XMPPStanzaHandler> responseHandler))callback;
+- (void)onHandleDocument:(void (^)(PXDocument *document, void (^completion)(NSError *), id<XMPPDocumentHandler> responseHandler))callback;
 @end

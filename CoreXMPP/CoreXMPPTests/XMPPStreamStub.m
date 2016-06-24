@@ -11,7 +11,7 @@
 NSString *const XMPPStreamStubStreamDidOpenNotification = @"XMPPStreamStubStreamDidOpenNotification";
 NSString *const XMPPStreamStubStreamDidCloseNotification = @"XMPPStreamStubStreamDidCloseNotification";
 NSString *const XMPPStreamStubStreamDidSendElementNotification = @"XMPPStreamStubStreamDidSendElementNotification";
-NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStreamNotificationElementKey";
+NSString *const XMPPStreamStubStreamNotificationDocumentKey = @"XMPPStreamStubStreamNotificationDocumentKey";
 
 @interface XMPPStreamStub () {
     XMPPStreamState _state;
@@ -20,7 +20,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     NSMutableArray *_onDidOpenCallbacks;
     NSMutableArray *_onDidCloseCallbacks;
     NSMutableArray *_onDidFailCallbacks;
-    NSMutableArray *_onDidSendElementCallbacks;
+    NSMutableArray *_onDidSendDocumentCallbacks;
 }
 
 @end
@@ -40,7 +40,7 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
         _onDidOpenCallbacks = [[NSMutableArray alloc] init];
         _onDidCloseCallbacks = [[NSMutableArray alloc] init];
         _onDidFailCallbacks = [[NSMutableArray alloc] init];
-        _onDidSendElementCallbacks = [[NSMutableArray alloc] init];
+        _onDidSendDocumentCallbacks = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -145,30 +145,30 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
 
 #pragma mark Sending Element
 
-- (void)sendElement:(PXElement *)element
+- (void)sendDocument:(PXDocument *)document
 {
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only send an element if the stream is open.");
 
     [[NSNotificationCenter defaultCenter] postNotificationName:XMPPStreamStubStreamDidSendElementNotification
                                                         object:self
-                                                      userInfo:@{XMPPStreamStubStreamNotificationElementKey : element}];
+                                                      userInfo:@{XMPPStreamStubStreamNotificationDocumentKey : document}];
 
-    void (^_callback)(XMPPStreamStub *, PXElement *) = [_onDidSendElementCallbacks firstObject];
+    void (^_callback)(XMPPStreamStub *, PXDocument *) = [_onDidSendDocumentCallbacks firstObject];
     if (_callback) {
-        [_onDidSendElementCallbacks removeObjectAtIndex:0];
-        _callback(self, element);
+        [_onDidSendDocumentCallbacks removeObjectAtIndex:0];
+        _callback(self, document);
     }
 }
 
-#pragma mark Receiving Element
+#pragma mark Receiving Document
 
-- (void)receiveElement:(PXElement *)element
+- (void)receiveDocument:(PXDocument *)document
 {
     dispatch_async([self xmpp_queue], ^{
         NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only receive an element if the stream is open.");
 
-        if ([self.delegate respondsToSelector:@selector(stream:didReceiveElement:)]) {
-            [self.delegate stream:self didReceiveElement:element];
+        if ([self.delegate respondsToSelector:@selector(stream:didReceiveDocument:)]) {
+            [self.delegate stream:self didReceiveDocument:document];
         }
     });
 }
@@ -223,10 +223,10 @@ NSString *const XMPPStreamStubStreamNotificationElementKey = @"XMPPStreamStubStr
     }
 }
 
-- (void)onDidSendElement:(void (^)(XMPPStreamStub *stream, PXElement *element))handler
+- (void)onDidSendDocument:(void (^)(XMPPStreamStub *stream, PXDocument *document))handler
 {
     if (handler) {
-        [_onDidSendElementCallbacks addObject:handler];
+        [_onDidSendDocumentCallbacks addObject:handler];
     }
 }
 

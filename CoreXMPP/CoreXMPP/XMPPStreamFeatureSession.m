@@ -81,40 +81,35 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     [iq setValue:_requestId forAttribute:@"id"];
     [iq addElementWithName:@"session" namespace:XMPPStreamFeatureSessionNamespace content:nil];
 
-    [self.stanzaHandler handleStanza:iq
-                          completion:^(NSError *error){
-
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:@"jabber:client"] &&
         [stanza.name isEqualToString:@"iq"]) {
 
         NSString *type = [stanza valueForAttribute:@"type"];
 
         if ([type isEqualToString:@"result"]) {
-            [self handleIQResult:stanza completion:completion];
+            return [self handleIQResult:stanza error:error];
         } else if ([type isEqualToString:@"error"]) {
-            [self handleIQError:stanza completion:completion];
+            return [self handleIQError:stanza error:error];
         } else {
-            if (completion) {
-                completion(nil);
-            }
+            return YES;
         }
     } else {
-        if (completion) {
-            completion(nil);
-        }
+        return YES;
     }
 }
 
 #pragma mark -
 
-- (void)handleIQResult:(PXElement *)iq completion:(void (^)(NSError *))completion
+- (BOOL)handleIQResult:(PXElement *)iq error:(NSError **)error
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -124,14 +119,12 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
         [self.delegate streamFeatureDidSucceedNegotiation:self];
         _requestId = nil;
-
-        if (completion) {
-            completion(nil);
-        }
     }
+
+    return YES;
 }
 
-- (void)handleIQError:(PXElement *)iq completion:(void (^)(NSError *))completion
+- (BOOL)handleIQError:(PXElement *)iq error:(NSError **)error
 {
     NSString *responseId = [iq valueForAttribute:@"id"];
 
@@ -142,11 +135,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;
-
-        if (completion) {
-            completion(nil);
-        }
     }
+
+    return YES;
 }
 
 @end

@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #import "XMPPConnection.h"
-#import "XMPPStanzaHandler.h"
+#import "XMPPDocumentHandler.h"
 
 @class PXQName;
 @class PXElement;
@@ -24,15 +24,15 @@
 @end
 
 @protocol XMPPIQHandler <XMPPDispatcherHandler>
-- (void)handleIQRequest:(PXElement *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(PXElement *response, NSError *error))completion;
+- (void)handleIQRequest:(PXDocument *)document timeout:(NSTimeInterval)timeout completion:(void (^)(PXDocument *response, NSError *error))completion;
 @end
 
 @protocol XMPPMessageHandler <XMPPDispatcherHandler>
-- (void)handleMessage:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
+- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *error))completion;
 @end
 
 @protocol XMPPPresenceHandler <XMPPDispatcherHandler>
-- (void)handlePresence:(PXElement *)stanza completion:(void (^)(NSError *error))completion;
+- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *error))completion;
 @end
 
 @interface XMPPDispatcher : NSObject <XMPPConnectionDelegate, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>

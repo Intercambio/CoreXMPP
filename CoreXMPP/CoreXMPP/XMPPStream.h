@@ -24,7 +24,7 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 @protocol XMPPStreamDelegate <NSObject>
 @optional
 - (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId;
-- (void)stream:(XMPPStream *)stream didReceiveElement:(PXElement *)element;
+- (void)stream:(XMPPStream *)stream didReceiveDocument:(PXDocument *)document;
 - (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error;
 - (void)streamDidClose:(XMPPStream *)stream;
 @end
@@ -59,7 +59,7 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 - (void)close;
 - (void)suspend;
 
-#pragma mark Sending Element
-- (void)sendElement:(PXElement *)element;
+#pragma mark Sending Document
+- (void)sendDocument:(PXDocument *)document;
 
 @end

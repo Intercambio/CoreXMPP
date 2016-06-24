@@ -13,7 +13,7 @@
 #import "XMPPStreamFeatureStreamManagement.h"
 
 @interface XMPPStreamFeatureStreamManagement_Stanza : NSObject
-@property (nonatomic, strong) PXElement *stanza;
+@property (nonatomic, strong) PXDocument *document;
 @property (nonatomic, strong) void (^acknowledgement)(NSError *error);
 @end
 
@@ -26,10 +26,10 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     BOOL _resumable;
     BOOL _resumed;
     NSString *_id;
-    NSUInteger _numberOfReceivedStanzas;
-    NSUInteger _numberOfSentStanzas;
-    NSUInteger _numberOfAcknowledgedStanzas;
-    NSArray *_unacknowledgedStanzas;
+    NSUInteger _numberOfReceivedDocuments;
+    NSUInteger _numberOfSentDocuments;
+    NSUInteger _numberOfAcknowledgedDocuments;
+    NSArray *_unacknowledgedDocuments;
 }
 @end
 
@@ -95,48 +95,48 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 @synthesize enabled = _enabled;
 @synthesize resumable = _resumable;
 @synthesize resumed = _resumed;
-@synthesize numberOfReceivedStanzas = _numberOfReceivedStanzas;
-@synthesize numberOfSentStanzas = _numberOfSentStanzas;
-@synthesize numberOfAcknowledgedStanzas = _numberOfAcknowledgedStanzas;
+@synthesize numberOfReceivedDocuments = _numberOfReceivedDocuments;
+@synthesize numberOfSentDocuments = _numberOfSentDocuments;
+@synthesize numberOfAcknowledgedDocuments = _numberOfAcknowledgedDocuments;
 
-- (NSArray *)unacknowledgedStanzas
+- (NSArray *)unacknowledgedDocuments
 {
-    NSMutableArray *unacknowledgedStanzas = [[NSMutableArray alloc] init];
-    if (_unacknowledgedStanzas) {
-        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
-            [unacknowledgedStanzas addObject:wrapper.stanza];
+    NSMutableArray *unacknowledgedDocuments = [[NSMutableArray alloc] init];
+    if (_unacknowledgedDocuments) {
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
+            [unacknowledgedDocuments addObject:wrapper.document];
         }
     }
-    return unacknowledgedStanzas;
+    return unacknowledgedDocuments;
 }
 
-- (void)didSentStanza:(PXElement *)stanza acknowledgement:(void (^)(NSError *error))acknowledgement;
+- (void)didSentDocument:(PXDocument *)document acknowledgement:(void (^)(NSError *error))acknowledgement;
 {
-    [self willChangeValueForKey:@"numberOfSentStanzas"];
-    [self willChangeValueForKey:@"unacknowledgedStanzas"];
+    [self willChangeValueForKey:@"numberOfSentDocuments"];
+    [self willChangeValueForKey:@"unacknowledgedDocuments"];
 
     XMPPStreamFeatureStreamManagement_Stanza *wrapper = [[XMPPStreamFeatureStreamManagement_Stanza alloc] init];
-    wrapper.stanza = stanza;
+    wrapper.document = document;
     wrapper.acknowledgement = acknowledgement;
 
-    _numberOfSentStanzas += 1;
-    _unacknowledgedStanzas = [_unacknowledgedStanzas arrayByAddingObject:wrapper];
+    _numberOfSentDocuments += 1;
+    _unacknowledgedDocuments = [_unacknowledgedDocuments arrayByAddingObject:wrapper];
 
-    [self didChangeValueForKey:@"unacknowledgedStanzas"];
-    [self didChangeValueForKey:@"numberOfSentStanzas"];
+    [self didChangeValueForKey:@"unacknowledgedDocuments"];
+    [self didChangeValueForKey:@"numberOfSentDocuments"];
 
     if (wrapper.acknowledgement) {
         [self requestAcknowledgement];
     }
 }
 
-- (void)didHandleReceviedStanza:(PXElement *)stanza
+- (void)didHandleReceviedDocument:(PXDocument *)document
 {
-    [self willChangeValueForKey:@"numberOfReceivedStanzas"];
+    [self willChangeValueForKey:@"numberOfReceivedDocuments"];
 
-    _numberOfReceivedStanzas += 1;
+    _numberOfReceivedDocuments += 1;
 
-    [self didChangeValueForKey:@"numberOfReceivedStanzas"];
+    [self didChangeValueForKey:@"numberOfReceivedDocuments"];
 }
 
 - (void)requestAcknowledgement
@@ -144,13 +144,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     PXDocument *response = [[PXDocument alloc] initWithElementName:@"r"
                                                          namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                             prefix:nil];
-
-    [self.stanzaHandler handleStanza:response.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to request ack with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:response];
 }
 
 - (void)sendAcknowledgement
@@ -158,36 +152,32 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     PXDocument *response = [[PXDocument alloc] initWithElementName:@"a"
                                                          namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                             prefix:nil];
-    [response.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
-
-    [self.stanzaHandler handleStanza:response.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to send ack with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [response.root setValue:[@(_numberOfReceivedDocuments) stringValue] forAttribute:@"h"];
+    [self.delegate streamFeature:self handleDocument:response];
 }
 
-- (void)cancelUnacknowledgedStanzas
+- (void)cancelUnacknowledgedDocuments
 {
-    if ([_unacknowledgedStanzas count] > 0) {
-        DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedStanzas count]);
+    if ([_unacknowledgedDocuments count] > 0) {
+        DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
         NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                              code:XMPPDispatcherErrorCodeNotConnected
                                          userInfo:nil];
-        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
             if (wrapper.acknowledgement) {
                 wrapper.acknowledgement(error);
             }
         }
-        _unacknowledgedStanzas = @[];
+        _unacknowledgedDocuments = @[];
     }
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark Handle Document
 
-- (void)handleStanza:(PXElement *)stanza completion:(void (^)(NSError *))completion
+- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    PXElement *stanza = document.root;
+
     if ([stanza.namespace isEqualToString:[XMPPStreamFeatureStreamManagement namespace]]) {
 
         if ([stanza.name isEqualToString:@"enabled"]) {
@@ -197,10 +187,10 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
             _enabled = YES;
             _resumed = NO;
-            _numberOfSentStanzas = 0;
-            _numberOfReceivedStanzas = 0;
-            _numberOfAcknowledgedStanzas = 0;
-            _unacknowledgedStanzas = @[];
+            _numberOfSentDocuments = 0;
+            _numberOfReceivedDocuments = 0;
+            _numberOfAcknowledgedDocuments = 0;
+            _unacknowledgedDocuments = @[];
 
             [self.delegate streamFeatureDidSucceedNegotiation:self];
 
@@ -247,9 +237,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
         }
     }
 
-    if (completion) {
-        completion(nil);
-    }
+    return YES;
 }
 
 #pragma mark -
@@ -262,13 +250,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     [request.root setValue:@"true" forAttribute:@"resume"];
 
     _resumed = NO;
-
-    [self.stanzaHandler handleStanza:request.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to enable stream management with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 - (void)xmpp_resume
@@ -277,58 +259,47 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                                                         namespace:[XMPPStreamFeatureStreamManagement namespace]
                                                            prefix:nil];
     [request.root setValue:_id forAttribute:@"previd"];
-    [request.root setValue:[@(_numberOfReceivedStanzas) stringValue] forAttribute:@"h"];
+    [request.root setValue:[@(_numberOfReceivedDocuments) stringValue] forAttribute:@"h"];
 
     _resumed = NO;
-
-    [self.stanzaHandler handleStanza:request.root
-                          completion:^(NSError *error) {
-                              if (error) {
-                                  DDLogError(@"Failed to send resume with error: %@", [error localizedDescription]);
-                              }
-                          }];
+    [self.delegate streamFeature:self handleDocument:request];
 }
 
 - (void)xmpp_updateWithNumberOfAcknowledgedStanzas:(NSUInteger)numberOfAcknowledgedStanzas
 {
-    if (_numberOfAcknowledgedStanzas > numberOfAcknowledgedStanzas ||
-        _numberOfSentStanzas < numberOfAcknowledgedStanzas) {
+    if (_numberOfAcknowledgedDocuments > numberOfAcknowledgedStanzas ||
+        _numberOfSentDocuments < numberOfAcknowledgedStanzas) {
 
         DDLogWarn(@"Received invalid ack (%ld). Stream has sent (%ld) stanzas and (%ld) have already been acknowledged.",
                   (unsigned long)numberOfAcknowledgedStanzas,
-                  (unsigned long)_numberOfSentStanzas,
-                  (unsigned long)_numberOfAcknowledgedStanzas);
+                  (unsigned long)_numberOfSentDocuments,
+                  (unsigned long)_numberOfAcknowledgedDocuments);
 
     } else {
-        NSUInteger diff = numberOfAcknowledgedStanzas - _numberOfAcknowledgedStanzas;
+        NSUInteger diff = numberOfAcknowledgedStanzas - _numberOfAcknowledgedDocuments;
 
         if (diff > 0) {
-            NSArray *acknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(0, diff)];
+            NSArray *acknowledgedStanzas = [_unacknowledgedDocuments subarrayWithRange:NSMakeRange(0, diff)];
             for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in acknowledgedStanzas) {
                 if (wrapper.acknowledgement) {
                     wrapper.acknowledgement(nil);
                 }
             }
 
-            _unacknowledgedStanzas = [_unacknowledgedStanzas subarrayWithRange:NSMakeRange(diff, [_unacknowledgedStanzas count] - diff)];
-            _numberOfAcknowledgedStanzas = numberOfAcknowledgedStanzas;
+            _unacknowledgedDocuments = [_unacknowledgedDocuments subarrayWithRange:NSMakeRange(diff, [_unacknowledgedDocuments count] - diff)];
+            _numberOfAcknowledgedDocuments = numberOfAcknowledgedStanzas;
 
-            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", (unsigned long)_numberOfAcknowledgedStanzas, (unsigned long)_numberOfSentStanzas);
+            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", (unsigned long)_numberOfAcknowledgedDocuments, (unsigned long)_numberOfSentDocuments);
         }
     }
 }
 
 - (void)xmpp_resendPendingStanzas
 {
-    if ([_unacknowledgedStanzas count] > 0) {
-        DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedStanzas count]);
-        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedStanzas) {
-            [self.stanzaHandler handleStanza:wrapper.stanza
-                                  completion:^(NSError *error) {
-                                      if (error) {
-                                          DDLogError(@"Failed to resend pending stanza with error: %@", [error localizedDescription]);
-                                      }
-                                  }];
+    if ([_unacknowledgedDocuments count] > 0) {
+        DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
+        for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
+            [self.delegate streamFeature:self handleDocument:wrapper.document];
         }
     }
 }

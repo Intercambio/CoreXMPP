@@ -6,16 +6,16 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPStanzaHandler.h"
+#import "XMPPDocumentHandler.h"
 
 @protocol XMPPConnection;
 @class XMPPJID;
 
-@protocol XMPPConnectionDelegate <XMPPStanzaHandler>
+@protocol XMPPConnectionDelegate <XMPPDocumentHandler>
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed;
 - (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID;
 @end
 
-@protocol XMPPConnection <XMPPStanzaHandler>
+@protocol XMPPConnection <XMPPDocumentHandler>
 @property (nonatomic, weak) id<XMPPConnectionDelegate> connectionDelegate;
 @end

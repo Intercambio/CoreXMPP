@@ -82,9 +82,10 @@
     id<XMPPStreamDelegate> delegate = mockProtocol(@protocol(XMPPStreamDelegate));
     stream.delegate = delegate;
 
-    [givenVoid([delegate stream:stream didReceiveElement:anything()]) willDo:^id(NSInvocation *invocation) {
+    [givenVoid([delegate stream:stream didReceiveDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXElement *element = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+        PXElement *element = document.root;
         NSError *error = [NSError streamErrorFromElement:element];
 
         assertThat(error, notNilValue());
