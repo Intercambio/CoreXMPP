@@ -25,12 +25,12 @@
 
 - (NSString *)identifier
 {
-    return [self valueForAttribute:@"identifier"];
+    return [self valueForAttribute:@"var"];
 }
 
 - (void)setIdentifier:(NSString *)identifier
 {
-    [self setValue:identifier forAttribute:@"identifier"];
+    [self setValue:identifier forAttribute:@"var"];
 }
 
 - (XMPPDataFormFieldType)type

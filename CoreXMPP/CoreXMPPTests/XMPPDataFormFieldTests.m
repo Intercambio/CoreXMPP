@@ -28,13 +28,13 @@
     XMPPDataFormField *field = (XMPPDataFormField *)document.root;
 
     field.identifier = @"123";
-    assertThat([field valueForAttribute:@"identifier"], equalTo(@"123"));
+    assertThat([field valueForAttribute:@"var"], equalTo(@"123"));
 
-    [field setValue:@"234" forAttribute:@"identifier"];
+    [field setValue:@"234" forAttribute:@"var"];
     assertThat(field.identifier, equalTo(@"234"));
 
     field.identifier = nil;
-    assertThat([field valueForAttribute:@"identifier"], nilValue());
+    assertThat([field valueForAttribute:@"var"], nilValue());
 }
 
 - (void)testFieldType

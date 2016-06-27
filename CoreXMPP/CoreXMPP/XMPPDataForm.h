@@ -26,6 +26,8 @@ typedef NS_ENUM(NSUInteger, XMPPDataFormType) {
 @property (nonatomic, readwrite) NSString *title;
 @property (nonatomic, readwrite) NSString *instructions;
 
+@property (nonatomic, readwrite) NSString *namespace;
+
 #pragma mark Manage Fields
 @property (nonatomic, readonly) NSArray<XMPPDataFormField *> *fields;
 - (XMPPDataFormField *)addFieldWithType:(XMPPDataFormFieldType)type

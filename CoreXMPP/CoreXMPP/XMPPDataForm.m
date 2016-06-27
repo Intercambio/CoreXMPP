@@ -96,6 +96,34 @@
     }
 }
 
+- (NSString *)namespace
+{
+    for (XMPPDataFormField *field in self.fields) {
+        if (field.type == XMPPDataFormFieldTypeHidden &&
+            [field.identifier isEqualToString:@"FORM_TYPE"] &&
+            [field.value isKindOfClass:[NSString class]]) {
+            return field.value;
+        }
+    }
+
+    return nil;
+}
+
+- (void)setNamespace:(NSString *)namespace
+{
+    for (XMPPDataFormField *field in self.fields) {
+        if (field.type == XMPPDataFormFieldTypeHidden &&
+            [field.identifier isEqualToString:@"FORM_TYPE"]) {
+            [self removeField:field];
+        }
+    }
+
+    if (namespace) {
+        XMPPDataFormField *field = [self addFieldWithType:XMPPDataFormFieldTypeHidden identifier:@"FORM_TYPE"];
+        field.value = namespace;
+    }
+}
+
 #pragma mark Manage Fields
 
 - (NSArray<XMPPDataFormField *> *)fields
