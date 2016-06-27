@@ -129,4 +129,106 @@
     assertThat(field.options, contains(option, nil));
 }
 
+- (void)testBooleanValue
+{
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"field" namespace:@"jabber:x:data" prefix:nil];
+    XMPPDataFormField *field = (XMPPDataFormField *)document.root;
+    field.type = XMPPDataFormFieldTypeBoolean;
+
+    field.value = @(YES);
+
+    NSArray *valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(1));
+
+    PXElement *value = [valueElements firstObject];
+    assertThat(value.stringValue, equalTo(@"true"));
+
+    field.value = @(NO);
+
+    valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(1));
+
+    value = [valueElements firstObject];
+    assertThat(value.stringValue, equalTo(@"false"));
+
+    field.value = nil;
+    valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(0));
+
+    field.value = @(YES);
+    valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    value = [valueElements firstObject];
+
+    [value setStringValue:@"false"];
+    assertThat(field.value, equalTo(@NO));
+
+    [value setStringValue:@"true"];
+    assertThat(field.value, equalTo(@YES));
+
+    [value setStringValue:@"0"];
+    assertThat(field.value, equalTo(@NO));
+
+    [value setStringValue:@"1"];
+    assertThat(field.value, equalTo(@YES));
+}
+
+- (void)testHiddenValue
+{
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"field" namespace:@"jabber:x:data" prefix:nil];
+    XMPPDataFormField *field = (XMPPDataFormField *)document.root;
+    field.type = XMPPDataFormFieldTypeHidden;
+
+    field.value = @"some value";
+
+    NSArray *valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(1));
+
+    PXElement *value = [valueElements firstObject];
+    assertThat(value.stringValue, equalTo(@"some value"));
+
+    [value setStringValue:@"some other value"];
+    assertThat(field.value, equalTo(@"some other value"));
+}
+
+- (void)testJIDMultiValue
+{
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"field" namespace:@"jabber:x:data" prefix:nil];
+    XMPPDataFormField *field = (XMPPDataFormField *)document.root;
+    field.type = XMPPDataFormFieldTypeJIDMulti;
+
+    field.value = @[ JID(@"romeo@example.com"), JID(@"juliet@example.com") ];
+
+    NSArray *valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(2));
+
+    PXElement *value = [valueElements firstObject];
+    assertThat(value.stringValue, equalTo(@"romeo@example.com"));
+
+    value = [valueElements lastObject];
+    assertThat(value.stringValue, equalTo(@"juliet@example.com"));
+
+    [field addElementWithName:@"value" namespace:@"jabber:x:data" content:@"test@example.com"];
+
+    assertThat(field.value, hasCountOf(3));
+    assertThat(field.value, contains(JID(@"romeo@example.com"), JID(@"juliet@example.com"), JID(@"test@example.com"), nil));
+}
+
+- (void)testJIDSingleValue
+{
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"field" namespace:@"jabber:x:data" prefix:nil];
+    XMPPDataFormField *field = (XMPPDataFormField *)document.root;
+    field.type = XMPPDataFormFieldTypeJIDSingle;
+
+    field.value = JID(@"romeo@example.com");
+
+    NSArray *valueElements = [field nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(1));
+
+    PXElement *value = [valueElements firstObject];
+    assertThat(value.stringValue, equalTo(@"romeo@example.com"));
+
+    [value setStringValue:@"juliet@example.com"];
+    assertThat(field.value, equalTo(JID(@"juliet@example.com")));
+}
+
 @end

@@ -11,6 +11,6 @@
 @interface XMPPDataFormOption : PXElement
 
 @property (nonatomic, readwrite) NSString *label;
-@property (nonatomic, readwrite) id value;
+@property (nonatomic, readwrite) NSString *value;
 
 @end

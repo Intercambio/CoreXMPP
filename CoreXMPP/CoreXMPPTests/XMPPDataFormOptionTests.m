@@ -37,4 +37,20 @@
     assertThat([option valueForAttribute:@"label"], nilValue());
 }
 
+- (void)testValue
+{
+    PXDocument *document = [[PXDocument alloc] initWithElementName:@"option" namespace:@"jabber:x:data" prefix:nil];
+    XMPPDataFormOption *option = (XMPPDataFormOption *)document.root;
+
+    assertThat(option.value, nilValue());
+    option.value = @"123";
+
+    NSArray *valueElements = [option nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    assertThat(valueElements, hasCountOf(1));
+    assertThat([[valueElements firstObject] stringValue], equalTo(@"123"));
+
+    [[valueElements firstObject] setStringValue:@"234"];
+    assertThat(option.value, equalTo(@"234"));
+}
+
 @end

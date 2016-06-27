@@ -7,6 +7,11 @@
 //
 
 #import "XMPPDataFormField.h"
+#import "XMPPJID.h"
+
+@interface XMPPDataFormField ()
+@property (nonatomic, readwrite) NSArray<NSString *> *valueStrings;
+@end
 
 @implementation XMPPDataFormField
 
@@ -173,6 +178,146 @@
     if (option.parent == self) {
         [option removeFromParent];
     }
+}
+
+#pragma mark Manage Value
+
+- (id)value
+{
+    switch (self.type) {
+    case XMPPDataFormFieldTypeJIDMulti:
+    case XMPPDataFormFieldTypeListMulti:
+    case XMPPDataFormFieldTypeTextMulti:
+        return [self multiValue];
+
+    default:
+        return [self singleValue];
+    }
+}
+
+- (void)setValue:(id)value
+{
+    switch (self.type) {
+    case XMPPDataFormFieldTypeJIDMulti:
+    case XMPPDataFormFieldTypeListMulti:
+    case XMPPDataFormFieldTypeTextMulti:
+        [self setMultiValue:value];
+        break;
+
+    default:
+        [self setSingleValue:value];
+        break;
+    }
+}
+
+- (id)singleValue
+{
+    NSString *string = [self.valueStrings firstObject];
+    return string ? [self valueFromString:string] : nil;
+}
+
+- (void)setSingleValue:(id)value
+{
+    if (value) {
+        [self setMultiValue:@[ value ]];
+    } else {
+        self.valueStrings = nil;
+    }
+}
+
+- (NSArray *)multiValue
+{
+    NSMutableArray *values = [[NSMutableArray alloc] init];
+    for (NSString *string in self.valueStrings) {
+        id value = [self valueFromString:string];
+        if (value) {
+            [values addObject:value];
+        }
+    }
+    return values;
+}
+
+- (void)setMultiValue:(id)values
+{
+    NSMutableArray *strings = [[NSMutableArray alloc] init];
+    if ([values conformsToProtocol:@protocol(NSFastEnumeration)]) {
+        for (id value in values) {
+            NSString *string = [self stringFromValue:value];
+            [strings addObject:string];
+        }
+    }
+    self.valueStrings = strings;
+}
+
+- (id)valueFromString:(NSString *)string
+{
+    switch (self.type) {
+    case XMPPDataFormFieldTypeBoolean:
+        return @([string boolValue]);
+        break;
+
+    case XMPPDataFormFieldTypeJIDMulti:
+    case XMPPDataFormFieldTypeJIDSingle:
+        return [XMPPJID JIDFromString:string];
+        break;
+
+    default:
+        return string;
+    }
+}
+
+- (NSString *)stringFromValue:(id)value
+{
+    switch (self.type) {
+    case XMPPDataFormFieldTypeBoolean:
+        if ([value respondsToSelector:@selector(boolValue)]) {
+            return [value boolValue] ? @"true" : @"false";
+        } else {
+            return nil;
+        }
+
+    case XMPPDataFormFieldTypeJIDMulti:
+    case XMPPDataFormFieldTypeJIDSingle:
+        if ([value isKindOfClass:[XMPPJID class]]) {
+            return [(XMPPJID *)value stringValue];
+        } else {
+            return nil;
+        }
+
+    default:
+        if ([value isKindOfClass:[NSString class]]) {
+            return value;
+        } else if ([value respondsToSelector:@selector(stringValue)]) {
+            return [value stringValue];
+        } else {
+            return nil;
+        }
+    }
+}
+
+- (void)setValueStrings:(NSArray<NSString *> *)valueStrings
+{
+    NSArray *elements = [self nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    for (PXElement *element in elements) {
+        [element removeFromParent];
+    }
+
+    for (NSString *string in valueStrings) {
+        [self addElementWithName:@"value" namespace:@"jabber:x:data" content:string];
+    }
+}
+
+- (NSArray<NSString *> *)valueStrings
+{
+    NSArray *elements = [self nodesForXPath:@"./x:value" usingNamespaces:@{ @"x" : @"jabber:x:data" }];
+    NSMutableArray *valueStrings = [[NSMutableArray alloc] init];
+    for (PXElement *value in elements) {
+        NSString *string = value.stringValue;
+        if (string) {
+            [valueStrings addObject:string];
+        }
+    }
+    return valueStrings;
 }
 
 @end
