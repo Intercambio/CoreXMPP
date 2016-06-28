@@ -651,10 +651,7 @@
 				F6DC3C3B1C45322C007C0F48 /* XMPPStreamFeatureSession.m */,
 				F6CD44661C5661FE0084757A /* XMPPStreamFeatureStreamManagement.h */,
 				F6CD44671C5661FE0084757A /* XMPPStreamFeatureStreamManagement.m */,
-				F6564E9E1D1D5E810082CCD0 /* XMPPInBandRegistration.h */,
-				F6564E9F1D1D5E810082CCD0 /* XMPPInBandRegistration.m */,
-				F69076C51D2288E400A765AA /* XMPPQueryRegister.h */,
-				F69076C61D2288E400A765AA /* XMPPQueryRegister.m */,
+				F69076D11D22A6C300A765AA /* In-Band Registration */,
 			);
 			name = "Stream Feature";
 			sourceTree = "<group>";
@@ -667,6 +664,17 @@
 				F6CD446C1C56A5300084757A /* XMPPClientStreamManagement.h */,
 			);
 			name = Client;
+			sourceTree = "<group>";
+		};
+		F69076D11D22A6C300A765AA /* In-Band Registration */ = {
+			isa = PBXGroup;
+			children = (
+				F6564E9E1D1D5E810082CCD0 /* XMPPInBandRegistration.h */,
+				F6564E9F1D1D5E810082CCD0 /* XMPPInBandRegistration.m */,
+				F69076C51D2288E400A765AA /* XMPPQueryRegister.h */,
+				F69076C61D2288E400A765AA /* XMPPQueryRegister.m */,
+			);
+			name = "In-Band Registration";
 			sourceTree = "<group>";
 		};
 		F6A696FA1CF4956C00E0A0D2 /* Additions */ = {
