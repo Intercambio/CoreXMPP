@@ -7,6 +7,14 @@
 //
 
 #import "XMPPStreamFeature.h"
+#import "XMPPError.h"
+#import "XMPPJID.h"
+
+@interface XMPPStreamFeature () {
+    NSMapTable *_responseHandlers;
+}
+
+@end
 
 @implementation XMPPStreamFeature
 
@@ -66,6 +74,7 @@
     self = [super init];
     if (self) {
         _configuration = configuration;
+        _responseHandlers = [NSMapTable strongToStrongObjectsMapTable];
     }
     return self;
 }
@@ -92,7 +101,70 @@
 
 - (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
+    if ([document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
+        NSString *type = [document.root valueForAttribute:@"type"];
+        if ([type isEqualToString:@"result"] ||
+            [type isEqualToString:@"error"]) {
+            NSString *requestID = [document.root valueForAttribute:@"id"];
+            if (requestID) {
+                void (^completion)(PXDocument *response, NSError *error) = [_responseHandlers objectForKey:requestID];
+                if (completion) {
+                    [_responseHandlers removeObjectForKey:requestID];
+
+                    if ([type isEqualToString:@"error"]) {
+                        NSError *error = [NSError errorFromStanza:document.root];
+                        completion(nil, error);
+                    } else {
+                        completion(document, nil);
+                    }
+                }
+            }
+        }
+    }
     return YES;
+}
+
+#pragma mark -
+
+- (void)sendIQRequest:(PXDocument *)document
+              timeout:(NSTimeInterval)timeout
+           completion:(void (^)(PXDocument *response, NSError *error))completion
+{
+    NSString *type = [document.root valueForAttribute:@"type"];
+    if ([document.root isEqual:PXQN(@"jabber:client", @"iq")] && ([type isEqualToString:@"get"] || [type isEqualToString:@"set"])) {
+
+        NSString *requestId = [document.root valueForAttribute:@"id"];
+        if (requestId == nil) {
+            requestId = [[NSUUID UUID] UUIDString];
+            [document.root setValue:requestId forAttribute:@"id"];
+        }
+
+        if (completion) {
+            [_responseHandlers setObject:completion forKey:requestId];
+        }
+
+        NSTimeInterval defaultTimeout = 60.0;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), self.queue, ^{
+            void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:requestId];
+            if (completion) {
+                [_responseHandlers removeObjectForKey:requestId];
+                NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                     code:XMPPDispatcherErrorCodeTimeout
+                                                 userInfo:nil];
+                completion(nil, error);
+            }
+        });
+
+        [self.delegate streamFeature:self handleDocument:document];
+
+    } else {
+        if (completion) {
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeInvalidStanza
+                                             userInfo:nil];
+            completion(nil, error);
+        }
+    }
 }
 
 @end
