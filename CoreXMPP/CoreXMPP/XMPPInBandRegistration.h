@@ -12,8 +12,8 @@
 extern NSString *const XMPPInBandRegistrationNamespace;
 
 @protocol XMPPRegistrationChallenge <NSObject>
-- (XMPPDataForm *)registrationForm;
-- (void)submitRegistration:(XMPPDataForm *)registrationForm
+- (PXDocument *)registrationForm;
+- (void)submitRegistration:(PXDocument *)registrationForm
                 completion:(void (^)(BOOL success, NSError *error))completion;
 @end
 

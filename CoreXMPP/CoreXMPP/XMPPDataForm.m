@@ -96,7 +96,7 @@
     }
 }
 
-- (NSString *)namespace
+- (NSString *)identifier
 {
     for (XMPPDataFormField *field in self.fields) {
         if (field.type == XMPPDataFormFieldTypeHidden &&
@@ -109,7 +109,7 @@
     return nil;
 }
 
-- (void)setNamespace:(NSString *)namespace
+- (void)setIdentifier:(NSString *)identifier
 {
     for (XMPPDataFormField *field in self.fields) {
         if (field.type == XMPPDataFormFieldTypeHidden &&
@@ -118,9 +118,9 @@
         }
     }
 
-    if (namespace) {
+    if (identifier) {
         XMPPDataFormField *field = [self addFieldWithType:XMPPDataFormFieldTypeHidden identifier:@"FORM_TYPE"];
-        field.value = namespace;
+        field.value = identifier;
     }
 }
 
@@ -149,6 +149,16 @@
     if (field.parent == self) {
         [field removeFromParent];
     }
+}
+
+- (XMPPDataFormField *)fieldWithIdentifier:(NSString *)identifier
+{
+    for (XMPPDataFormField *field in self.fields) {
+        if ([field.identifier isEqualToString:identifier]) {
+            return field;
+        }
+    }
+    return nil;
 }
 
 @end

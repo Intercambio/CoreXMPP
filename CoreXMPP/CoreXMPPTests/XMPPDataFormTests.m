@@ -98,20 +98,20 @@
     PXDocument *document = [[PXDocument alloc] initWithElementName:@"x" namespace:@"jabber:x:data" prefix:nil];
     XMPPDataForm *form = (XMPPDataForm *)document.root;
 
-    assertThat(form.namespace, nilValue());
+    assertThat(form.identifier, nilValue());
 
     XMPPDataFormField *field = [form addFieldWithType:XMPPDataFormFieldTypeHidden identifier:@"FORM_TYPE"];
     field.value = @"http://example.com/ns_1";
 
-    assertThat(form.namespace, equalTo(@"http://example.com/ns_1"));
+    assertThat(form.identifier, equalTo(@"http://example.com/ns_1"));
 
-    form.namespace = @"http://example.com/ns_2";
+    form.identifier = @"http://example.com/ns_2";
 
     assertThat([[form.fields firstObject] value], equalTo(@"http://example.com/ns_2"));
     assertThat([[form.fields firstObject] identifier], equalTo(@"FORM_TYPE"));
     assertThatInt([[form.fields firstObject] type], equalToInt(XMPPDataFormFieldTypeHidden));
 
-    form.namespace = nil;
+    form.identifier = nil;
 
     assertThat(form.fields, hasCountOf(0));
 }

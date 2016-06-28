@@ -39,8 +39,8 @@
 
         id<XMPPRegistrationChallenge> challenge = [[i mkt_arguments] lastObject];
         assertThat(challenge, conformsTo(@protocol(XMPPRegistrationChallenge)));
-        assertThat([challenge registrationForm], isA([XMPPDataForm class]));
-        assertThat([[challenge registrationForm] namespace], isNot(equalTo(@"jabber:iq:register")));
+        assertThat([[challenge registrationForm] root], isA([XMPPDataForm class]));
+        assertThat([(XMPPDataForm *)[[challenge registrationForm] root] identifier], isNot(equalTo(@"jabber:iq:register")));
         [expectation fulfill];
         return nil;
     }];
@@ -55,7 +55,7 @@
 {
     PXDocument *registrationForm = [[PXDocument alloc] initWithElementName:@"x" namespace:@"jabber:x:data" prefix:nil];
     XMPPDataForm *form = (XMPPDataForm *)registrationForm.root;
-    form.namespace = @"jabber:iq:register";
+    form.identifier = @"jabber:iq:register";
 
     [self prepareFormResponseWithRegistrationForm:registrationForm error:nil];
 
@@ -64,8 +64,8 @@
 
         id<XMPPRegistrationChallenge> challenge = [[i mkt_arguments] lastObject];
         assertThat(challenge, conformsTo(@protocol(XMPPRegistrationChallenge)));
-        assertThat([challenge registrationForm], isA([XMPPDataForm class]));
-        assertThat([[challenge registrationForm] namespace], equalTo(@"jabber:iq:register"));
+        assertThat([[challenge registrationForm] root], isA([XMPPDataForm class]));
+        assertThat([(XMPPDataForm *)[[challenge registrationForm] root] identifier], equalTo(@"jabber:iq:register"));
         [expectation fulfill];
         return nil;
     }];
@@ -96,11 +96,171 @@
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
+- (void)testSubmitRegistrationWithFields
+{
+    [[self prepareFormResponseWithRegistrationForm:nil error:nil] willDo:^id(NSInvocation *invocation) {
+
+        PXDocument *request = [[invocation mkt_arguments] lastObject];
+
+        XCTAssertEqualObjects([request.root qualifiedName], PXQN(@"jabber:client", @"iq"));
+        XCTAssertEqualObjects([request.root valueForAttribute:@"type"], @"set");
+        XCTAssertEqualObjects([request.root valueForAttribute:@"to"], @"example.com");
+        XCTAssertNotNil([request.root valueForAttribute:@"id"]);
+
+        NSDictionary *ns = @{ @"register" : @"jabber:iq:register",
+                              @"data" : @"jabber:x:data" };
+
+        PXElement *formElement = [[request.root nodesForXPath:@"./register:query/data:x" usingNamespaces:ns] firstObject];
+        XCTAssertNil(formElement);
+
+        PXElement *usernameElement = [[request.root nodesForXPath:@"./register:query/register:username" usingNamespaces:ns] firstObject];
+        XCTAssertNotNil(usernameElement);
+
+        PXElement *passwordElement = [[request.root nodesForXPath:@"./register:query/register:password" usingNamespaces:ns] firstObject];
+        XCTAssertNotNil(passwordElement);
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            PXDocument *response = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+            PXElement *iq = response.root;
+            [iq setValue:@"result" forAttribute:@"type"];
+            [iq setValue:[request.root valueForAttribute:@"id"] forAttribute:@"id"];
+            [iq setValue:[request.root valueForAttribute:@"to"] forAttribute:@"from"];
+            [self.feature handleDocument:response error:nil];
+        });
+
+        return nil;
+    }];
+
+    __block id<XMPPRegistrationChallenge> challenge = nil;
+    XCTestExpectation *expectationChallenge = [self expectationWithDescription:@"Receive Challenge"];
+    [givenVoid([self.delegate streamFeature:self.feature didReceiveRegistrationChallenge:anything()]) willDo:^id(NSInvocation *i) {
+        challenge = [[i mkt_arguments] lastObject];
+        [expectationChallenge fulfill];
+        return nil;
+    }];
+    [self.feature beginNegotiationWithHostname:@"example.com" options:@{}];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    XMPPDataForm *form = (XMPPDataForm *)[[challenge registrationForm] root];
+    form.type = XMPPDataFormTypeSubmit;
+
+    [[form fieldWithIdentifier:@"username"] setValue:JID(@"romeo@example.com")];
+    [[form fieldWithIdentifier:@"password"] setValue:@"123"];
+    [[form fieldWithIdentifier:@"email"] setValue:@"romeo@example.com"];
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Submit"];
+    [challenge submitRegistration:form.document
+                       completion:^(BOOL success, NSError *error) {
+                           XCTAssertTrue(success);
+                           XCTAssertNil(error);
+                           [expectation fulfill];
+                       }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
+- (void)testSubmitRegistrationWithForm
+{
+    PXDocument *registrationForm = [[PXDocument alloc] initWithElementName:@"x" namespace:@"jabber:x:data" prefix:nil];
+    [(XMPPDataForm *)(registrationForm.root) setIdentifier:@"jabber:iq:register"];
+
+    [[self prepareFormResponseWithRegistrationForm:registrationForm error:nil] willDo:^id(NSInvocation *invocation) {
+
+        PXDocument *request = [[invocation mkt_arguments] lastObject];
+
+        XCTAssertEqualObjects([request.root qualifiedName], PXQN(@"jabber:client", @"iq"));
+        XCTAssertEqualObjects([request.root valueForAttribute:@"type"], @"set");
+        XCTAssertEqualObjects([request.root valueForAttribute:@"to"], @"example.com");
+        XCTAssertNotNil([request.root valueForAttribute:@"id"]);
+
+        NSDictionary *ns = @{ @"register" : @"jabber:iq:register",
+                              @"data" : @"jabber:x:data" };
+
+        PXElement *formElement = [[request.root nodesForXPath:@"./register:query/data:x" usingNamespaces:ns] firstObject];
+        XCTAssertNotNil(formElement);
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            PXDocument *response = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+            PXElement *iq = response.root;
+            [iq setValue:@"result" forAttribute:@"type"];
+            [iq setValue:[request.root valueForAttribute:@"id"] forAttribute:@"id"];
+            [iq setValue:[request.root valueForAttribute:@"to"] forAttribute:@"from"];
+            [self.feature handleDocument:response error:nil];
+        });
+
+        return nil;
+    }];
+
+    __block id<XMPPRegistrationChallenge> challenge = nil;
+    XCTestExpectation *expectationChallenge = [self expectationWithDescription:@"Receive Challenge"];
+    [givenVoid([self.delegate streamFeature:self.feature didReceiveRegistrationChallenge:anything()]) willDo:^id(NSInvocation *i) {
+        challenge = [[i mkt_arguments] lastObject];
+        [expectationChallenge fulfill];
+        return nil;
+    }];
+    [self.feature beginNegotiationWithHostname:@"example.com" options:@{}];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    XMPPDataForm *form = (XMPPDataForm *)[[challenge registrationForm] root];
+    form.type = XMPPDataFormTypeSubmit;
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Submit"];
+    [challenge submitRegistration:form.document
+                       completion:^(BOOL success, NSError *error) {
+                           XCTAssertTrue(success);
+                           XCTAssertNil(error);
+                           [expectation fulfill];
+                       }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
+- (void)testSubmitRegistrationWithError
+{
+    [[self prepareFormResponseWithRegistrationForm:nil error:nil] willDo:^id(NSInvocation *invocation) {
+
+        PXDocument *request = [[invocation mkt_arguments] lastObject];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSError *error = [NSError errorWithDomain:XMPPStanzaErrorDomain
+                                                 code:XMPPStanzaErrorCodeNotAllowed
+                                             userInfo:nil];
+            PXDocument *response = [NSError IQResponseWithError:error];
+            PXElement *iq = response.root;
+            [iq setValue:[request.root valueForAttribute:@"id"] forAttribute:@"id"];
+            [iq setValue:[request.root valueForAttribute:@"to"] forAttribute:@"from"];
+            [self.feature handleDocument:response error:nil];
+        });
+
+        return nil;
+    }];
+
+    __block id<XMPPRegistrationChallenge> challenge = nil;
+    XCTestExpectation *expectationChallenge = [self expectationWithDescription:@"Receive Challenge"];
+    [givenVoid([self.delegate streamFeature:self.feature didReceiveRegistrationChallenge:anything()]) willDo:^id(NSInvocation *i) {
+        challenge = [[i mkt_arguments] lastObject];
+        [expectationChallenge fulfill];
+        return nil;
+    }];
+    [self.feature beginNegotiationWithHostname:@"example.com" options:@{}];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+
+    XMPPDataForm *form = (XMPPDataForm *)[[challenge registrationForm] root];
+    form.type = XMPPDataFormTypeSubmit;
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Submit"];
+    [challenge submitRegistration:form.document
+                       completion:^(BOOL success, NSError *error) {
+                           XCTAssertFalse(success);
+                           XCTAssertNotNil(error);
+                           [expectation fulfill];
+                       }];
+    [self waitForExpectationsWithTimeout:1.0 handler:nil];
+}
+
 #pragma mark -
 
-- (void)prepareFormResponseWithRegistrationForm:(PXDocument *)registrationForm error:(NSError *)error
+- (MKTOngoingStubbing *)prepareFormResponseWithRegistrationForm:(PXDocument *)registrationForm error:(NSError *)error
 {
-    [givenVoid([self.delegate streamFeature:self.feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
+    return [givenVoid([self.delegate streamFeature:self.feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
         PXDocument *request = [[invocation mkt_arguments] lastObject];
 

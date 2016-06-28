@@ -22,11 +22,10 @@ typedef NS_ENUM(NSUInteger, XMPPDataFormType) {
 
 @interface XMPPDataForm : PXElement
 
+@property (nonatomic, readwrite) NSString *identifier;
 @property (nonatomic, readwrite) XMPPDataFormType type;
 @property (nonatomic, readwrite) NSString *title;
 @property (nonatomic, readwrite) NSString *instructions;
-
-@property (nonatomic, readwrite) NSString *namespace;
 
 #pragma mark Manage Fields
 @property (nonatomic, readonly) NSArray<XMPPDataFormField *> *fields;
@@ -34,4 +33,5 @@ typedef NS_ENUM(NSUInteger, XMPPDataFormType) {
                              identifier:(NSString *)identifier;
 - (void)removeField:(XMPPDataFormField *)field;
 
+- (XMPPDataFormField *)fieldWithIdentifier:(NSString *)identifier;
 @end

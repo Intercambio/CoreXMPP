@@ -7,11 +7,13 @@
 //
 
 #import "XMPPInBandRegistration.h"
+#import "XMPPQueryRegister.h"
 
 NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/iq-register";
 
 @interface XMPPInBandRegistration () <XMPPRegistrationChallenge> {
     PXDocument *_registrationDocument;
+    NSString *_hostename;
 }
 
 @end
@@ -54,20 +56,25 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
+    _hostename = hostname;
     [self requestRegistrationFormFromHost:hostname];
 }
 
 - (void)requestRegistrationFormFromHost:(NSString *)hostname
 {
-    PXDocument *request = [self registrationRequestWithHostname:hostname];
+    PXDocument *request = [self registrationFormRequestWithHostname:hostname];
     [self sendIQRequest:request
                 timeout:60.0
              completion:^(PXDocument *response, NSError *error) {
                  if (response) {
-                     _registrationDocument = [self registrationFormFromResponse:response];
-                     if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateInBandRegistration)]) {
-                         id<XMPPStreamFeatureDelegateInBandRegistration> delegate = (id<XMPPStreamFeatureDelegateInBandRegistration>)self.delegate;
-                         [delegate streamFeature:self didReceiveRegistrationChallenge:self];
+                     NSDictionary *ns = @{ @"register" : @"jabber:iq:register" };
+                     XMPPQueryRegister *query = (XMPPQueryRegister *)[[response.root nodesForXPath:@"./register:query" usingNamespaces:ns] firstObject];
+                     if ([query isKindOfClass:[XMPPQueryRegister class]]) {
+                         _registrationDocument = [query registrationForm];
+                         if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateInBandRegistration)]) {
+                             id<XMPPStreamFeatureDelegateInBandRegistration> delegate = (id<XMPPStreamFeatureDelegateInBandRegistration>)self.delegate;
+                             [delegate streamFeature:self didReceiveRegistrationChallenge:self];
+                         }
                      }
                  } else {
                      [self.delegate streamFeature:self didFailNegotiationWithError:error];
@@ -77,23 +84,32 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
 
 #pragma mark XMPPRegistrationChallenge
 
-- (XMPPDataForm *)registrationForm
+- (PXDocument *)registrationForm
 {
     if ([_registrationDocument.root isKindOfClass:[XMPPDataForm class]]) {
-        return (XMPPDataForm *)[[[PXDocument alloc] initWithElement:_registrationDocument.root] root];
+        return [[PXDocument alloc] initWithElement:_registrationDocument.root];
     } else {
         return nil;
     }
 }
 
-- (void)submitRegistration:(XMPPDataForm *)registrationForm
+- (void)submitRegistration:(PXDocument *)registrationForm
                 completion:(void (^)(BOOL, NSError *))completion
 {
+    PXDocument *request = [self registrationSubmitRequestWithHostname:_hostename
+                                                     registrationForm:registrationForm];
+    [self sendIQRequest:request
+                timeout:60.0
+             completion:^(PXDocument *response, NSError *error) {
+                 if (completion) {
+                     completion(response != nil, error);
+                 }
+             }];
 }
 
 #pragma mark -
 
-- (PXDocument *)registrationRequestWithHostname:(NSString *)hostname
+- (PXDocument *)registrationFormRequestWithHostname:(NSString *)hostname
 {
     PXDocument *request = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
     PXElement *iq = request.root;
@@ -105,37 +121,19 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
     return request;
 }
 
-- (PXDocument *)registrationFormFromResponse:(PXDocument *)response
+- (PXDocument *)registrationSubmitRequestWithHostname:(NSString *)hostname
+                                     registrationForm:(PXDocument *)registrationForm
 {
-    NSDictionary *ns = @{ @"register" : @"jabber:iq:register",
-                          @"data" : @"jabber:x:data" };
+    PXDocument *request = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
+    PXElement *iq = request.root;
 
-    PXElement *formElement = [[response.root nodesForXPath:@"./register:query/data:x" usingNamespaces:ns] firstObject];
-    if (formElement) {
-        PXDocument *registrationForm = [[PXDocument alloc] initWithElement:formElement];
-        return registrationForm;
-    }
+    [iq setValue:@"set" forAttribute:@"type"];
+    [iq setValue:hostname forAttribute:@"to"];
 
-    PXDocument *registrationForm = [[PXDocument alloc] initWithElementName:@"x" namespace:@"jabber:x:data" prefix:nil];
-    XMPPDataForm *form = (XMPPDataForm *)registrationForm.root;
-    form.namespace = @"XMPPInBandRegistration";
+    XMPPQueryRegister *query = (XMPPQueryRegister *)[iq addElementWithName:@"query" namespace:@"jabber:iq:register" content:nil];
+    query.registrationForm = registrationForm;
 
-    PXElement *queryElement = [[response.root nodesForXPath:@"./register:query" usingNamespaces:ns] firstObject];
-    [queryElement enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
-        if ([element.namespace isEqualToString:@"jabber:iq:register"]) {
-            if ([element.name isEqualToString:@"instructions"]) {
-                form.instructions = element.stringValue;
-            } else if ([element.name isEqualToString:@"username"]) {
-                [form addFieldWithType:XMPPDataFormFieldTypeJIDSingle identifier:@"username"];
-            } else if ([element.name isEqualToString:@"password"]) {
-                [form addFieldWithType:XMPPDataFormFieldTypeTextPrivate identifier:@"password"];
-            } else if ([element.name isEqualToString:@"email"]) {
-                [form addFieldWithType:XMPPDataFormFieldTypeTextSingle identifier:@"email"];
-            }
-        }
-    }];
-
-    return registrationForm;
+    return request;
 }
 
 @end
