@@ -45,6 +45,7 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 - (void)client:(XMPPClient *)client didFailToNegotiateFeature:(XMPPStreamFeature *)feature withError:(NSError *)error;
 - (void)client:(XMPPClient *)client didReceiveUnsupportedDocument:(PXDocument *)document;
 - (void)client:(XMPPClient *)client didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)registrationChallenge;
+- (void)client:(XMPPClient *)client didRegisterWithUsername:(NSString *)username hostname:(NSString *)hostname;
 @end
 
 @interface XMPPClient : NSObject <XMPPConnection>
