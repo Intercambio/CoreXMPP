@@ -108,6 +108,8 @@
 		F69076C81D2288E400A765AA /* XMPPQueryRegister.h in Headers */ = {isa = PBXBuildFile; fileRef = F69076C51D2288E400A765AA /* XMPPQueryRegister.h */; };
 		F69076C91D2288E400A765AA /* XMPPQueryRegister.m in Sources */ = {isa = PBXBuildFile; fileRef = F69076C61D2288E400A765AA /* XMPPQueryRegister.m */; };
 		F69076CA1D2288E400A765AA /* XMPPQueryRegister.m in Sources */ = {isa = PBXBuildFile; fileRef = F69076C61D2288E400A765AA /* XMPPQueryRegister.m */; };
+		F69076CF1D229A5300A765AA /* XMPPRegistrationChallenge.h in Headers */ = {isa = PBXBuildFile; fileRef = F69076CE1D229A5300A765AA /* XMPPRegistrationChallenge.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F69076D01D229A5300A765AA /* XMPPRegistrationChallenge.h in Headers */ = {isa = PBXBuildFile; fileRef = F69076CE1D229A5300A765AA /* XMPPRegistrationChallenge.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6A696AD1CF330E400E0A0D2 /* XMPPClientFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696AB1CF330E400E0A0D2 /* XMPPClientFactory.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6A696AE1CF330E400E0A0D2 /* XMPPClientFactory.h in Headers */ = {isa = PBXBuildFile; fileRef = F6A696AB1CF330E400E0A0D2 /* XMPPClientFactory.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F6A696AF1CF330E400E0A0D2 /* XMPPClientFactory.m in Sources */ = {isa = PBXBuildFile; fileRef = F6A696AC1CF330E400E0A0D2 /* XMPPClientFactory.m */; };
@@ -289,6 +291,7 @@
 		F6867C871C3E7CF1009617B5 /* XMPPStreamStub.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPStreamStub.m; sourceTree = "<group>"; };
 		F69076C51D2288E400A765AA /* XMPPQueryRegister.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPQueryRegister.h; sourceTree = "<group>"; };
 		F69076C61D2288E400A765AA /* XMPPQueryRegister.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPQueryRegister.m; sourceTree = "<group>"; };
+		F69076CE1D229A5300A765AA /* XMPPRegistrationChallenge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPRegistrationChallenge.h; sourceTree = "<group>"; };
 		F6A696AB1CF330E400E0A0D2 /* XMPPClientFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPClientFactory.h; sourceTree = "<group>"; };
 		F6A696AC1CF330E400E0A0D2 /* XMPPClientFactory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = XMPPClientFactory.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		F6A696B11CF3332000E0A0D2 /* XMPPClientFactoryStub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPClientFactoryStub.h; sourceTree = "<group>"; };
@@ -682,6 +685,7 @@
 			children = (
 				F6CD445A1C5653F70084757A /* XMPPDocumentHandler.h */,
 				F6B470471C5815D100D414F2 /* XMPPConnection.h */,
+				F69076CE1D229A5300A765AA /* XMPPRegistrationChallenge.h */,
 			);
 			name = Protocols;
 			sourceTree = "<group>";
@@ -716,6 +720,7 @@
 				F6564EA01D1D5E810082CCD0 /* XMPPInBandRegistration.h in Headers */,
 				F6A696AD1CF330E400E0A0D2 /* XMPPClientFactory.h in Headers */,
 				F6CD446D1C56A5300084757A /* XMPPClientStreamManagement.h in Headers */,
+				F69076CF1D229A5300A765AA /* XMPPRegistrationChallenge.h in Headers */,
 				F6DC3C3C1C45322C007C0F48 /* XMPPStreamFeatureSession.h in Headers */,
 				F68414201C4ED835009B37BE /* XMPPDispatcher.h in Headers */,
 				F6B470481C5815D100D414F2 /* XMPPConnection.h in Headers */,
@@ -752,6 +757,7 @@
 				F6564EA11D1D5E810082CCD0 /* XMPPInBandRegistration.h in Headers */,
 				F6A696AE1CF330E400E0A0D2 /* XMPPClientFactory.h in Headers */,
 				F6CD446E1C56A5300084757A /* XMPPClientStreamManagement.h in Headers */,
+				F69076D01D229A5300A765AA /* XMPPRegistrationChallenge.h in Headers */,
 				F6DC3C3D1C45322C007C0F48 /* XMPPStreamFeatureSession.h in Headers */,
 				F68414211C4ED835009B37BE /* XMPPDispatcher.h in Headers */,
 				F6B470491C5815D100D414F2 /* XMPPConnection.h in Headers */,

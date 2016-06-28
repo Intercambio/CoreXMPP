@@ -7,6 +7,7 @@
 //
 
 #import "XMPPInBandRegistration.h"
+#import "XMPPDataForm.h"
 #import "XMPPQueryRegister.h"
 
 NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/iq-register";

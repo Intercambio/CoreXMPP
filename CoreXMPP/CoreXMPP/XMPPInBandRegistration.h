@@ -6,16 +6,10 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPDataForm.h"
+#import "XMPPRegistrationChallenge.h"
 #import "XMPPStreamFeature.h"
 
 extern NSString *const XMPPInBandRegistrationNamespace;
-
-@protocol XMPPRegistrationChallenge <NSObject>
-- (PXDocument *)registrationForm;
-- (void)submitRegistration:(PXDocument *)registrationForm
-                completion:(void (^)(BOOL success, NSError *error))completion;
-@end
 
 @protocol XMPPStreamFeatureDelegateInBandRegistration <XMPPStreamFeatureDelegate>
 @optional
