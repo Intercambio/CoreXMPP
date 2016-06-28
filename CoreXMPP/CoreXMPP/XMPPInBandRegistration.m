@@ -45,7 +45,7 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
 
 - (BOOL)isMandatory
 {
-    return NO;
+    return YES;
 }
 
 - (BOOL)needsRestart
@@ -105,6 +105,10 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
                  completion:^(PXDocument *response, NSError *error) {
                      if (completion) {
                          completion(response != nil, error);
+                     }
+
+                     if (response) {
+                         [self.delegate streamFeatureDidSucceedNegotiation:self];
                      }
                  }];
     });

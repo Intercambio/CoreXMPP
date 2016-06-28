@@ -12,6 +12,7 @@
 
 #import "XMPPClientStreamManagement.h"
 #import "XMPPConnection.h"
+#import "XMPPRegistrationChallenge.h"
 #import "XMPPStream.h"
 
 extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
@@ -43,6 +44,7 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 - (void)client:(XMPPClient *)client didNegotiateFeature:(XMPPStreamFeature *)feature;
 - (void)client:(XMPPClient *)client didFailToNegotiateFeature:(XMPPStreamFeature *)feature withError:(NSError *)error;
 - (void)client:(XMPPClient *)client didReceiveUnsupportedDocument:(PXDocument *)document;
+- (void)client:(XMPPClient *)client didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)registrationChallenge;
 @end
 
 @interface XMPPClient : NSObject <XMPPConnection>
@@ -59,6 +61,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 @property (nonatomic, readonly) NSString *hostname;
 @property (nonatomic, readonly) NSDictionary *options;
 - (void)updateOptions:(NSDictionary *)options;
+
+#pragma mark Registration
+@property (nonatomic, readwrite) BOOL needsRegistration;
 
 #pragma mark Bound JID
 @property (nonatomic, readonly) XMPPJID *JID;

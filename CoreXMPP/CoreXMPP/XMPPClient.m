@@ -10,6 +10,7 @@
 #import <SASLKit/SASLKit.h>
 
 #import "XMPPError.h"
+#import "XMPPInBandRegistration.h"
 #import "XMPPStreamFeature.h"
 #import "XMPPStreamFeatureBind.h"
 #import "XMPPStreamFeatureSASL.h"
@@ -28,7 +29,7 @@ NSString *const XMPPClientDidDisconnectNotification = @"XMPPClientDidDisconnectN
 NSString *const XMPPClientErrorKey = @"XMPPClientErrorKey";
 NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
-@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind> {
+@interface XMPPClient () <XMPPStreamDelegate, XMPPStreamFeatureDelegate, XMPPStreamFeatureDelegateSASL, XMPPStreamFeatureDelegateBind, XMPPStreamFeatureDelegateInBandRegistration> {
     dispatch_queue_t _operationQueue;
     XMPPClientState _state;
     XMPPStream *_stream;
@@ -246,6 +247,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
         [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
         [_preferredFeatures addObject:PXQN(@"urn:xmpp:sm:3", @"sm")];
     } else {
+        if (_needsRegistration) {
+            [_preferredFeatures addObject:PXQN(@"http://jabber.org/features/iq-register", @"register")];
+        }
         [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-sasl", @"mechanisms")];
         [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-bind", @"bind")];
         [_preferredFeatures addObject:PXQN(@"urn:ietf:params:xml:ns:xmpp-session", @"session")];
@@ -683,6 +687,21 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didBindToJID:(XMPPJID *)JID
 {
     _JID = JID;
+}
+
+#pragma mark XMPPStreamFeatureDelegateInBandRegistration (called on operation queue)
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)challenge
+{
+    _needsRegistration = NO;
+
+    id<XMPPClientDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(client:didReceiveRegistrationChallenge:)]) {
+            [delegate client:self didReceiveRegistrationChallenge:challenge];
+        }
+    });
 }
 
 @end
