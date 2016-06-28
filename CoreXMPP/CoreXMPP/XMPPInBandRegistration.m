@@ -98,16 +98,33 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
                 completion:(void (^)(BOOL, NSError *))completion
 {
     dispatch_async(self.queue ?: dispatch_get_main_queue(), ^{
+
+        NSString *username = nil;
+        if ([registrationForm.root isKindOfClass:[XMPPDataForm class]]) {
+            XMPPDataForm *form = (XMPPDataForm *)[registrationForm root];
+            username = [[form fieldWithIdentifier:@"username"] value];
+        }
+
         PXDocument *request = [self registrationSubmitRequestWithHostname:_hostename
                                                          registrationForm:registrationForm];
         [self sendIQRequest:request
                     timeout:60.0
                  completion:^(PXDocument *response, NSError *error) {
-                     if (completion) {
-                         completion(response != nil, error);
+
+                     BOOL success = response != nil;
+
+                     if (success) {
+                         if ([self.delegate conformsToProtocol:@protocol(XMPPStreamFeatureDelegateInBandRegistration)]) {
+                             id<XMPPStreamFeatureDelegateInBandRegistration> delegate = (id<XMPPStreamFeatureDelegateInBandRegistration>)self.delegate;
+                             [delegate streamFeature:self didRegisterWithUsername:username hostname:_hostename];
+                         }
                      }
 
-                     if (response) {
+                     if (completion) {
+                         completion(success, error);
+                     }
+
+                     if (success) {
                          [self.delegate streamFeatureDidSucceedNegotiation:self];
                      }
                  }];

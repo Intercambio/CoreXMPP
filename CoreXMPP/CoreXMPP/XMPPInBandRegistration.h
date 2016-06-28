@@ -14,6 +14,7 @@ extern NSString *const XMPPInBandRegistrationNamespace;
 @protocol XMPPStreamFeatureDelegateInBandRegistration <XMPPStreamFeatureDelegate>
 @optional
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)challenge;
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didRegisterWithUsername:(NSString *)username hostname:(NSString *)hostname;
 @end
 
 @interface XMPPInBandRegistration : XMPPStreamFeature
