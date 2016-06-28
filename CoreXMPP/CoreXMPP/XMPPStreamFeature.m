@@ -144,7 +144,7 @@
         }
 
         NSTimeInterval defaultTimeout = 60.0;
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), self.queue, ^{
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeout ?: defaultTimeout) * NSEC_PER_SEC)), self.queue ?: dispatch_get_main_queue(), ^{
             void (^completion)(PXElement *response, NSError *error) = [_responseHandlers objectForKey:requestId];
             if (completion) {
                 [_responseHandlers removeObjectForKey:requestId];

@@ -97,15 +97,17 @@ NSString *const XMPPInBandRegistrationNamespace = @"http://jabber.org/features/i
 - (void)submitRegistration:(PXDocument *)registrationForm
                 completion:(void (^)(BOOL, NSError *))completion
 {
-    PXDocument *request = [self registrationSubmitRequestWithHostname:_hostename
-                                                     registrationForm:registrationForm];
-    [self sendIQRequest:request
-                timeout:60.0
-             completion:^(PXDocument *response, NSError *error) {
-                 if (completion) {
-                     completion(response != nil, error);
-                 }
-             }];
+    dispatch_async(self.queue ?: dispatch_get_main_queue(), ^{
+        PXDocument *request = [self registrationSubmitRequestWithHostname:_hostename
+                                                         registrationForm:registrationForm];
+        [self sendIQRequest:request
+                    timeout:60.0
+                 completion:^(PXDocument *response, NSError *error) {
+                     if (completion) {
+                         completion(response != nil, error);
+                     }
+                 }];
+    });
 }
 
 #pragma mark -
