@@ -6,9 +6,11 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPAccountConnectivityImpl.h"
-#import "XMPPReconnectStrategy.h"
 #import "XMPPTestCase.h"
+
+// Needs to be imported after CoreXMPP framework (via XMPPTestCase) to avoid compiler warnings
+#import "XMPPAccountConnectivityImpl.h"
+
 
 @interface XMPPAccountConnectivityImplTests : XMPPTestCase
 @property (nonatomic, strong) XMPPJID *account;
@@ -104,7 +106,7 @@
     [self.accountConnectivity clientDidConnect:self.client resumedStream:NO];
     XCTAssertNil(self.accountConnectivity.recentError);
 
-    [verify(self.strategy) stop];
+    [(id<XMPPReconnectStrategy>)verify(self.strategy) stop];
 }
 
 @end
