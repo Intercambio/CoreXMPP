@@ -48,4 +48,9 @@
 #pragma mark Handle Document
 - (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error;
 
+#pragma mark -
+- (void)sendIQRequest:(PXDocument *)document
+              timeout:(NSTimeInterval)timeout
+           completion:(void (^)(PXDocument *response, NSError *error))completion;
+
 @end

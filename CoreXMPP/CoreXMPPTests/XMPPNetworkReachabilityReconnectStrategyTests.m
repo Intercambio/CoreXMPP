@@ -35,8 +35,10 @@
 - (void)testStrategy
 {
     XCTestExpectation *expectation = [self expectationWithDescription:@"Connect"];
-    [givenVoid([self.client connect]) willDo:^id(NSInvocation *invocation) {
+    [[givenVoid([self.client connect]) willDo:^id(NSInvocation *invocation) {
         [expectation fulfill];
+        return nil;
+    }] willDo:^id(NSInvocation *i) {
         return nil;
     }];
 

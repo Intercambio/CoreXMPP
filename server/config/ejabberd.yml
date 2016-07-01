@@ -504,7 +504,7 @@ access:
 
 ## By default the frequency of account registrations from the same IP
 ## is limited to 1 account every 10 minutes. To disable, specify: infinity
-## registration_timeout: 600
+registration_timeout: infinity
   
 ##
 ## Define specific Access Rules in a virtual host.
@@ -635,7 +635,7 @@ modules:
     ##
     ## Only clients in the server machine can register accounts
     ##
-    ip_access: trusted_network
+    #ip_access: trusted_network
 
     ##
     ## Local c2s or remote s2s users cannot register accounts

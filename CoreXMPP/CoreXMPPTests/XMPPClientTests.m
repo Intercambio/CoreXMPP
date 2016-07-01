@@ -28,6 +28,75 @@
 
 #pragma mark Tests
 
+- (void)testRegisterAccount
+{
+    [DDLog setLevel:DDLogLevelAll forClassWithName:@"XMPPClient"];
+
+    NSString *username = [[NSUUID UUID] UUIDString];
+    NSString *password = @"123";
+
+    NSDictionary *options = @{ XMPPClientOptionsResourceKey : @"bar" };
+
+    XMPPClient *client = [[XMPPClient alloc] initWithHostname:@"localhost"
+                                                      options:options];
+    client.needsRegistration = YES;
+
+    id<XMPPClientDelegate> delegate = mockProtocol(@protocol(XMPPClientDelegate));
+    client.delegate = delegate;
+
+    __block id<XMPPRegistrationChallenge> challenge = nil;
+
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Registration Challenge"];
+    [givenVoid([delegate client:client didReceiveRegistrationChallenge:anything()]) willDo:^id(NSInvocation *i) {
+        challenge = [[i mkt_arguments] lastObject];
+        [expectation fulfill];
+        return nil;
+    }];
+
+    id<SASLMechanismDelegate> SASLDelegate = mockProtocol(@protocol(SASLMechanismDelegate));
+    client.SASLDelegate = SASLDelegate;
+
+    [givenVoid([SASLDelegate SASLMechanismNeedsCredentials:anything()]) willDo:^id(NSInvocation *invocation) {
+        SASLMechanismPLAIN *mechanism = [[invocation mkt_arguments] firstObject];
+        [mechanism authenticateWithUsername:username password:password completion:nil];
+        return nil;
+    }];
+
+    [client connect];
+
+    [self waitForExpectationsWithTimeout:10.0 handler:nil];
+
+    XCTAssertNotNil(challenge);
+    if (challenge) {
+
+        [self keyValueObservingExpectationForObject:client
+                                            keyPath:@"state"
+                                      expectedValue:@(XMPPClientStateConnected)];
+
+        PXDocument *document = [challenge registrationForm];
+
+        XMPPDataForm *form = (XMPPDataForm *)[document root];
+        form.type = XMPPDataFormTypeSubmit;
+
+        XMPPDataFormField *usernameField = [form fieldWithIdentifier:@"username"];
+        XMPPDataFormField *passwordField = [form fieldWithIdentifier:@"password"];
+
+        usernameField.value = username;
+        passwordField.value = password;
+
+        XCTestExpectation *expectation = [self expectationWithDescription:@"Register"];
+
+        [challenge submitRegistration:document
+                           completion:^(BOOL success, NSError *error) {
+                               XCTAssertTrue(success);
+                               XCTAssertNil(error);
+                               [expectation fulfill];
+                           }];
+
+        [self waitForExpectationsWithTimeout:10.0 handler:nil];
+    }
+}
+
 - (void)testConnectToServer
 {
     NSDictionary *options = @{ XMPPClientOptionsResourceKey : @"bar" };

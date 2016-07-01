@@ -1,4 +1,4 @@
-github "Internetslum/PureXML" ~> 1.0
+github "Internetslum/PureXML" ~> 1.1
 github "Internetslum/SASLKit" ~> 1.0
 github "CocoaLumberjack/CocoaLumberjack" ~> 2.2.0
 
