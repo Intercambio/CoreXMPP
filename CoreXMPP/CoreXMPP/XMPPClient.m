@@ -693,13 +693,24 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
 - (void)streamFeature:(XMPPStreamFeature *)streamFeature didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)challenge
 {
+    id<XMPPClientDelegate> delegate = self.delegate;
+    dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
+    dispatch_async(delegateQueue, ^{
+        if ([delegate respondsToSelector:@selector(client:didReceiveRegistrationChallenge:)]) {
+            [delegate client:self didReceiveRegistrationChallenge:challenge];
+        }
+    });
+}
+
+- (void)streamFeature:(XMPPStreamFeature *)streamFeature didRegisterWithUsername:(NSString *)username hostname:(NSString *)hostname
+{
     _needsRegistration = NO;
 
     id<XMPPClientDelegate> delegate = self.delegate;
     dispatch_queue_t delegateQueue = self.delegateQueue ?: dispatch_get_main_queue();
     dispatch_async(delegateQueue, ^{
         if ([delegate respondsToSelector:@selector(client:didReceiveRegistrationChallenge:)]) {
-            [delegate client:self didReceiveRegistrationChallenge:challenge];
+            [delegate client:self didRegisterWithUsername:username hostname:hostname];
         }
     });
 }
