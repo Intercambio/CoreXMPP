@@ -93,7 +93,7 @@
     XCTAssertEqualObjects(self.accountConnectivity.recentError, error);
     XCTAssertEqualObjects(self.accountConnectivity.nextConnectionAttempt, [NSDate distantFuture]);
 
-    [verify(self.strategy) start];
+    [(id<XMPPReconnectStrategy>)verify(self.strategy) start];
 }
 
 - (void)testClearAfterReconnect
