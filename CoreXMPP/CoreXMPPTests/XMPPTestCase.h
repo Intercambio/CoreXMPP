@@ -17,6 +17,10 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <OHHTTPStubs/OHHTTPStubs.h>
 
+#import "XMPPStreamFeatureBind.h"
+#import "XMPPStreamFeatureSASL.h"
+#import "XMPPStreamFeatureSession.h"
+#import "XMPPStreamFeatureStreamManagement.h"
 #import <CoreXMPP/CoreXMPP.h>
 
 #import "XMPPClientFactoryStub.h"

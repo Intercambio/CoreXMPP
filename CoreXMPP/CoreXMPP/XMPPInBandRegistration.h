@@ -9,14 +9,16 @@
 #import "XMPPRegistrationChallenge.h"
 #import "XMPPStreamFeature.h"
 
-extern NSString *const XMPPInBandRegistrationNamespace;
+extern NSString *_Nonnull const XMPPInBandRegistrationNamespace NS_SWIFT_NAME(InBandRegistrationNamespace);
 
+NS_SWIFT_NAME(StreamFeatureDelegateInBandRegistration)
 @protocol XMPPStreamFeatureDelegateInBandRegistration <XMPPStreamFeatureDelegate>
 @optional
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)challenge;
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didRegisterWithUsername:(NSString *)username hostname:(NSString *)hostname;
+- (void)streamFeature:(nonnull XMPPStreamFeature *)streamFeature didReceiveRegistrationChallenge:(nonnull id<XMPPRegistrationChallenge>)challenge NS_SWIFT_NAME(streamFeature(_:didReceive:));
+- (void)streamFeature:(nonnull XMPPStreamFeature *)streamFeature didRegisterWithUsername:(nullable NSString *)username hostname:(nonnull NSString *)hostname NS_SWIFT_NAME(streamFeature(_:didRegisterUsername:hostname:));
 @end
 
+NS_SWIFT_NAME(InBandRegistration)
 @interface XMPPInBandRegistration : XMPPStreamFeature
 
 @end

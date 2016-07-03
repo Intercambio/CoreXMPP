@@ -9,8 +9,9 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+NS_SWIFT_NAME(RegistrationChallenge)
 @protocol XMPPRegistrationChallenge <NSObject>
-- (PXDocument *)registrationForm;
-- (void)submitRegistration:(PXDocument *)registrationForm
-                completion:(void (^)(BOOL success, NSError *error))completion;
+- (nullable PXDocument *)registrationForm;
+- (void)submitRegistration:(nonnull PXDocument *)registrationForm
+                completion:(nonnull void (^)(BOOL success, NSError *_Nullable error))completion NS_SWIFT_NAME(submitRegistration(_:completion:));
 @end

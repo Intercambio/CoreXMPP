@@ -18,7 +18,7 @@
     self = [super init];
     if (self) {
         _hostname = [hostname copy];
-        _options = [options copy];
+        _options = options ? [options copy] : @{};
     }
     return self;
 }

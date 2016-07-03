@@ -9,6 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <PureXML/PureXML.h>
 
+@class XMPPStream;
+
 typedef NS_ENUM(NSUInteger, XMPPStreamState) {
     XMPPStreamStateClosed = 0,
     XMPPStreamStateDiscovering,
@@ -17,27 +19,27 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
     XMPPStreamStateOpen,
     XMPPStreamStateClosing,
     XMPPStreamStateDisconnecting
-};
+} NS_SWIFT_NAME(StreamState);
 
-@class XMPPStream;
-
+NS_SWIFT_NAME(StreamDelegate)
 @protocol XMPPStreamDelegate <NSObject>
 @optional
-- (void)stream:(XMPPStream *)stream didOpenToHost:(NSString *)hostname withStreamId:(NSString *)streamId;
-- (void)stream:(XMPPStream *)stream didReceiveDocument:(PXDocument *)document;
-- (void)stream:(XMPPStream *)stream didFailWithError:(NSError *)error;
-- (void)streamDidClose:(XMPPStream *)stream;
+- (void)stream:(nonnull XMPPStream *)stream didOpenToHost:(nonnull NSString *)hostname withStreamId:(nonnull NSString *)streamId NS_SWIFT_NAME(stream(_:didOpen:id:));
+- (void)stream:(nonnull XMPPStream *)stream didReceiveDocument:(nonnull PXDocument *)document NS_SWIFT_NAME(stream(_:didReceive:));
+- (void)stream:(nonnull XMPPStream *)stream didFailWithError:(nonnull NSError *)error NS_SWIFT_NAME(stream(_:didFail:));
+- (void)streamDidClose:(nonnull XMPPStream *)stream NS_SWIFT_NAME(streamDidClose(_:));
 @end
 
+NS_SWIFT_NAME(Stream)
 @interface XMPPStream : NSObject
 
 #pragma mark Life-cycle
-- (instancetype)initWithHostname:(NSString *)hostname
-                         options:(NSDictionary *)options;
+- (nonnull instancetype)initWithHostname:(nonnull NSString *)hostname
+                                 options:(nullable NSDictionary *)options;
 
 #pragma mark Properties
-@property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readwrite) NSDictionary *options;
+@property (nonatomic, readonly) NSString *_Nonnull hostname;
+@property (nonatomic, readwrite) NSDictionary *_Nonnull options;
 
 #pragma mark Queue
 
@@ -45,10 +47,10 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 // The delegate will be called on this queue.
 // If the queue is not set, the main queue will be used.
 // Setting the queue after opening the stream results into undefined behavior.
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, strong) dispatch_queue_t _Nullable queue;
 
 #pragma mark Delegate
-@property (nonatomic, weak) id<XMPPStreamDelegate> delegate;
+@property (nonatomic, weak) id<XMPPStreamDelegate> _Nullable delegate;
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPStreamState state;
@@ -60,6 +62,6 @@ typedef NS_ENUM(NSUInteger, XMPPStreamState) {
 - (void)suspend;
 
 #pragma mark Sending Document
-- (void)sendDocument:(PXDocument *)document;
+- (void)sendDocument:(nonnull PXDocument *)document NS_SWIFT_NAME(send(_:));
 
 @end

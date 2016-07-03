@@ -10,7 +10,8 @@
 
 @class PXDocument;
 
+NS_SWIFT_NAME(DocumentHandler)
 @protocol XMPPDocumentHandler <NSObject>
-- (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *error))completion;
-- (void)processPendingDocuments:(void (^)(NSError *error))completion;
+- (void)handleDocument:(nonnull PXDocument *)document completion:(nullable void (^)(NSError *_Nullable error))completion;
+- (void)processPendingDocuments:(nullable void (^)(NSError *_Nullable error))completion;
 @end

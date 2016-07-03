@@ -6,12 +6,12 @@
 //  Copyright © 2015 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPStream.h"
 #import <Foundation/Foundation.h>
 
-#import "XMPPStream.h"
+extern NSString *const XMPPWebsocketStreamURLKey NS_SWIFT_NAME(WebsocketStreamURLKey);
 
-extern NSString *const XMPPWebsocketStreamURLKey;
-
+NS_SWIFT_NAME(WebsocketStream)
 @interface XMPPWebsocketStream : XMPPStream
 
 @end

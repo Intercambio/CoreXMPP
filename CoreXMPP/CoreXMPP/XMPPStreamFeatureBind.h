@@ -10,14 +10,16 @@
 
 @class XMPPJID;
 
-extern NSString *const XMPPStreamFeatureBindNamespace;
+extern NSString *_Nonnull const XMPPStreamFeatureBindNamespace NS_SWIFT_NAME(StreamFeatureBindNamespace);
 
+NS_SWIFT_NAME(StreamFeatureDelegateBind)
 @protocol XMPPStreamFeatureDelegateBind <XMPPStreamFeatureDelegate>
 @optional
-- (NSString *)resourceNameForStreamFeature:(XMPPStreamFeature *)streamFeature;
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didBindToJID:(XMPPJID *)JID;
+- (nullable NSString *)resourceNameForStreamFeature:(nonnull XMPPStreamFeature *)streamFeature NS_SWIFT_NAME(resourceNameForStreamFeature(_:));
+- (void)streamFeature:(nonnull XMPPStreamFeature *)streamFeature didBindToJID:(nonnull XMPPJID *)JID NS_SWIFT_NAME(streamFeature(_:didBind:));
 @end
 
+NS_SWIFT_NAME(StreamFeatureBind)
 @interface XMPPStreamFeatureBind : XMPPStreamFeature
 
 @end

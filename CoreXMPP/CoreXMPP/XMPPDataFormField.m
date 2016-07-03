@@ -258,7 +258,7 @@
 
     case XMPPDataFormFieldTypeJIDMulti:
     case XMPPDataFormFieldTypeJIDSingle:
-        return [XMPPJID JIDFromString:string];
+        return [[XMPPJID alloc] initWithString:string];
         break;
 
     default:

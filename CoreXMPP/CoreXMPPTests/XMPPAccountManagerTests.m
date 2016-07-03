@@ -10,7 +10,7 @@
 
 @interface XMPPAccountManagerTests : XMPPTestCase
 @property (nonatomic, strong) XMPPDispatcher *dispatcher;
-@property (nonatomic, strong) XMPPClientFactory *clientFactory;
+@property (nonatomic, strong) id<XMPPClientFactory> clientFactory;
 @property (nonatomic, strong) XMPPClient *client;
 @property (nonatomic, strong) XMPPAccountManager *accountManager;
 @property (nonatomic, strong) id<SASLMechanismDelegate> SASLDelegate;
@@ -22,7 +22,7 @@
 {
     [super setUp];
     self.dispatcher = mock([XMPPDispatcher class]);
-    self.clientFactory = mock([XMPPClientFactory class]);
+    self.clientFactory = mockProtocol(@protocol(XMPPClientFactory));
     self.client = mock([XMPPClient class]);
     self.accountManager = [[XMPPAccountManager alloc] initWithDispatcher:self.dispatcher
                                                            clientFactory:self.clientFactory];
@@ -86,8 +86,8 @@
     XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
     NSDictionary *options = @{ @"foo" : @(42) };
-    [self.accountManager updateOptions:options
-                            forAccount:JID(@"romeo@localhost")];
+    [self.accountManager updateAccount:JID(@"romeo@localhost")
+                           withOptions:options];
 
     [verify(self.client) updateOptions:equalTo(options)];
 }

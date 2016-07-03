@@ -6,52 +6,42 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPAccountConnectivity.h"
 #import "XMPPClientFactory.h"
 #import "XMPPDispatcher.h"
 #import "XMPPJID.h"
 #import <Foundation/Foundation.h>
 #import <SASLKit/SASLKit.h>
 
-typedef NS_ENUM(NSUInteger, XMPPAccountConnectivityState) {
-    XMPPAccountConnectivityStateDisconnected,
-    XMPPAccountConnectivityStateConnecting,
-    XMPPAccountConnectivityStateConnected,
-    XMPPAccountConnectivityStateDisconnecting
-};
-
-extern NSString *const XMPPAccountConnectivityDidChangeNotification;
-
-@protocol XMPPAccountConnectivity <NSObject>
-@property (nonatomic, readonly) XMPPJID *account;
-@property (nonatomic, readonly) XMPPAccountConnectivityState state;
-@property (nonatomic, readonly) NSError *recentError;
-@property (nonatomic, readonly) NSDate *nextConnectionAttempt;
-- (void)connect;
-@end
-
+NS_SWIFT_NAME(AccountManager)
 @interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher;
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher
-                     clientFactory:(XMPPClientFactory *)clientFactory;
+- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcher *)dispatcher;
+- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcher *)dispatcher
+                             clientFactory:(nullable id<XMPPClientFactory>)clientFactory;
 
 #pragma mark Dispatcher
-@property (nonatomic, readonly) XMPPDispatcher *dispatcher;
+@property (nonatomic, readonly) XMPPDispatcher *_Nonnull dispatcher;
 
 #pragma mark SASL Delegate
-@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
+@property (nonatomic, weak) id<SASLMechanismDelegate> _Nullable SASLDelegate;
 
 #pragma mark Managing Accounts
-@property (nonatomic, readonly) NSArray *accounts;
-- (BOOL)addAccount:(XMPPJID *)account withOptions:(NSDictionary *)options error:(NSError **)error;
-- (void)updateOptions:(NSDictionary *)options forAccount:(XMPPJID *)account;
-- (void)removeAccount:(XMPPJID *)account;
+@property (nonatomic, readonly) NSArray<XMPPJID *> *_Nonnull accounts;
+- (BOOL)addAccount:(nonnull XMPPJID *)account
+       withOptions:(nonnull NSDictionary<NSString *, id> *)options
+             error:(NSError *__autoreleasing __nullable *__nullable)error NS_SWIFT_NAME(addAccount(_:options:));
+- (void)updateAccount:(nonnull XMPPJID *)account withOptions:(nonnull NSDictionary<NSString *, id> *)options;
+- (void)removeAccount:(nonnull XMPPJID *)account;
 
 #pragma mark Connectivity
-- (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account;
+- (nullable id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *_Nonnull)account NS_SWIFT_NAME(connectivity(for:));
 
 #pragma mark Acknowledgements
 - (void)exchangeAcknowledgements;
+
+#pragma mark Deprecated
+- (void)updateOptions:(nonnull NSDictionary<NSString *, id> *)options forAccount:(nonnull XMPPJID *)account __attribute__((deprecated));
 
 @end

@@ -19,4 +19,9 @@
                                          stream:self.stream];
 }
 
+- (id<XMPPReconnectStrategy>)reconnectStrategyForClient:(XMPPClient *)client withError:(NSError *)error numberOfAttempts:(NSUInteger)numberOfAttempts
+{
+    return nil;
+}
+
 @end

@@ -146,7 +146,7 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
         PXElement *jidNode = [[iq nodesForXPath:@"./x:bind/x:jid"
                                 usingNamespaces:@{ @"x" : XMPPStreamFeatureBindNamespace }] firstObject];
 
-        XMPPJID *JID = [XMPPJID JIDFromString:[jidNode stringValue]];
+        XMPPJID *JID = [[XMPPJID alloc] initWithString:[jidNode stringValue]];
 
         if (JID) {
 

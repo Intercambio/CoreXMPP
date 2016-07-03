@@ -6,22 +6,24 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import <PureXML/PureXML.h>
-#import <SASLKit/SASLKit.h>
-
 #import "XMPPClientStreamManagement.h"
 #import "XMPPConnection.h"
 #import "XMPPRegistrationChallenge.h"
 #import "XMPPStream.h"
+#import <Foundation/Foundation.h>
+#import <PureXML/PureXML.h>
+#import <SASLKit/SASLKit.h>
 
-extern NSString *const XMPPClientOptionsPreferedSASLMechanismsKey;
-extern NSString *const XMPPClientOptionsResourceKey;
+@class XMPPClient;
+@class XMPPStreamFeature;
 
-extern NSString *const XMPPClientDidConnectNotification;
-extern NSString *const XMPPClientDidDisconnectNotification;
-extern NSString *const XMPPClientErrorKey;
-extern NSString *const XMPPClientResumedKey;
+extern NSString *_Nonnull const XMPPClientOptionsPreferedSASLMechanismsKey NS_SWIFT_NAME(ClientOptionsPreferedSASLMechanismsKey);
+extern NSString *_Nonnull const XMPPClientOptionsResourceKey NS_SWIFT_NAME(ClientOptionsResourceKey);
+
+extern NSString *_Nonnull const XMPPClientDidConnectNotification NS_SWIFT_NAME(ClientDidConnectNotification);
+extern NSString *_Nonnull const XMPPClientDidDisconnectNotification NS_SWIFT_NAME(ClientDidDisconnectNotification);
+extern NSString *_Nonnull const XMPPClientErrorKey NS_SWIFT_NAME(ClientErrorKey);
+extern NSString *_Nonnull const XMPPClientResumedKey NS_SWIFT_NAME(ClientResumedKey);
 
 typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateDisconnected,
@@ -30,57 +32,54 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
     XMPPClientStateNegotiating,
     XMPPClientStateConnected,
     XMPPClientStateDisconnecting
-};
+} NS_SWIFT_NAME(ClientState);
 
-@class XMPPClient;
-@class XMPPStreamFeature;
-
+NS_SWIFT_NAME(ClientDelegate)
 @protocol XMPPClientDelegate <NSObject>
 @optional
-- (void)client:(XMPPClient *)client didChangeState:(XMPPClientState)state;
-- (void)clientDidConnect:(XMPPClient *)client resumedStream:(BOOL)resumedStream;
-- (void)clientDidDisconnect:(XMPPClient *)client;
-- (void)client:(XMPPClient *)client didFailWithError:(NSError *)error;
-- (void)client:(XMPPClient *)client didNegotiateFeature:(XMPPStreamFeature *)feature;
-- (void)client:(XMPPClient *)client didFailToNegotiateFeature:(XMPPStreamFeature *)feature withError:(NSError *)error;
-- (void)client:(XMPPClient *)client didReceiveUnsupportedDocument:(PXDocument *)document;
-- (void)client:(XMPPClient *)client didReceiveRegistrationChallenge:(id<XMPPRegistrationChallenge>)registrationChallenge;
-- (void)client:(XMPPClient *)client didRegisterWithUsername:(NSString *)username hostname:(NSString *)hostname;
+- (void)client:(nonnull XMPPClient *)client didChangeState:(XMPPClientState)state NS_SWIFT_NAME(client(_:didChangeState:));
+- (void)clientDidConnect:(nonnull XMPPClient *)client resumedStream:(BOOL)resumedStream NS_SWIFT_NAME(clientDidConnect(_:resumedStream:));
+- (void)clientDidDisconnect:(nonnull XMPPClient *)client NS_SWIFT_NAME(clientDidDisconnect(_:));
+- (void)client:(nonnull XMPPClient *)client didFailWithError:(nonnull NSError *)error NS_SWIFT_NAME(client(_:didFail:));
+- (void)client:(nonnull XMPPClient *)client didNegotiateFeature:(nonnull XMPPStreamFeature *)feature NS_SWIFT_NAME(client(_:didNegotiate:));
+- (void)client:(nonnull XMPPClient *)client didFailToNegotiateFeature:(nonnull XMPPStreamFeature *)feature withError:(nonnull NSError *)error NS_SWIFT_NAME(client(_:didFailToNegotiate:error:));
+- (void)client:(nonnull XMPPClient *)client didReceiveUnsupportedDocument:(nonnull PXDocument *)document NS_SWIFT_NAME(client(_:didReceiveUnsupportedDocument:));
+- (void)client:(nonnull XMPPClient *)client didReceiveRegistrationChallenge:(nonnull id<XMPPRegistrationChallenge>)registrationChallenge NS_SWIFT_NAME(client(_:didReceiveRegistrationChallenge:));
+- (void)client:(nonnull XMPPClient *)client didRegisterWithUsername:(nullable NSString *)username hostname:(nonnull NSString *)hostname NS_SWIFT_NAME(client(_:didRegisterWithUsername:hostname:));
 @end
 
+NS_SWIFT_NAME(Client)
 @interface XMPPClient : NSObject <XMPPConnection>
 
 #pragma mark Life-cycle
-- (instancetype)initWithHostname:(NSString *)hostname
-                         options:(NSDictionary *)options;
+- (nonnull instancetype)initWithHostname:(nonnull NSString *)hostname
+                                 options:(nullable NSDictionary *)options;
 
-- (instancetype)initWithHostname:(NSString *)hostname
-                         options:(NSDictionary *)options
-                          stream:(XMPPStream *)stream;
+- (nonnull instancetype)initWithHostname:(nonnull NSString *)hostname
+                                 options:(nullable NSDictionary *)options
+                                  stream:(nullable XMPPStream *)stream;
 
 #pragma mark Properties
-@property (nonatomic, readonly) NSString *hostname;
-@property (nonatomic, readonly) NSDictionary *options;
-- (void)updateOptions:(NSDictionary *)options;
+@property (nonatomic, readonly) NSString *_Nonnull hostname;
+@property (nonatomic, readonly) NSDictionary *_Nonnull options;
+- (void)updateOptions:(nonnull NSDictionary *)options;
 
 #pragma mark Registration
 @property (nonatomic, readwrite) BOOL needsRegistration;
 
 #pragma mark Bound JID
-@property (nonatomic, readonly) XMPPJID *JID;
+@property (nonatomic, readonly) XMPPJID *_Nullable JID;
 
 #pragma mark Delegate & SASL Delegate
-@property (nonatomic, weak) id<XMPPClientDelegate> delegate;
-@property (nonatomic, strong) dispatch_queue_t delegateQueue;
+@property (nonatomic, weak) id<XMPPClientDelegate> _Nullable delegate;
+@property (nonatomic, strong) dispatch_queue_t _Nullable delegateQueue;
 
-@property (nonatomic, weak) id<SASLMechanismDelegate> SASLDelegate;
-@property (nonatomic, strong) dispatch_queue_t SASLDelegateQueue;
-@property (nonatomic, strong) id SASLContext;
+@property (nonatomic, weak) id<SASLMechanismDelegate> _Nullable SASLDelegate;
+@property (nonatomic, strong) dispatch_queue_t _Nullable SASLDelegateQueue;
+@property (nonatomic, strong) id _Nullable SASLContext;
 
 #pragma mark State
 @property (nonatomic, readonly) XMPPClientState state;
-@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts;
-@property (nonatomic, readonly) NSError *recentError;
 
 #pragma mark Manage Client
 - (void)connect;
@@ -89,5 +88,9 @@ typedef NS_ENUM(NSUInteger, XMPPClientState) {
 
 #pragma mark Acknowledgement
 - (void)exchangeAcknowledgement;
+
+#pragma mark Deprecated
+@property (nonatomic, readonly) NSUInteger numberOfConnectionAttempts DEPRECATED_ATTRIBUTE;
+@property (nonatomic, readonly) NSError *_Nullable recentError DEPRECATED_ATTRIBUTE;
 
 @end

@@ -11,7 +11,6 @@
 // Needs to be imported after CoreXMPP framework (via XMPPTestCase) to avoid compiler warnings
 #import "XMPPAccountConnectivityImpl.h"
 
-
 @interface XMPPAccountConnectivityImplTests : XMPPTestCase
 @property (nonatomic, strong) XMPPJID *account;
 @property (nonatomic, strong) XMPPClient *client;

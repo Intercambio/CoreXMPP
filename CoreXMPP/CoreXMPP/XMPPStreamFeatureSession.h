@@ -8,8 +8,9 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
-extern NSString *const XMPPStreamFeatureSessionNamespace;
+extern NSString *_Nonnull const XMPPStreamFeatureSessionNamespace NS_SWIFT_NAME(StreamFeatureSessionNamespace);
 
+NS_SWIFT_NAME(StreamFeatureSession)
 @interface XMPPStreamFeatureSession : XMPPStreamFeature
 
 @end

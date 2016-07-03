@@ -7,7 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <PureXML/PureXML.h>
 
+NS_SWIFT_NAME(ClientStreamManagement)
 @protocol XMPPClientStreamManagement <NSObject>
 
 @property (nonatomic, readonly, getter=isEnabled) BOOL enabled;
@@ -16,10 +18,10 @@
 @property (nonatomic, readonly) NSUInteger numberOfReceivedDocuments;
 @property (nonatomic, readonly) NSUInteger numberOfSentDocuments;
 @property (nonatomic, readonly) NSUInteger numberOfAcknowledgedDocuments;
-@property (nonatomic, readonly) NSArray *unacknowledgedDocuments;
+@property (nonatomic, readonly) NSArray *_Nonnull unacknowledgedDocuments;
 
-- (void)didSentDocument:(PXDocument *)document acknowledgement:(void (^)(NSError *error))acknowledgement;
-- (void)didHandleReceviedDocument:(PXDocument *)document;
+- (void)didSentDocument:(nonnull PXDocument *)document acknowledgement:(nonnull void (^)(NSError *_Nullable error))acknowledgement NS_SWIFT_NAME(didSent(_:acknowledgement:));
+- (void)didHandleReceviedDocument:(nonnull PXDocument *)document NS_SWIFT_NAME(didReceive(_:));
 
 - (void)requestAcknowledgement;
 - (void)sendAcknowledgement;
