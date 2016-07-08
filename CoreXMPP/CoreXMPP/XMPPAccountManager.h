@@ -13,6 +13,11 @@
 #import <Foundation/Foundation.h>
 #import <SASLKit/SASLKit.h>
 
+extern NSString *_Nonnull const XMPPAccountManagerDidChangeAccount NS_SWIFT_NAME(AccountManagerDidChangeAccount);
+
+extern NSString *_Nonnull const XMPPAccountManagerAccountJIDKey NS_SWIFT_NAME(AccountManagerAccountJIDKey);
+extern NSString *_Nonnull const XMPPAccountManagerAccountInfoKey NS_SWIFT_NAME(AccountManagerAccountInfoKey);
+
 NS_SWIFT_NAME(AccountManager)
 @interface XMPPAccountManager : NSObject
 
@@ -35,13 +40,16 @@ NS_SWIFT_NAME(AccountManager)
 - (void)updateAccount:(nonnull XMPPJID *)account withOptions:(nonnull NSDictionary<NSString *, id> *)options;
 - (void)removeAccount:(nonnull XMPPJID *)account;
 
-#pragma mark Connectivity
-- (nullable id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *_Nonnull)account NS_SWIFT_NAME(connectivity(for:));
+- (void)connectAccount:(nonnull XMPPJID *)account NS_SWIFT_NAME(connect(_:));
+
+#pragma mark Account Info
+- (nullable id<XMPPAccountInfo>)infoForAccount:(nonnull XMPPJID *)account NS_SWIFT_NAME(info(for:));
 
 #pragma mark Acknowledgements
 - (void)exchangeAcknowledgements;
 
 #pragma mark Deprecated
 - (void)updateOptions:(nonnull NSDictionary<NSString *, id> *)options forAccount:(nonnull XMPPJID *)account __attribute__((deprecated));
+- (nullable id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *_Nonnull)account NS_SWIFT_NAME(connectivity(for:)) __attribute__((deprecated));
 
 @end

@@ -113,10 +113,9 @@
                                              error:&error];
     XCTAssertTrue(success, @"Failed to add account: %@", [error localizedDescription]);
 
-    id<XMPPAccountConnectivity> connectivity = [self.accountManager connectivityForAccount:JID(@"romeo@localhost")];
+    id<XMPPAccountInfo> info = [self.accountManager infoForAccount:JID(@"romeo@localhost")];
 
-    assertThat(connectivity, notNilValue());
-    assertThat(connectivity.account, equalTo(JID(@"romeo@localhost")));
+    assertThat(info, notNilValue());
 }
 
 @end
