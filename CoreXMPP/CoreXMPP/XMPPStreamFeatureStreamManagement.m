@@ -12,6 +12,8 @@
 #import "XMPPError.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 
+NSString *const XMPPStreamFeatureStreamManagementNamespace = @"urn:xmpp:sm:3";
+
 @interface XMPPStreamFeatureStreamManagement_Stanza : NSObject
 @property (nonatomic, strong) PXDocument *document;
 @property (nonatomic, strong) void (^acknowledgement)(NSError *error);
@@ -62,7 +64,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 + (NSString *)namespace
 {
-    return @"urn:xmpp:sm:3";
+    return XMPPStreamFeatureStreamManagementNamespace;
 }
 
 #pragma mark Feature Properties

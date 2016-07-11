@@ -10,14 +10,8 @@
 
 @implementation XMPPJID
 
-#pragma mark Life-cycle
-
-+ (instancetype)JIDFromString:(NSString *)string
++ (NSRegularExpression *)regularExpression
 {
-    if (string == nil) {
-        return nil;
-    }
-
     static NSRegularExpression *expression;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -27,6 +21,18 @@
                                                                  error:&error];
         NSAssert(expression, [error localizedDescription]);
     });
+    return expression;
+}
+
+#pragma mark Life-cycle
+
+- (nullable instancetype)initWithString:(nullable NSString *)string
+{
+    if (string == nil) {
+        return nil;
+    }
+
+    NSRegularExpression *expression = [[self class] regularExpression];
 
     NSArray *matches = [expression matchesInString:string
                                            options:NSMatchingReportCompletion
@@ -36,18 +42,18 @@
         NSString *user = [match rangeAtIndex:2].length == 0 ? nil : [string substringWithRange:(NSRange)[match rangeAtIndex:2]];
         NSString *host = [match rangeAtIndex:3].length == 0 ? nil : [string substringWithRange:(NSRange)[match rangeAtIndex:3]];
         NSString *resource = [match rangeAtIndex:5].length == 0 ? nil : [string substringWithRange:(NSRange)[match rangeAtIndex:5]];
-        return [[self alloc] initWithUser:user host:host resource:resource];
-    } else {
-        return nil;
+
+        if (host) {
+            return [self initWithUser:user host:host resource:resource];
+        }
     }
+
+    return nil;
 }
 
-- (instancetype)init
-{
-    return [self initWithUser:nil host:nil resource:nil];
-}
-
-- (instancetype)initWithUser:(NSString *)user host:(NSString *)host resource:(NSString *)resource
+- (nullable instancetype)initWithUser:(nullable NSString *)user
+                                 host:(nonnull NSString *)host
+                             resource:(nullable NSString *)resource
 {
     self = [super init];
     if (self) {
@@ -75,12 +81,12 @@
 
 #pragma mark Bare or Full JID
 
-- (XMPPJID *)bareJID
+- (nonnull instancetype)bareJID
 {
     return [[XMPPJID alloc] initWithUser:self.user host:self.host resource:nil];
 }
 
-- (XMPPJID *)JIDWithResource:(NSString *)resource
+- (nonnull instancetype)fullJIDWithResource:(NSString *)resource
 {
     return [[XMPPJID alloc] initWithUser:self.user host:self.host resource:resource];
 }
@@ -110,6 +116,18 @@
 - (id)copyWithZone:(nullable NSZone *)zone
 {
     return self;
+}
+
+#pragma mark Deprecated
+
++ (nullable instancetype)JIDFromString:(nullable NSString *)string
+{
+    return [[self alloc] initWithString:string];
+}
+
+- (nonnull instancetype)JIDWithResource:(NSString *)resource
+{
+    return [self fullJIDWithResource:resource];
 }
 
 @end

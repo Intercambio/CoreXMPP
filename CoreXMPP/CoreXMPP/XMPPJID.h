@@ -8,24 +8,33 @@
 
 #import <Foundation/Foundation.h>
 
-#define JID(x) [XMPPJID JIDFromString:x]
+#define JID(x) [[XMPPJID alloc] initWithString:x]
 
+NS_SWIFT_NAME(JID)
 @interface XMPPJID : NSObject <NSCopying>
 
 #pragma mark Life-cycle
-+ (instancetype)JIDFromString:(NSString *)string;
-- (instancetype)initWithUser:(NSString *)user host:(NSString *)host resource:(NSString *)resource NS_DESIGNATED_INITIALIZER;
+- (nonnull instancetype)init NS_UNAVAILABLE;
+
+- (nullable instancetype)initWithString:(nullable NSString *)string NS_SWIFT_NAME(init(_:));
+
+- (nullable instancetype)initWithUser:(nullable NSString *)user
+                                 host:(nonnull NSString *)host
+                             resource:(nullable NSString *)resource NS_DESIGNATED_INITIALIZER;
 
 #pragma mark JID Properties
-@property (readonly, copy) NSString *user;
-@property (readonly, copy) NSString *host;
-@property (readonly, copy) NSString *resource;
+@property (readonly) NSString *_Nullable user;
+@property (readonly) NSString *_Nonnull host;
+@property (readonly) NSString *_Nullable resource;
 
 #pragma mark String Value
-@property (readonly, copy) NSString *stringValue;
+@property (readonly) NSString *_Nonnull stringValue;
 
 #pragma mark Bare or Full JID
-- (XMPPJID *)bareJID;
-- (XMPPJID *)JIDWithResource:(NSString *)resource;
+- (nonnull instancetype)bareJID;
+- (nonnull instancetype)fullJIDWithResource:(nonnull NSString *)resource NS_SWIFT_NAME(fullJID(resource:));
+
++ (nullable instancetype)JIDFromString:(nullable NSString *)string __attribute__((deprecated));
+- (nonnull instancetype)JIDWithResource:(nonnull NSString *)resource __attribute__((deprecated));
 
 @end

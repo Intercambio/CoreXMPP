@@ -9,12 +9,16 @@
 #import "XMPPAccountManager.h"
 #import "XMPPAccountConnectivityImpl.h"
 #import "XMPPClient.h"
+#import "XMPPClientFactoryImpl.h"
 #import "XMPPError.h"
 
+NSString *const XMPPAccountManagerDidChangeAccount = @"XMPPAccountManagerDidChangeAccount";
 NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConnectivityDidChangeNotification";
+NSString *const XMPPAccountManagerAccountJIDKey = @"XMPPAccountManagerAccountJIDKey";
+NSString *const XMPPAccountManagerAccountInfoKey = @"XMPPAccountManagerAccountInfoKey";
 
 @interface XMPPAccountManager () <XMPPAccountConnectivityImplDelegate> {
-    XMPPClientFactory *_clientFactory;
+    id<XMPPClientFactory> _clientFactory;
     NSMutableDictionary *_clientsByAccount;
     NSMutableDictionary *_connectivityByAccount;
 }
@@ -32,12 +36,12 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
 }
 
 - (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher
-                     clientFactory:(XMPPClientFactory *)clientFactory
+                     clientFactory:(id<XMPPClientFactory>)clientFactory
 {
     self = [super init];
     if (self) {
         _dispatcher = dispatcher;
-        _clientFactory = clientFactory ?: [[XMPPClientFactory alloc] init];
+        _clientFactory = clientFactory ?: [[XMPPClientFactoryImpl alloc] init];
         _clientsByAccount = [[NSMutableDictionary alloc] init];
         _connectivityByAccount = [[NSMutableDictionary alloc] init];
     }
@@ -91,8 +95,7 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
     }
 }
 
-- (void)updateOptions:(NSDictionary *)options
-           forAccount:(XMPPJID *)account
+- (void)updateAccount:(XMPPJID *)account withOptions:(NSDictionary<NSString *, id> *)options
 {
     XMPPClient *client = [_clientsByAccount objectForKey:account];
     [client updateOptions:options];
@@ -104,9 +107,15 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
     [_connectivityByAccount removeObjectForKey:account];
 }
 
-#pragma mark Connectivity
+- (void)connectAccount:(XMPPJID *)account
+{
+    id<XMPPAccountConnectivity> connectivity = [_connectivityByAccount objectForKey:account];
+    [connectivity connect];
+}
 
-- (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account
+#pragma mark Account Info
+
+- (id<XMPPAccountInfo>)infoForAccount:(XMPPJID *)account
 {
     return [_connectivityByAccount objectForKey:account];
 }
@@ -130,6 +139,28 @@ NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConn
     return [_clientFactory reconnectStrategyForClient:client
                                             withError:error
                                      numberOfAttempts:numberOfAttempts];
+}
+
+- (void)accountConnectivityDidChange:(XMPPAccountConnectivityImpl *)accountConnectivity
+{
+    NSDictionary *userInfo = @{XMPPAccountManagerAccountJIDKey : accountConnectivity.account,
+                               XMPPAccountManagerAccountInfoKey : accountConnectivity};
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidChangeAccount
+                                                        object:self
+                                                      userInfo:userInfo];
+}
+
+#pragma mark Deprecated
+
+- (void)updateOptions:(NSDictionary<NSString *, id> *)options forAccount:(XMPPJID *)account
+{
+    [self updateAccount:account withOptions:options];
+}
+
+- (id<XMPPAccountConnectivity>)connectivityForAccount:(XMPPJID *)account
+{
+    return [_connectivityByAccount objectForKey:account];
 }
 
 @end

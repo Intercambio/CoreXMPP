@@ -11,7 +11,7 @@
 #import "XMPPReconnectStrategy.h"
 
 @interface XMPPAccountConnectivityImpl ()
-@property (nonatomic, readwrite) XMPPAccountConnectivityState state;
+@property (nonatomic, readwrite) XMPPAccountConnectionState connectionState;
 @property (nonatomic, readwrite) NSError *recentError;
 @property (nonatomic, readwrite) NSUInteger numberOfAttempts;
 @property (nonatomic, readwrite) id<XMPPReconnectStrategy> reconnectStrategy;
@@ -44,11 +44,18 @@
     [self clearReconnectStrategy];
 }
 
-#pragma mark XMPPAccountConnectivity
+#pragma mark XMPPAccountInfo
 
 - (NSDate *)nextConnectionAttempt
 {
     return self.reconnectStrategy.nextConnectionAttempt;
+}
+
+#pragma mark XMPPAccountConnectivity
+
+- (XMPPAccountConnectivityState)state
+{
+    return self.connectionState;
 }
 
 - (void)connect
@@ -62,26 +69,25 @@
 {
     switch (state) {
     case XMPPClientStateDisconnected:
-        self.state = XMPPAccountConnectivityStateDisconnected;
+        self.connectionState = XMPPAccountConnectionStateDisconnected;
         break;
 
     case XMPPClientStateConnecting:
     case XMPPClientStateEstablished:
     case XMPPClientStateNegotiating:
-        self.state = XMPPAccountConnectivityStateConnecting;
+        self.connectionState = XMPPAccountConnectionStateConnecting;
         break;
 
     case XMPPClientStateConnected:
-        self.state = XMPPAccountConnectivityStateConnected;
+        self.connectionState = XMPPAccountConnectionStateConnected;
         break;
 
     case XMPPClientStateDisconnecting:
-        self.state = XMPPAccountConnectivityStateDisconnecting;
+        self.connectionState = XMPPAccountConnectionStateDisconnecting;
         break;
     }
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
-                                                        object:self];
+    [self postChangeNotification];
 }
 
 - (void)clientDidConnect:(XMPPClient *)client resumedStream:(BOOL)resumedStream
@@ -90,16 +96,14 @@
     self.numberOfAttempts = 0;
     [self clearReconnectStrategy];
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
-                                                        object:self];
+    [self postChangeNotification];
 }
 
 - (void)clientDidDisconnect:(XMPPClient *)client
 {
     [self.client connect];
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
-                                                        object:self];
+    [self postChangeNotification];
 }
 
 - (void)client:(XMPPClient *)client didFailWithError:(NSError *)error
@@ -109,8 +113,7 @@
 
     [self setupReconnectStrategy];
 
-    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
-                                                        object:self];
+    [self postChangeNotification];
 }
 
 #pragma mark -
@@ -129,6 +132,16 @@
 {
     [self.reconnectStrategy stop];
     self.reconnectStrategy = nil;
+}
+
+- (void)postChangeNotification
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountConnectivityDidChangeNotification
+                                                        object:self];
+
+    if ([self.delegate respondsToSelector:@selector(accountConnectivityDidChange:)]) {
+        [self.delegate accountConnectivityDidChange:self];
+    }
 }
 
 @end

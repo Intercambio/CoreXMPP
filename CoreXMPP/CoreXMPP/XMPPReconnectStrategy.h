@@ -8,9 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
+NS_SWIFT_NAME(ReconnectStrategy)
 @protocol XMPPReconnectStrategy <NSObject>
 
-@property (nonatomic, readonly) NSDate *nextConnectionAttempt;
+@property (nonatomic, readonly) NSDate *_Nullable nextConnectionAttempt;
 
 - (void)start;
 - (void)stop;

@@ -16,7 +16,7 @@
 
 - (void)testJIDFromString
 {
-    XMPPJID *jid = [XMPPJID JIDFromString:@"foo@example.com/bar"];
+    XMPPJID *jid = [[XMPPJID alloc] initWithString:@"foo@example.com/bar"];
 
     XCTAssertEqualObjects(jid.host, @"example.com");
     XCTAssertEqualObjects(jid.user, @"foo");
@@ -28,28 +28,21 @@
 
 - (void)testJIDFromEmptyString
 {
-    XMPPJID *jid = [XMPPJID JIDFromString:@""];
+    XMPPJID *jid = [[XMPPJID alloc] initWithString:@""];
     XCTAssertNil(jid);
-}
-
-- (void)testInit
-{
-    XMPPJID *jid = [[XMPPJID alloc] init];
-    XCTAssertNotNil(jid);
-    XCTAssertNil([jid stringValue]);
 }
 
 - (void)testJIDWithResource
 {
-    XMPPJID *jid = [XMPPJID JIDFromString:@"foo@example.com/bar"];
-    XCTAssertEqualObjects([[jid JIDWithResource:@"foo"] stringValue], @"foo@example.com/foo");
+    XMPPJID *jid = [[XMPPJID alloc] initWithString:@"foo@example.com/bar"];
+    XCTAssertEqualObjects([[jid fullJIDWithResource:@"foo"] stringValue], @"foo@example.com/foo");
 }
 
 - (void)testEqual
 {
-    XCTAssertEqualObjects([XMPPJID JIDFromString:@"foo@example.com/bar"], [XMPPJID JIDFromString:@"foo@example.com/bar"]);
-    XCTAssertNotEqualObjects([XMPPJID JIDFromString:@"foo@example.com/foo"], [XMPPJID JIDFromString:@"foo@example.com/bar"]);
-    XCTAssertNotEqualObjects([XMPPJID JIDFromString:@"foo@example.com/foo"], @"foo@example.com/bar");
+    XCTAssertEqualObjects([[XMPPJID alloc] initWithString:@"foo@example.com/bar"], [[XMPPJID alloc] initWithString:@"foo@example.com/bar"]);
+    XCTAssertNotEqualObjects([[XMPPJID alloc] initWithString:@"foo@example.com/foo"], [[XMPPJID alloc] initWithString:@"foo@example.com/bar"]);
+    XCTAssertNotEqualObjects([[XMPPJID alloc] initWithString:@"foo@example.com/foo"], @"foo@example.com/bar");
 }
 
 @end

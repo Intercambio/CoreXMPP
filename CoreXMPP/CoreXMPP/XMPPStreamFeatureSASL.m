@@ -143,6 +143,14 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
     return YES;
 }
 
+#pragma mark Mechanisms
+
+@synthesize mechanisms = _mechanisms;
+- (NSArray *)mechanisms
+{
+    return _mechanisms ?: @[];
+}
+
 #pragma mark Negotiate Feature
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options

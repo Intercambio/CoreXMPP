@@ -11,7 +11,6 @@
 // Needs to be imported after CoreXMPP framework (via XMPPTestCase) to avoid compiler warnings
 #import "XMPPAccountConnectivityImpl.h"
 
-
 @interface XMPPAccountConnectivityImplTests : XMPPTestCase
 @property (nonatomic, strong) XMPPJID *account;
 @property (nonatomic, strong) XMPPClient *client;
@@ -47,25 +46,25 @@
 
 - (void)testClientState
 {
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateDisconnected);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateDisconnected);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateConnecting];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateConnecting);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateConnecting);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateEstablished];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateConnecting);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateConnecting);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateNegotiating];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateConnecting);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateConnecting);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateConnected];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateConnected);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateConnected);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateDisconnecting];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateDisconnecting);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateDisconnecting);
 
     [self.accountConnectivity client:self.client didChangeState:XMPPClientStateDisconnected];
-    XCTAssertEqual(self.accountConnectivity.state, XMPPAccountConnectivityStateDisconnected);
+    XCTAssertEqual(self.accountConnectivity.connectionState, XMPPAccountConnectionStateDisconnected);
 }
 
 - (void)testConnect

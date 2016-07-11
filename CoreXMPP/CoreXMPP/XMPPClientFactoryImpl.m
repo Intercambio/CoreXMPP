@@ -1,12 +1,12 @@
 //
-//  XMPPClientFactory.m
+//  XMPPClientFactoryImpl.m
 //  CoreXMPP
 //
 //  Created by Tobias Kraentzer on 23.05.16.
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPClientFactory.h"
+#import "XMPPClientFactoryImpl.h"
 #import "NSError+ConnectivityErrorType.h"
 #import "NSError+ConnectivityHostname.h"
 #import "XMPPClient.h"
@@ -14,7 +14,7 @@
 #import "XMPPNetworkReachabilityReconnectStrategy.h"
 #import "XMPPTemporalReconnectStrategy.h"
 
-@implementation XMPPClientFactory
+@implementation XMPPClientFactoryImpl
 
 - (instancetype)init
 {

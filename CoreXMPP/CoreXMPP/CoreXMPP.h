@@ -16,6 +16,7 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <CoreXMPP/PublicHeader.h>
 
+#import <CoreXMPP/XMPPAccountConnectivity.h>
 #import <CoreXMPP/XMPPAccountManager.h>
 #import <CoreXMPP/XMPPClient.h>
 #import <CoreXMPP/XMPPClientFactory.h>
@@ -32,8 +33,4 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPRegistrationChallenge.h>
 #import <CoreXMPP/XMPPStream.h>
 #import <CoreXMPP/XMPPStreamFeature.h>
-#import <CoreXMPP/XMPPStreamFeatureBind.h>
-#import <CoreXMPP/XMPPStreamFeatureSASL.h>
-#import <CoreXMPP/XMPPStreamFeatureSession.h>
-#import <CoreXMPP/XMPPStreamFeatureStreamManagement.h>
 #import <CoreXMPP/XMPPWebsocketStream.h>

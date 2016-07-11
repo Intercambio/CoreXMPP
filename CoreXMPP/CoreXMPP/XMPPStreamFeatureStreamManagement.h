@@ -9,11 +9,9 @@
 #import "XMPPClientStreamManagement.h"
 #import "XMPPStreamFeature.h"
 
-@protocol XMPPStreamFeatureDelegateStreamManagement <XMPPStreamFeatureDelegate>
-@optional
-- (id<XMPPClientStreamManagement>)previousStreamManagementForStreamFeature:(XMPPStreamFeature *)streamFeature;
-@end
+extern NSString *_Nonnull const XMPPStreamFeatureStreamManagementNamespace NS_SWIFT_NAME(StreamFeatureStreamManagementNamespace);
 
+NS_SWIFT_NAME(StreamFeatureStreamManagement)
 @interface XMPPStreamFeatureStreamManagement : XMPPStreamFeature <XMPPClientStreamManagement>
 
 @end

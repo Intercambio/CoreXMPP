@@ -8,7 +8,7 @@
 
 #import <CoreXMPP/CoreXMPP.h>
 
-@interface XMPPClientFactoryStub : XMPPClientFactory
+@interface XMPPClientFactoryStub : NSObject <XMPPClientFactory>
 
 @property (nonatomic, strong) XMPPStream *stream;
 

@@ -20,6 +20,8 @@
                       reconnectStrategyForClient:(XMPPClient *)client
                                        withError:(NSError *)error
                                 numberOfAttempts:(NSUInteger)numberOfAttempts;
+@optional
+- (void)accountConnectivityDidChange:(XMPPAccountConnectivityImpl *)accountConnectivity;
 @end
 
 @interface XMPPAccountConnectivityImpl : NSObject <XMPPAccountConnectivity, XMPPClientDelegate>

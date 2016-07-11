@@ -48,12 +48,12 @@
 
 + (NSString *)name
 {
-    return nil;
+    return @"";
 }
 
 + (NSString *)namespace
 {
-    return nil;
+    return @"";
 }
 
 #pragma mark Life-cycle

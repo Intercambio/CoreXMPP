@@ -11,46 +11,48 @@
 
 @class XMPPStreamFeature;
 
+NS_SWIFT_NAME(StreamFeatureDelegate)
 @protocol XMPPStreamFeatureDelegate <NSObject>
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature handleDocument:(PXDocument *)document;
-- (void)streamFeatureDidSucceedNegotiation:(XMPPStreamFeature *)streamFeature;
-- (void)streamFeature:(XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(NSError *)error;
+- (void)streamFeature:(nonnull XMPPStreamFeature *)streamFeature handleDocument:(nonnull PXDocument *)document NS_SWIFT_NAME(streamFeature(_:handle:));
+- (void)streamFeatureDidSucceedNegotiation:(nonnull XMPPStreamFeature *)streamFeature NS_SWIFT_NAME(streamFeatureDidSucceedNegotiation(_:));
+- (void)streamFeature:(nonnull XMPPStreamFeature *)streamFeature didFailNegotiationWithError:(nonnull NSError *)error NS_SWIFT_NAME(streamFeature(_:didFail:));
 @end
 
+NS_SWIFT_NAME(StreamFeature)
 @interface XMPPStreamFeature : NSObject
 
 #pragma mark Registered Stream Features
-+ (NSDictionary *)registeredStreamFeatures;
-+ (void)registerStreamFeatureClass:(Class)featureClass forStreamFeatureQName:(PXQName *)streamFeatureQName;
++ (nonnull NSDictionary<PXQName *, Class> *)registeredStreamFeatures;
++ (void)registerStreamFeatureClass:(nonnull Class)featureClass forStreamFeatureQName:(nonnull PXQName *)streamFeatureQName;
 
 #pragma mark Feature Name & Namespace
-+ (NSString *)name;
-+ (NSString *)namespace;
++ (nonnull NSString *)name;
++ (nonnull NSString *)namespace;
 
 #pragma mark Life-cycle
-+ (instancetype)streamFeatureWithConfiguration:(PXDocument *)configuration;
-- (id)initWithConfiguration:(PXDocument *)configuration;
++ (nullable instancetype)streamFeatureWithConfiguration:(nonnull PXDocument *)configuration;
+- (nonnull instancetype)initWithConfiguration:(nonnull PXDocument *)configuration;
 
 #pragma mark Feature Configuration
-@property (nonatomic, readonly) PXDocument *configuration;
+@property (nonatomic, readonly) PXDocument *_Nonnull configuration;
 @property (nonatomic, readonly, getter=isMandatory) BOOL mandatory;
 @property (nonatomic, readonly) BOOL needsRestart;
 
 #pragma mark Operation Queue
-@property (nonatomic, strong) dispatch_queue_t queue;
+@property (nonatomic, strong) dispatch_queue_t _Nullable queue;
 
 #pragma mark Delegate
-@property (nonatomic, weak) id<XMPPStreamFeatureDelegate> delegate;
+@property (nonatomic, weak) id<XMPPStreamFeatureDelegate> _Nullable delegate;
 
 #pragma mark Negotiate Feature
-- (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options;
+- (void)beginNegotiationWithHostname:(nonnull NSString *)hostname options:(nullable NSDictionary *)options NS_SWIFT_NAME(beginNegotiation(hostname:options:));
 
 #pragma mark Handle Document
-- (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error;
+- (BOOL)handleDocument:(nonnull PXDocument *)document error:(NSError *__autoreleasing __nullable *__nullable)error NS_SWIFT_NAME(handle(_:));
 
 #pragma mark -
-- (void)sendIQRequest:(PXDocument *)document
+- (void)sendIQRequest:(nonnull PXDocument *)document
               timeout:(NSTimeInterval)timeout
-           completion:(void (^)(PXDocument *response, NSError *error))completion;
+           completion:(nonnull void (^)(PXDocument *_Nullable response, NSError *_Nullable error))completion NS_SWIFT_NAME(sendIQRequest(_:timeout:completion:));
 
 @end

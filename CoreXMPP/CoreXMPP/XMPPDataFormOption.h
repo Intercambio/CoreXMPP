@@ -8,9 +8,10 @@
 
 #import <PureXML/PureXML.h>
 
+NS_SWIFT_NAME(DataFormOption)
 @interface XMPPDataFormOption : PXElement
 
-@property (nonatomic, readwrite) NSString *label;
-@property (nonatomic, readwrite) NSString *value;
+@property (nonatomic, readwrite) NSString *_Nullable label;
+@property (nonatomic, readwrite) NSString *_Nullable value;
 
 @end

@@ -2,30 +2,24 @@
 //  XMPPClientFactory.h
 //  CoreXMPP
 //
-//  Created by Tobias Kraentzer on 23.05.16.
+//  Created by Tobias Kraentzer on 01.07.16.
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+#import "XMPPClient.h"
+#import "XMPPReconnectStrategy.h"
+#import "XMPPStream.h"
 #import <Foundation/Foundation.h>
 
-#import "XMPPReconnectStrategy.h"
+NS_SWIFT_NAME(ClientFactory)
+@protocol XMPPClientFactory <NSObject>
 
-@class XMPPClient;
-@class XMPPStream;
+- (nonnull XMPPClient *)createClientToHost:(nonnull NSString *)hostname
+                               withOptions:(nullable NSDictionary<NSString *, id> *)options
+                                    stream:(nullable XMPPStream *)stream NS_SWIFT_NAME(createClient(hostname:options:stream:));
 
-@interface XMPPClientFactory : NSObject
-
-#pragma mark Client
-- (XMPPClient *)createClientToHost:(NSString *)hostname
-                       withOptions:(NSDictionary *)options
-                            stream:(XMPPStream *)stream;
-
-#pragma mark Reconnect Strategy
-@property (nonatomic, assign) NSTimeInterval minReconnectTimeInterval; // default 1.0
-@property (nonatomic, assign) NSTimeInterval maxReconnectTimeInterval; // default 60.0
-
-- (id<XMPPReconnectStrategy>)reconnectStrategyForClient:(XMPPClient *)client
-                                              withError:(NSError *)error
-                                       numberOfAttempts:(NSUInteger)numberOfAttempts;
+- (nullable id<XMPPReconnectStrategy>)reconnectStrategyForClient:(nonnull XMPPClient *)client
+                                                       withError:(nullable NSError *)error
+                                                numberOfAttempts:(NSUInteger)numberOfAttempts NS_SWIFT_NAME(reconnectStrategy(client:error:numberOfAttempts:));
 
 @end

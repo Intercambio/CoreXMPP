@@ -226,7 +226,7 @@
     });
 }
 
-#pragma mark XMPPStanzaHandler
+#pragma mark XMPPDocumentHandler
 
 - (void)handleDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
@@ -315,8 +315,8 @@
             } else if ([type isEqualToString:@"result"] ||
                        [type isEqualToString:@"error"]) {
 
-                XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
-                XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]];
+                XMPPJID *from = [[XMPPJID alloc] initWithString:[document.root valueForAttribute:@"from"]];
+                XMPPJID *to = [[XMPPJID alloc] initWithString:[document.root valueForAttribute:@"to"]];
                 NSString *requestID = [document.root valueForAttribute:@"id"];
 
                 if (from && to && requestID) {
@@ -414,8 +414,8 @@
                 [document.root setValue:requestId forAttribute:@"id"];
             }
 
-            XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
-            XMPPJID *to = [XMPPJID JIDFromString:[document.root valueForAttribute:@"to"]] ?: [from bareJID];
+            XMPPJID *from = [[XMPPJID alloc] initWithString:[document.root valueForAttribute:@"from"]];
+            XMPPJID *to = [[XMPPJID alloc] initWithString:[document.root valueForAttribute:@"to"]] ?: [from bareJID];
             NSArray *key = @[ to ?: [NSNull null], from ?: [NSNull null], requestId ];
 
             if (completion) {
@@ -462,7 +462,7 @@
 
 - (void)xmpp_routeDocument:(PXDocument *)document completion:(void (^)(NSError *))completion
 {
-    XMPPJID *from = [XMPPJID JIDFromString:[document.root valueForAttribute:@"from"]];
+    XMPPJID *from = [[XMPPJID alloc] initWithString:[document.root valueForAttribute:@"from"]];
     if (from) {
         XMPPJID *bareJID = [from bareJID];
         id<XMPPConnection> connection = [_connectionsByJID objectForKey:bareJID];

@@ -11,11 +11,13 @@
 @protocol XMPPConnection;
 @class XMPPJID;
 
+NS_SWIFT_NAME(ConnectionDelegate)
 @protocol XMPPConnectionDelegate <XMPPDocumentHandler>
-- (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed;
-- (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID;
+- (void)connection:(nonnull id<XMPPConnection>)connection didConnectTo:(nonnull XMPPJID *)JID resumed:(BOOL)resumed NS_SWIFT_NAME(connection(_:didConnect:resumed:));
+- (void)connection:(nonnull id<XMPPConnection>)connection didDisconnectFrom:(nonnull XMPPJID *)JID NS_SWIFT_NAME(connection(_:didDisconnect:));
 @end
 
+NS_SWIFT_NAME(Connection)
 @protocol XMPPConnection <XMPPDocumentHandler>
-@property (nonatomic, weak) id<XMPPConnectionDelegate> connectionDelegate;
+@property (nonatomic, weak) id<XMPPConnectionDelegate> _Nullable connectionDelegate;
 @end

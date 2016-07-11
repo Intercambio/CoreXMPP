@@ -30,7 +30,7 @@
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Add Connection"];
     [module onAddConnection:^(XMPPJID *JID) {
-        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
         [expectation fulfill];
     }];
     [dispatcher setConnection:connection forJID:JID(@"romeo@example.com")];
@@ -40,7 +40,7 @@
 
     expectation = [self expectationWithDescription:@"Expect Connect"];
     [module onConnect:^(XMPPJID *JID, BOOL resumed) {
-        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
         [expectation fulfill];
     }];
     [dispatcher connection:connection didConnectTo:JID(@"romeo@example.com") resumed:NO];
@@ -50,7 +50,7 @@
 
     expectation = [self expectationWithDescription:@"Expect Disconnect"];
     [module onDisconnect:^(XMPPJID *JID) {
-        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
         [expectation fulfill];
     }];
     [dispatcher connection:connection didDisconnectFrom:JID(@"romeo@example.com")];
@@ -60,7 +60,7 @@
 
     expectation = [self expectationWithDescription:@"Expect Remove Connection"];
     [module onRemoveConnection:^(XMPPJID *JID) {
-        XCTAssertEqualObjects(JID, [XMPPJID JIDFromString:@"romeo@example.com"]);
+        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
         [expectation fulfill];
     }];
     [dispatcher removeConnectionForJID:JID(@"romeo@example.com")];
@@ -476,7 +476,7 @@
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
 
         NSString *to = [stanza valueForAttribute:@"from"];
-        NSString *from = [[[XMPPJID JIDFromString:[stanza valueForAttribute:@"from"]] bareJID] stringValue];
+        NSString *from = [[[[XMPPJID alloc] initWithString:[stanza valueForAttribute:@"from"]] bareJID] stringValue];
         NSString *_id = [stanza valueForAttribute:@"id"];
 
         PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
