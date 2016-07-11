@@ -14,7 +14,7 @@ NS_SWIFT_NAME(JID)
 @interface XMPPJID : NSObject <NSCopying>
 
 #pragma mark Life-cycle
-- (nullable instancetype)init NS_UNAVAILABLE;
+- (nonnull instancetype)init NS_UNAVAILABLE;
 
 - (nullable instancetype)initWithString:(nullable NSString *)string NS_SWIFT_NAME(init(_:));
 
