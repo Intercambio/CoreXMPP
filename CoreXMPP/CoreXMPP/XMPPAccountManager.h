@@ -13,6 +13,8 @@
 #import <Foundation/Foundation.h>
 #import <SASLKit/SASLKit.h>
 
+extern NSString *_Nonnull const XMPPAccountManagerDidAddAccount NS_SWIFT_NAME(AccountManagerDidAddAccount);
+extern NSString *_Nonnull const XMPPAccountManagerDidRemoveAccount NS_SWIFT_NAME(AccountManagerDidRemoveAccount);
 extern NSString *_Nonnull const XMPPAccountManagerDidChangeAccount NS_SWIFT_NAME(AccountManagerDidChangeAccount);
 
 extern NSString *_Nonnull const XMPPAccountManagerAccountJIDKey NS_SWIFT_NAME(AccountManagerAccountJIDKey);
