@@ -12,6 +12,8 @@
 #import "XMPPClientFactoryImpl.h"
 #import "XMPPError.h"
 
+NSString *const XMPPAccountManagerDidAddAccount = @"XMPPAccountManagerDidAddAccount";
+NSString *const XMPPAccountManagerDidRemoveAccount = @"XMPPAccountManagerDidRemoveAccount";
 NSString *const XMPPAccountManagerDidChangeAccount = @"XMPPAccountManagerDidChangeAccount";
 NSString *const XMPPAccountConnectivityDidChangeNotification = @"XMPPAccountConnectivityDidChangeNotification";
 NSString *const XMPPAccountManagerAccountJIDKey = @"XMPPAccountManagerAccountJIDKey";
@@ -91,6 +93,12 @@ NSString *const XMPPAccountManagerAccountInfoKey = @"XMPPAccountManagerAccountIn
 
         [client connect];
 
+        NSDictionary *userInfo = @{XMPPAccountManagerAccountJIDKey : account};
+
+        [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidAddAccount
+                                                            object:self
+                                                          userInfo:userInfo];
+
         return YES;
     }
 }
@@ -105,6 +113,12 @@ NSString *const XMPPAccountManagerAccountInfoKey = @"XMPPAccountManagerAccountIn
 {
     [_clientsByAccount removeObjectForKey:account];
     [_connectivityByAccount removeObjectForKey:account];
+
+    NSDictionary *userInfo = @{XMPPAccountManagerAccountJIDKey : account};
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:XMPPAccountManagerDidRemoveAccount
+                                                        object:self
+                                                      userInfo:userInfo];
 }
 
 - (void)connectAccount:(XMPPJID *)account
