@@ -2,6 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:Cartfile">
+   </FileRef>
+   <FileRef
+      location = "group:Cartfile.private">
+   </FileRef>
+   <FileRef
       location = "group:CoreXMPP/CoreXMPP.xcodeproj">
    </FileRef>
 </Workspace>

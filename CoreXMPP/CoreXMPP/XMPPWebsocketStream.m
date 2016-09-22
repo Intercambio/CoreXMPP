@@ -225,7 +225,11 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 {
     NSString *message = [[self class] stringFromDocument:document];
     DDLogVerbose(@"OUT >>> %@", message);
-    [_websocket send:message];
+    NSError *error = nil;
+    BOOL success = [_websocket sendString:message error:&error];
+    if (!success) {
+        DDLogError(@"Failed to send message: %@", [error localizedDescription]);
+    }
 }
 
 - (void)xmpp_handleDocument:(PXDocument *)document
@@ -251,7 +255,11 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     __weak typeof(self) _self = self;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(keepAliveInterval * NSEC_PER_SEC)), [self xmpp_queue], ^{
         if (_self && _websocket.readyState == SR_OPEN) {
-            [_websocket sendPing:nil];
+            NSError *error = nil;
+            BOOL success = [_websocket sendPing:nil error:&error];
+            if (!success) {
+                DDLogError(@"Failed to send ping: %@", [error localizedDescription]);
+            }
             [_self keepAlive];
         }
     });
