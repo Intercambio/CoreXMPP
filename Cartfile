@@ -1,5 +1,4 @@
 github "Internetslum/PureXML" ~> 1.1
 github "Internetslum/SASLKit" ~> 1.0
 github "CocoaLumberjack/CocoaLumberjack" ~> 2.2.0
-
-git "git@github.com:anagromataf/SocketRocket.git" "c1ec28aafde7c522889f79220511f037b7adf70d"
+github "facebook/SocketRocket" "41b57bb2fc292a814f758441a05243eb38457027"
