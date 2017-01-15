@@ -6,8 +6,8 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import "XMPPJID.h"
-#import <Foundation/Foundation.h>
+@import Foundation;
+@import XMPPFoundation;
 
 extern NSString *_Nonnull const XMPPAccountConnectivityDidChangeNotification NS_SWIFT_NAME(AccountConnectivityDidChange);
 

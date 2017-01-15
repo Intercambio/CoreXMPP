@@ -68,9 +68,9 @@
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [handler onMessage:^(PXDocument *document) {
-        assertThat(document.root, equalTo(PXQN(@"jabber:client", @"message")));
-        assertThat([document.root stringValue], equalTo(@"Hello!"));
+    [handler onMessage:^(XMPPMessageStanza *stanza) {
+        assertThat(stanza.qualifiedName, equalTo(PXQN(@"jabber:client", @"message")));
+        assertThat([stanza stringValue], equalTo(@"Hello!"));
         [expectation fulfill];
     }];
 
@@ -118,7 +118,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:doc
+    [dispatcher handleMessage:(XMPPMessageStanza *)doc.root
                    completion:^(NSError *error) {
                        assertThat(error, nilValue());
                        [expectation fulfill];
@@ -153,7 +153,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:doc
+    [dispatcher handleMessage:(XMPPMessageStanza *)doc.root
                    completion:^(NSError *error) {
                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoRoute));
@@ -187,7 +187,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
-    [dispatcher handleMessage:doc
+    [dispatcher handleMessage:(XMPPMessageStanza *)doc.root
                    completion:^(NSError *error) {
                        assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                        assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeNoSender));
@@ -217,8 +217,8 @@
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [handler onPresence:^(PXDocument *document) {
-        assertThat(document.root, equalTo(PXQN(@"jabber:client", @"presence")));
+    [handler onPresence:^(XMPPPresenceStanza *stanza) {
+        assertThat(stanza, equalTo(PXQN(@"jabber:client", @"presence")));
         [expectation fulfill];
     }];
 
@@ -259,7 +259,7 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
-    [dispatcher handlePresence:doc
+    [dispatcher handlePresence:(XMPPPresenceStanza *)doc.root
                     completion:^(NSError *error) {
                         [expectation fulfill];
                     }];
@@ -276,13 +276,16 @@
 
     [dispatcher addHandler:handler
          withIQQueryQNames:@[ PXQN(@"foo:bar", @"query"),
-                              PXQN(@"foo:baz", @"query") ]];
+                              PXQN(@"foo:baz", @"query") ]
+                  features:nil];
 
     assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(handler));
     assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], is(handler));
 
     id<XMPPIQHandler> handler2 = mockProtocol(@protocol(XMPPIQHandler));
-    [dispatcher addHandler:handler2 withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]];
+    [dispatcher addHandler:handler2
+         withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]
+                  features:nil];
 
     assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:bar", @"query")], is(handler2));
     assertThat(dispatcher.IQHandlersByQuery[PXQN(@"foo:baz", @"query")], is(handler));
@@ -298,32 +301,22 @@
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
-    [dispatcher addHandler:handler withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]];
+    [dispatcher addHandler:handler
+         withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]
+                  features:nil];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
 
-    [handler onIQRequest:^(PXDocument *document, NSTimeInterval timeout, void (^completion)(PXDocument *, NSError *)) {
-
-        PXElement *stanza = document.root;
+    [handler onIQRequest:^(XMPPIQStanza *stanza, NSTimeInterval timeout, void (^completion)(XMPPIQStanza *, NSError *)) {
 
         assertThat(stanza, equalTo(PXQN(@"jabber:client", @"iq")));
         assertThat(completion, notNilValue());
 
-        NSString *from = [stanza valueForAttribute:@"to"];
-        NSString *to = [stanza valueForAttribute:@"from"];
-        NSString *_id = [stanza valueForAttribute:@"id"];
-
-        PXDocument *doc = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-        PXElement *response = doc.root;
-        [response setValue:from forAttribute:@"from"];
-        [response setValue:to forAttribute:@"to"];
-        [response setValue:@"result" forAttribute:@"type"];
-        [response setValue:_id forAttribute:@"id"];
-
+        XMPPIQStanza *response = [stanza response];
         if (completion) {
-            completion(doc, nil);
+            completion(response, nil);
         }
     }];
 
@@ -366,7 +359,8 @@
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
     [connection onHandleDocument:^(PXDocument *document, void (^completion)(NSError *), id<XMPPDocumentHandler> responseHandler) {
         assertThat(document.root, equalTo(PXQN(@"jabber:client", @"iq")));
-        NSError *error = [NSError errorFromStanza:document.root];
+        XMPPIQStanza *stanza = (XMPPIQStanza *)document.root;
+        NSError *error = stanza.error;
         assertThat(error.domain, equalTo(XMPPStanzaErrorDomain));
         assertThatInteger(error.code, equalToInteger(XMPPStanzaErrorCodeItemNotFound));
         [expectation fulfill];
@@ -422,9 +416,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:doc
+    [dispatcher handleIQRequest:(XMPPIQStanza *)doc.root
                         timeout:0
-                     completion:^(PXDocument *response, NSError *error) {
+                     completion:^(XMPPIQStanza *response, NSError *error) {
                          assertThat(response, equalTo(PXQN(@"jabber:client", @"iq")));
                          [expectation fulfill];
                      }];
@@ -477,9 +471,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:doc
+    [dispatcher handleIQRequest:(XMPPIQStanza *)doc.root
                         timeout:0
-                     completion:^(PXDocument *response, NSError *error) {
+                     completion:^(XMPPIQStanza *response, NSError *error) {
                          assertThat(response, equalTo(PXQN(@"jabber:client", @"iq")));
                          [expectation fulfill];
                      }];
@@ -515,9 +509,9 @@
     }];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Response"];
-    [dispatcher handleIQRequest:doc
+    [dispatcher handleIQRequest:(XMPPIQStanza *)doc.root
                         timeout:1.0
-                     completion:^(PXDocument *response, NSError *error) {
+                     completion:^(XMPPIQStanza *response, NSError *error) {
                          assertThat(response, nilValue());
                          assertThat(error.domain, equalTo(XMPPDispatcherErrorDomain));
                          assertThatInteger(error.code, equalToInteger(XMPPDispatcherErrorCodeTimeout));

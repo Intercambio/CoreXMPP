@@ -6,11 +6,14 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+@import Foundation;
+@import XMPPFoundation;
+
 #import "XMPPAccountConnectivity.h"
 #import "XMPPClientFactory.h"
 #import "XMPPDispatcherImpl.h"
-#import "XMPPJID.h"
-#import <Foundation/Foundation.h>
+
+
 #import <SASLKit/SASLKit.h>
 
 extern NSString *_Nonnull const XMPPAccountManagerDidAddAccount NS_SWIFT_NAME(AccountManagerDidAddAccount);

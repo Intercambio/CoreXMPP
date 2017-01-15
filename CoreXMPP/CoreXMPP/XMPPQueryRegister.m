@@ -6,8 +6,10 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+@import Foundation;
+@import XMPPFoundation;
+
 #import "XMPPQueryRegister.h"
-#import "XMPPDataForm.h"
 
 NSString *const XMPPQueryRegisterFormIdentifier = @"de.tobias-kraentzer.XMPPQueryRegister";
 
