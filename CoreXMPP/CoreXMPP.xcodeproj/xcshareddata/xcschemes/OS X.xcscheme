@@ -43,16 +43,10 @@
                   Identifier = "XMPPClientTests/testConnectToServer">
                </Test>
                <Test
-                  Identifier = "XMPPClientTests/testPreferredSASLMechanismsNotSupported">
-               </Test>
-               <Test
                   Identifier = "XMPPClientTests/testRegisterAccount">
                </Test>
                <Test
                   Identifier = "XMPPClientTests/testResumeClient">
-               </Test>
-               <Test
-                  Identifier = "XMPPClientTests/testUnsupportedSASLMechanism">
                </Test>
                <Test
                   Identifier = "XMPPWebsocketStreamTests">
