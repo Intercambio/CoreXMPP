@@ -8,6 +8,7 @@
 
 #import "XMPPStreamFeature.h"
 #import "XMPPError.h"
+#import "XMPPDispatcherImpl.h"
 #import "XMPPJID.h"
 
 @interface XMPPStreamFeature () {

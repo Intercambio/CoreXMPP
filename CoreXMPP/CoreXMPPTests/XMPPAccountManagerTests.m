@@ -9,7 +9,7 @@
 #import "XMPPTestCase.h"
 
 @interface XMPPAccountManagerTests : XMPPTestCase
-@property (nonatomic, strong) XMPPDispatcher *dispatcher;
+@property (nonatomic, strong) XMPPDispatcherImpl *dispatcher;
 @property (nonatomic, strong) id<XMPPClientFactory> clientFactory;
 @property (nonatomic, strong) XMPPClient *client;
 @property (nonatomic, strong) XMPPAccountManager *accountManager;
@@ -21,7 +21,7 @@
 - (void)setUp
 {
     [super setUp];
-    self.dispatcher = mock([XMPPDispatcher class]);
+    self.dispatcher = mock([XMPPDispatcherImpl class]);
     self.clientFactory = mockProtocol(@protocol(XMPPClientFactory));
     self.client = mock([XMPPClient class]);
     self.accountManager = [[XMPPAccountManager alloc] initWithDispatcher:self.dispatcher

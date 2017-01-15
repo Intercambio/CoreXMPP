@@ -25,7 +25,7 @@ FOUNDATION_EXPORT const unsigned char CoreXMPPVersionString[];
 #import <CoreXMPP/XMPPDataForm.h>
 #import <CoreXMPP/XMPPDataFormField.h>
 #import <CoreXMPP/XMPPDataFormOption.h>
-#import <CoreXMPP/XMPPDispatcher.h>
+#import <CoreXMPP/XMPPDispatcherImpl.h>
 #import <CoreXMPP/XMPPDocumentHandler.h>
 #import <CoreXMPP/XMPPError.h>
 #import <CoreXMPP/XMPPJID.h>

@@ -20,25 +20,16 @@
 
 - (void)testHandleConnections
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPModuleStub *module = [[XMPPModuleStub alloc] init];
     id<XMPPConnection> connection = mockProtocol(@protocol(XMPPConnection));
 
     [dispatcher addHandler:module];
-
-    // Add Connection
-
-    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Add Connection"];
-    [module onAddConnection:^(XMPPJID *JID) {
-        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
-        [expectation fulfill];
-    }];
     [dispatcher setConnection:connection forJID:JID(@"romeo@example.com")];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     // Connect
 
-    expectation = [self expectationWithDescription:@"Expect Connect"];
+    XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Connect"];
     [module onConnect:^(XMPPJID *JID, BOOL resumed) {
         XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
         [expectation fulfill];
@@ -55,23 +46,13 @@
     }];
     [dispatcher connection:connection didDisconnectFrom:JID(@"romeo@example.com")];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
-
-    // Remove Connection
-
-    expectation = [self expectationWithDescription:@"Expect Remove Connection"];
-    [module onRemoveConnection:^(XMPPJID *JID) {
-        XCTAssertEqualObjects(JID, [[XMPPJID alloc] initWithString:@"romeo@example.com"]);
-        [expectation fulfill];
-    }];
-    [dispatcher removeConnectionForJID:JID(@"romeo@example.com")];
-    [self waitForExpectationsWithTimeout:1.0 handler:nil];
 }
 
 #pragma mark Message Handling
 
 - (void)testManagingMessageHandler
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     id<XMPPMessageHandler> handler = mockProtocol(@protocol(XMPPMessageHandler));
     [dispatcher addHandler:handler];
@@ -83,7 +64,7 @@
 
 - (void)testIncomingMessage
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Message"];
@@ -113,7 +94,7 @@
 
 - (void)testOutgoingMessage
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -148,7 +129,7 @@
 
 - (void)testOutgoingMessageWithoutRoute
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -184,7 +165,7 @@
 
 - (void)testOutgoingMessageWithoutSender
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -220,7 +201,7 @@
 
 - (void)testManagingPresenceHandler
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     id<XMPPPresenceHandler> handler = mockProtocol(@protocol(XMPPPresenceHandler));
 
     [dispatcher addHandler:handler];
@@ -232,7 +213,7 @@
 
 - (void)testIncomingPresence
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
 
     XCTestExpectation *expectation = [self expectationWithDescription:@"Expect Presence"];
@@ -258,7 +239,7 @@
 
 - (void)testOutgoingPresence
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -289,7 +270,7 @@
 
 - (void)testManageIQHandler
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     id<XMPPIQHandler> handler = mockProtocol(@protocol(XMPPIQHandler));
 
@@ -313,7 +294,7 @@
 
 - (void)testIncomingIQRequest
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPModuleStub *handler = [[XMPPModuleStub alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
@@ -367,7 +348,7 @@
 
 - (void)testIncomingIQRequestNotSupported
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
 
@@ -397,7 +378,7 @@
 
 - (void)testOutgoingIQRequest
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -454,7 +435,7 @@
 
 - (void)testOutgoingIQRequestWithoutToAddress
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -509,7 +490,7 @@
 
 - (void)testOutgoingIQRequestWithTimeout
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
@@ -551,7 +532,7 @@
 
 - (void)testManageConnection
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
@@ -575,7 +556,7 @@
 
 - (void)testHandleMessageStanza
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -599,7 +580,7 @@
 
 - (void)testHandlePresenceStanza
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -620,7 +601,7 @@
 
 - (void)testHandleIQStanza
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -644,7 +625,7 @@
 
 - (void)testHandleInvalidNamespace
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     PXDocument *doc = [[PXDocument alloc] initWithElementName:@"element" namespace:@"foo:bar" prefix:nil];
 
@@ -660,7 +641,7 @@
 
 - (void)testHandleInvalidName
 {
-    XMPPDispatcher *dispatcher = [[XMPPDispatcher alloc] init];
+    XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
 
     PXDocument *doc = [[PXDocument alloc] initWithElementName:@"element" namespace:@"jabber:client" prefix:nil];
 

@@ -11,7 +11,6 @@
 #import "XMPPError.h"
 
 NSString *const XMPPErrorDomain = @"XMPPErrorDomain";
-NSString *const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
 NSString *const XMPPStreamFeatureSASLErrorDomain = @"XMPPStreamFeatureSASLErrorDomain";
 NSString *const XMPPStreamErrorDomain = @"XMPPStreamErrorDomain";
 NSString *const XMPPStanzaErrorDomain = @"XMPPStanzaErrorDomain";

@@ -24,17 +24,6 @@ typedef NS_ENUM(NSInteger, XMPPErrorCode) {
 extern NSString *const XMPPErrorXMLDocumentKey;
 extern NSString *const XMPPErrorUnderlyingErrorsKey;
 
-// Dispatcher
-
-extern NSString *const XMPPDispatcherErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
-    XMPPDispatcherErrorCodeTimeout,
-    XMPPDispatcherErrorCodeNoSender,
-    XMPPDispatcherErrorCodeNoRoute,
-    XMPPDispatcherErrorCodeNotConnected,
-    XMPPDispatcherErrorCodeInvalidStanza
-};
 
 // XMPPStreamFeature SASL
 

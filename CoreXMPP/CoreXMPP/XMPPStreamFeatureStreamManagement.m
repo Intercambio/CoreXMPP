@@ -10,6 +10,7 @@
 #import <PureXML/PureXML.h>
 
 #import "XMPPError.h"
+#import "XMPPDispatcherImpl.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 
 NSString *const XMPPStreamFeatureStreamManagementNamespace = @"urn:xmpp:sm:3";
@@ -163,7 +164,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     if ([_unacknowledgedDocuments count] > 0) {
         DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
         NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                             code:XMPPDispatcherErrorCodeNotConnected
+                                             code:XMPPDispatcherErrorCodeNoRoute
                                          userInfo:nil];
         for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
             if (wrapper.acknowledgement) {

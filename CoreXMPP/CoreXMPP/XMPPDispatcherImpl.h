@@ -14,36 +14,53 @@
 @class PXQName;
 @class XMPPJID;
 
-NS_SWIFT_NAME(DispatcherHandler)
-@protocol XMPPDispatcherHandler <NSObject>
-@optional
-- (void)didAddConnectionTo:(nonnull XMPPJID *)JID NS_SWIFT_NAME(didAddConnection(_:));
-- (void)didRemoveConnectionTo:(nonnull XMPPJID *)JID NS_SWIFT_NAME(didRemoveConnection(_:));
+NS_SWIFT_NAME(DispatcherErrorDomain)
+extern NSString *_Nonnull const XMPPDispatcherErrorDomain;
+
+typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
+    XMPPDispatcherErrorCodeTimeout,
+    XMPPDispatcherErrorCodeNoSender,
+    XMPPDispatcherErrorCodeNoRoute,
+    XMPPDispatcherErrorCodeInvalidStanza
+} NS_SWIFT_NAME(DispatcherErrorCode);
+
+NS_SWIFT_NAME(Handler)
+@protocol XMPPHandler
+@end
+
+NS_SWIFT_NAME(ConnectionHandler)
+@protocol XMPPConnectionHandler <XMPPHandler>
 - (void)didConnect:(nonnull XMPPJID *)JID resumed:(BOOL)resumed;
 - (void)didDisconnect:(nonnull XMPPJID *)JID;
 @end
 
 NS_SWIFT_NAME(IQHandler)
-@protocol XMPPIQHandler <NSObject>
+@protocol XMPPIQHandler <XMPPHandler>
 - (void)handleIQRequest:(nonnull PXDocument *)document
                 timeout:(NSTimeInterval)timeout
              completion:(nullable void (^)(PXDocument *_Nullable response, NSError *_Nullable error))completion;
 @end
 
 NS_SWIFT_NAME(MessageHandler)
-@protocol XMPPMessageHandler <NSObject>
+@protocol XMPPMessageHandler <XMPPHandler>
 - (void)handleMessage:(nonnull PXDocument *)document
            completion:(nullable void (^)(NSError *_Nullable error))completion;
 @end
 
 NS_SWIFT_NAME(PresenceHandler)
-@protocol XMPPPresenceHandler <NSObject>
+@protocol XMPPPresenceHandler <XMPPHandler>
 - (void)handlePresence:(nonnull PXDocument *)document
             completion:(nullable void (^)(NSError *_Nullable error))completion;
 @end
 
 NS_SWIFT_NAME(Dispatcher)
-@interface XMPPDispatcher : NSObject <XMPPConnectionDelegate, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@protocol XMPPDispatcher <XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+- (void)addHandler:(nonnull id<XMPPHandler>)handler;
+- (void)addHandler:(nonnull id<XMPPHandler>)handler withIQQueryQNames:(nullable NSArray<PXQName *> *)queryQNames;
+- (void)removeHandler:(nonnull id<XMPPHandler>)handler;
+@end
+
+@interface XMPPDispatcherImpl : NSObject <XMPPConnectionDelegate, XMPPDispatcher>
 
 #pragma mark Manage Connections
 @property (nonatomic, readonly) NSDictionary *_Nonnull connectionsByJID;
@@ -52,14 +69,10 @@ NS_SWIFT_NAME(Dispatcher)
 - (void)removeConnection:(nonnull id<XMPPConnection>)connection;
 
 #pragma mark Manage Handlers
-@property (nonatomic, readonly) NSArray<id<XMPPDispatcherHandler>> *_Nonnull dispatcherHandlers;
+@property (nonatomic, readonly) NSArray<id<XMPPConnectionHandler>> *_Nonnull dispatcherHandlers;
 @property (nonatomic, readonly) NSArray<id<XMPPMessageHandler>> *_Nonnull messageHandlers;
 @property (nonatomic, readonly) NSArray<id<XMPPPresenceHandler>> *_Nonnull presenceHandlers;
 @property (nonatomic, readonly) NSDictionary<PXQName *, id<XMPPIQHandler>> *_Nonnull IQHandlersByQuery;
-
-- (void)addHandler:(nonnull id)handler;
-- (void)addHandler:(nonnull id)handler withIQQueryQNames:(nullable NSArray<PXQName *> *)queryQNames;
-- (void)removeHandler:(nonnull id)handler;
 
 #pragma mark Processing
 - (NSUInteger)numberOfPendingIQResponses;

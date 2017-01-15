@@ -8,11 +8,13 @@
 
 #import <PureXML/PureXML.h>
 
-#import "XMPPDispatcher.h"
+#import "XMPPDispatcherImpl.h"
 #import "XMPPError.h"
 #import "XMPPJID.h"
 
-@interface XMPPDispatcher () {
+NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
+
+@interface XMPPDispatcherImpl () {
     dispatch_queue_t _operationQueue;
     NSMapTable *_connectionsByJID;
     NSHashTable *_handlers;
@@ -22,7 +24,7 @@
 
 @end
 
-@implementation XMPPDispatcher
+@implementation XMPPDispatcherImpl
 
 #pragma mark Life-cycle
 
@@ -54,16 +56,8 @@
 - (void)setConnection:(id<XMPPConnection>)connection forJID:(XMPPJID *)JID
 {
     dispatch_async(_operationQueue, ^{
-        BOOL replaceConnection = [_connectionsByJID objectForKey:[JID bareJID]] != nil;
         connection.connectionDelegate = self;
         [_connectionsByJID setObject:connection forKey:[JID bareJID]];
-        if (replaceConnection == NO) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
-                if ([handler respondsToSelector:@selector(didAddConnectionTo:)]) {
-                    [handler didAddConnectionTo:[JID bareJID]];
-                }
-            }
-        }
     });
 }
 
@@ -71,10 +65,8 @@
 {
     dispatch_async(_operationQueue, ^{
         [_connectionsByJID removeObjectForKey:[JID bareJID]];
-        for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
-            if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
-                [handler didRemoveConnectionTo:[JID bareJID]];
-            }
+        for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+            [handler didDisconnect:[JID bareJID]];
         }
     });
 }
@@ -90,10 +82,8 @@
         }
         for (XMPPJID *JID in keys) {
             [_connectionsByJID removeObjectForKey:JID];
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
-                if ([handler respondsToSelector:@selector(didRemoveConnectionTo:)]) {
-                    [handler didRemoveConnectionTo:JID];
-                }
+            for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+                [handler didDisconnect:JID];
             }
         }
     });
@@ -108,7 +98,7 @@
 
 - (void)addHandler:(id)handler withIQQueryQNames:(NSArray *)queryQNames
 {
-    if ([handler conformsToProtocol:@protocol(XMPPDispatcherHandler)] ||
+    if ([handler conformsToProtocol:@protocol(XMPPConnectionHandler)] ||
         [handler conformsToProtocol:@protocol(XMPPMessageHandler)] ||
         [handler conformsToProtocol:@protocol(XMPPPresenceHandler)] ||
         [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
@@ -144,7 +134,7 @@
 {
     __block NSArray *dispatcherHandlers = nil;
     dispatch_sync(_operationQueue, ^{
-        dispatcherHandlers = [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)];
+        dispatcherHandlers = [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)];
     });
     return dispatcherHandlers;
 }
@@ -204,10 +194,8 @@
 {
     dispatch_async(_operationQueue, ^{
         if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
-                if ([handler respondsToSelector:@selector(didConnect:resumed:)]) {
-                    [handler didConnect:JID resumed:resumed];
-                }
+            for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+                [handler didConnect:JID resumed:resumed];
             }
         }
     });
@@ -217,10 +205,8 @@
 {
     dispatch_async(_operationQueue, ^{
         if (connection == [_connectionsByJID objectForKey:[JID bareJID]]) {
-            for (id<XMPPDispatcherHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPDispatcherHandler)]) {
-                if ([handler respondsToSelector:@selector(didDisconnect:)]) {
-                    [handler didDisconnect:JID];
-                }
+            for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+                [handler didDisconnect:JID];
             }
         }
     });

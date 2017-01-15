@@ -10,7 +10,7 @@
 
 @class PXElement;
 
-@interface XMPPModuleStub : NSObject <XMPPDispatcherHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@interface XMPPModuleStub : NSObject <XMPPConnectionHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
 - (void)onMessage:(void (^)(PXDocument *document))callback;
 - (void)onPresence:(void (^)(PXDocument *document))callback;

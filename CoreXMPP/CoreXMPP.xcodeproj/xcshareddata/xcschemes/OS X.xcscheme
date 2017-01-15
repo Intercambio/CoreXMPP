@@ -38,6 +38,26 @@
                BlueprintName = "CoreXMPPOSXTests"
                ReferencedContainer = "container:CoreXMPP.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "XMPPClientTests/testConnectToServer">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testPreferredSASLMechanismsNotSupported">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testRegisterAccount">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testResumeClient">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testUnsupportedSASLMechanism">
+               </Test>
+               <Test
+                  Identifier = "XMPPWebsocketStreamTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>
