@@ -6,11 +6,14 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+@import Foundation;
+@import XMPPFoundation;
+
 #import "XMPPAccountConnectivity.h"
 #import "XMPPClientFactory.h"
-#import "XMPPDispatcher.h"
-#import "XMPPJID.h"
-#import <Foundation/Foundation.h>
+#import "XMPPDispatcherImpl.h"
+
+
 #import <SASLKit/SASLKit.h>
 
 extern NSString *_Nonnull const XMPPAccountManagerDidAddAccount NS_SWIFT_NAME(AccountManagerDidAddAccount);
@@ -24,12 +27,12 @@ NS_SWIFT_NAME(AccountManager)
 @interface XMPPAccountManager : NSObject
 
 #pragma mark Life-cycle
-- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcher *)dispatcher;
-- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcher *)dispatcher
+- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcherImpl *)dispatcher;
+- (nonnull instancetype)initWithDispatcher:(nonnull XMPPDispatcherImpl *)dispatcher
                              clientFactory:(nullable id<XMPPClientFactory>)clientFactory;
 
 #pragma mark Dispatcher
-@property (nonatomic, readonly) XMPPDispatcher *_Nonnull dispatcher;
+@property (nonatomic, readonly) XMPPDispatcherImpl *_Nonnull dispatcher;
 
 #pragma mark SASL Delegate
 @property (nonatomic, weak) id<SASLMechanismDelegate> _Nullable SASLDelegate;

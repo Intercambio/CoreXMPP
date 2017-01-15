@@ -10,6 +10,7 @@
 #import <PureXML/PureXML.h>
 
 #import "XMPPError.h"
+#import "XMPPDispatcherImpl.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 
 NSString *const XMPPStreamFeatureStreamManagementNamespace = @"urn:xmpp:sm:3";
@@ -163,7 +164,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     if ([_unacknowledgedDocuments count] > 0) {
         DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
         NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                             code:XMPPDispatcherErrorCodeNotConnected
+                                             code:XMPPDispatcherErrorCodeNoRoute
                                          userInfo:nil];
         for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
             if (wrapper.acknowledgement) {
@@ -178,14 +179,14 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 - (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
-    PXElement *stanza = document.root;
+    PXElement *element = document.root;
 
-    if ([stanza.namespace isEqualToString:[XMPPStreamFeatureStreamManagement namespace]]) {
+    if ([element.namespace isEqualToString:[XMPPStreamFeatureStreamManagement namespace]]) {
 
-        if ([stanza.name isEqualToString:@"enabled"]) {
+        if ([element.name isEqualToString:@"enabled"]) {
 
-            _id = [stanza valueForAttribute:@"id"];
-            _resumable = [[stanza valueForAttribute:@"resume"] boolValue];
+            _id = [element valueForAttribute:@"id"];
+            _resumable = [[element valueForAttribute:@"resume"] boolValue];
 
             _enabled = YES;
             _resumed = NO;
@@ -196,14 +197,14 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
             [self.delegate streamFeatureDidSucceedNegotiation:self];
 
-        } else if ([stanza.name isEqualToString:@"resumed"]) {
+        } else if ([element.name isEqualToString:@"resumed"]) {
 
-            NSString *previd = [stanza valueForAttribute:@"previd"];
+            NSString *previd = [element valueForAttribute:@"previd"];
             if ([previd isEqualToString:_id]) {
 
                 _resumed = YES;
 
-                NSString *value = [stanza valueForAttribute:@"h"];
+                NSString *value = [element valueForAttribute:@"h"];
                 if (value) {
                     NSUInteger h = [value integerValue];
                     [self xmpp_updateWithNumberOfAcknowledgedStanzas:h];
@@ -218,20 +219,29 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
                 [self.delegate streamFeature:self didFailNegotiationWithError:error];
             }
 
-        } else if ([stanza.name isEqualToString:@"failed"]) {
-
+        } else if ([element.name isEqualToString:@"failed"]) {
+            
             _enabled = NO;
-
-            NSError *error = [NSError errorFromElement:stanza];
+            
+            __block NSError *error = nil;
+            [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
+                error = [NSError errorWithElement:element];
+                *stop = error != nil;
+            }];
+            
+            if (error == nil) {
+                error = [NSError errorWithDomain:XMPPStanzaErrorDomain code:XMPPStanzaErrorCodeUndefinedCondition userInfo:nil];
+            }
+            
             [self.delegate streamFeature:self didFailNegotiationWithError:error];
 
-        } else if ([stanza.name isEqualToString:@"r"]) {
+        } else if ([element.name isEqualToString:@"r"]) {
 
             [self sendAcknowledgement];
 
-        } else if ([stanza.name isEqualToString:@"a"]) {
+        } else if ([element.name isEqualToString:@"a"]) {
 
-            NSString *value = [stanza valueForAttribute:@"h"];
+            NSString *value = [element valueForAttribute:@"h"];
             if (value) {
                 NSUInteger h = [value integerValue];
                 [self xmpp_updateWithNumberOfAcknowledgedStanzas:h];

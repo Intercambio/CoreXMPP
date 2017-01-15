@@ -6,9 +6,12 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
+@import Foundation;
+@import XMPPFoundation;
+
 #import "XMPPStreamFeature.h"
 #import "XMPPError.h"
-#import "XMPPJID.h"
+#import "XMPPDispatcherImpl.h"
 
 @interface XMPPStreamFeature () {
     NSMapTable *_responseHandlers;
@@ -101,18 +104,19 @@
 
 - (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
-    if ([document.root isEqual:PXQN(@"jabber:client", @"iq")]) {
-        NSString *type = [document.root valueForAttribute:@"type"];
-        if ([type isEqualToString:@"result"] ||
-            [type isEqualToString:@"error"]) {
-            NSString *requestID = [document.root valueForAttribute:@"id"];
+    if ([document.root isKindOfClass:[XMPPIQStanza class]]) {
+        XMPPIQStanza *stanza = (XMPPIQStanza *)document.root;
+
+        if (stanza.type == XMPPIQStanzaTypeResult ||
+            stanza.type == XMPPIQStanzaTypeError ) {
+            NSString *requestID = stanza.identifier;
             if (requestID) {
                 void (^completion)(PXDocument *response, NSError *error) = [_responseHandlers objectForKey:requestID];
                 if (completion) {
                     [_responseHandlers removeObjectForKey:requestID];
 
-                    if ([type isEqualToString:@"error"]) {
-                        NSError *error = [NSError errorFromStanza:document.root];
+                    if (stanza.type == XMPPIQStanzaTypeError) {
+                        NSError *error = stanza.error;
                         completion(nil, error);
                     } else {
                         completion(document, nil);

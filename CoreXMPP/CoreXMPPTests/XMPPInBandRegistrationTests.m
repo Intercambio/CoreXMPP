@@ -217,17 +217,16 @@
 {
     [[self prepareFormResponseWithRegistrationForm:nil error:nil] willDo:^id(NSInvocation *invocation) {
 
-        PXDocument *request = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
 
+        XMPPIQStanza *request = (XMPPIQStanza *)document.root;
+        
         dispatch_async(dispatch_get_main_queue(), ^{
             NSError *error = [NSError errorWithDomain:XMPPStanzaErrorDomain
                                                  code:XMPPStanzaErrorCodeNotAllowed
                                              userInfo:nil];
-            PXDocument *response = [NSError IQResponseWithError:error];
-            PXElement *iq = response.root;
-            [iq setValue:[request.root valueForAttribute:@"id"] forAttribute:@"id"];
-            [iq setValue:[request.root valueForAttribute:@"to"] forAttribute:@"from"];
-            [self.feature handleDocument:response error:nil];
+            XMPPIQStanza *response = [request responseWithError:error];
+            [self.feature handleDocument:response.document error:nil];
         });
 
         return nil;
@@ -262,49 +261,41 @@
 {
     return [givenVoid([self.delegate streamFeature:self.feature handleDocument:anything()]) willDo:^id(NSInvocation *invocation) {
 
-        PXDocument *request = [[invocation mkt_arguments] lastObject];
+        PXDocument *document = [[invocation mkt_arguments] lastObject];
+        XMPPIQStanza *request = (XMPPIQStanza *)document.root;
+        
+        XCTAssertEqualObjects([request qualifiedName], PXQN(@"jabber:client", @"iq"));
+        XCTAssertEqualObjects([request valueForAttribute:@"type"], @"get");
+        XCTAssertEqualObjects([request valueForAttribute:@"to"], @"example.com");
+        XCTAssertNotNil([request valueForAttribute:@"id"]);
 
-        XCTAssertEqualObjects([request.root qualifiedName], PXQN(@"jabber:client", @"iq"));
-        XCTAssertEqualObjects([request.root valueForAttribute:@"type"], @"get");
-        XCTAssertEqualObjects([request.root valueForAttribute:@"to"], @"example.com");
-        XCTAssertNotNil([request.root valueForAttribute:@"id"]);
-
-        XCTAssertEqual([request.root numberOfElements], 1);
-        if ([request.root numberOfElements] == 1) {
-            PXElement *query = [request.root elementAtIndex:0];
+        XCTAssertEqual([request numberOfElements], 1);
+        if ([request numberOfElements] == 1) {
+            PXElement *query = [request elementAtIndex:0];
             XCTAssertEqualObjects([query qualifiedName], PXQN(@"jabber:iq:register", @"query"));
         }
 
-        PXDocument *response = nil;
+        XMPPIQStanza *response = nil;
 
         if (error) {
-            response = [NSError IQResponseWithError:error];
-            [response.root setValue:[request.root valueForAttribute:@"id"] forAttribute:@"id"];
+            response = [request responseWithError:error];
         } else {
             response = [self registrationResponseWithRequest:request
                                             registrationForm:registrationForm];
         }
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [self.feature handleDocument:response error:nil];
+            [self.feature handleDocument:response.document error:nil];
         });
 
         return nil;
     }];
 }
 
-- (PXDocument *)registrationResponseWithRequest:(PXDocument *)request
-                               registrationForm:(PXDocument *)registrationForm
+- (XMPPIQStanza *)registrationResponseWithRequest:(XMPPIQStanza *)request
+                                 registrationForm:(PXDocument *)registrationForm
 {
-    NSString *from = [request.root valueForAttribute:@"to"];
-    NSString *IDString = [request.root valueForAttribute:@"id"];
-
-    PXDocument *response = [[PXDocument alloc] initWithElementName:@"iq" namespace:@"jabber:client" prefix:nil];
-    PXElement *iq = response.root;
-
-    [iq setValue:from forAttribute:@"from"];
-    [iq setValue:IDString forAttribute:@"id"];
-    [iq setValue:@"result" forAttribute:@"type"];
+    XMPPIQStanza *iq = [request response];
 
     PXElement *query = [iq addElementWithName:@"query" namespace:@"jabber:iq:register" content:nil];
     [query addElementWithName:@"instructions" namespace:@"jabber:iq:register" content:@"Please register."];
@@ -316,7 +307,7 @@
         [query addElement:registrationForm.root];
     }
 
-    return response;
+    return iq;
 }
 
 @end

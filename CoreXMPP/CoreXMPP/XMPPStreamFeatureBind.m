@@ -174,20 +174,18 @@ NSString *const XMPPStreamFeatureBindNamespace = @"urn:ietf:params:xml:ns:xmpp-b
     return YES;
 }
 
-- (BOOL)handleIQError:(PXElement *)iq error:(NSError **)error
+- (BOOL)handleIQError:(PXElement *)element error:(NSError **)error
 {
-    NSString *responseId = [iq valueForAttribute:@"id"];
-
-    if (responseId && [responseId isEqualToString:_requestId]) {
-
-        NSError *error = [NSError errorFromStanza:iq];
-
-        DDLogInfo(@"Host '%@' did reject to bind to resource with error: %@", _hostname, [error localizedDescription]);
-
-        [self.delegate streamFeature:self didFailNegotiationWithError:error];
-        _requestId = nil;
+    if ([element isKindOfClass:[XMPPIQStanza class]]) {
+        XMPPIQStanza *iq = (XMPPIQStanza *)element;
+        NSString *responseId = iq.identifier;
+        if (responseId && [responseId isEqualToString:_requestId]) {
+            NSError *error = iq.error;
+            DDLogInfo(@"Host '%@' did reject to bind to resource with error: %@", _hostname, [error localizedDescription]);
+            [self.delegate streamFeature:self didFailNegotiationWithError:error];
+            _requestId = nil;
+        }
     }
-
     return YES;
 }
 

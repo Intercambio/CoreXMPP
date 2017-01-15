@@ -24,17 +24,6 @@ typedef NS_ENUM(NSInteger, XMPPErrorCode) {
 extern NSString *const XMPPErrorXMLDocumentKey;
 extern NSString *const XMPPErrorUnderlyingErrorsKey;
 
-// Dispatcher
-
-extern NSString *const XMPPDispatcherErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPDispatcherErrorCode) {
-    XMPPDispatcherErrorCodeTimeout,
-    XMPPDispatcherErrorCodeNoSender,
-    XMPPDispatcherErrorCodeNoRoute,
-    XMPPDispatcherErrorCodeNotConnected,
-    XMPPDispatcherErrorCodeInvalidStanza
-};
 
 // XMPPStreamFeature SASL
 
@@ -87,42 +76,9 @@ typedef NS_ENUM(NSInteger, XMPPStreamErrorCode) {
     XMPPStreamErrorCodeUnsupportedVersion
 };
 
-// Stanza
-
-extern NSString *const XMPPStanzaErrorDomain;
-
-typedef NS_ENUM(NSInteger, XMPPStanzaErrorCode) {
-    XMPPStanzaErrorCodeBadRequest,            // bad-request
-    XMPPStanzaErrorCodeConflict,              // conflict
-    XMPPStanzaErrorCodeFeatureNotImplemented, // feature-not-implemented
-    XMPPStanzaErrorCodeForbidden,             // forbidden
-    XMPPStanzaErrorCodeGone,                  // gone
-    XMPPStanzaErrorCodeInternalServerError,   // internal-server-error
-    XMPPStanzaErrorCodeItemNotFound,          // item-not-found
-    XMPPStanzaErrorCodeJIDMalformed,          // jid-malformed
-    XMPPStanzaErrorCodeNotAcceptable,         // not-acceptable
-    XMPPStanzaErrorCodeNotAllowed,            // not-allowed
-    XMPPStanzaErrorCodeNotAuthorithed,        // not-authorized
-    XMPPStanzaErrorCodePolicyViolation,       // policy-violation
-    XMPPStanzaErrorCodeRecipientUnavailable,  // recipient-unavailable
-    XMPPStanzaErrorCodeRedirect,              // redirect
-    XMPPStanzaErrorCodeRegistrationRequired,  // registration-required
-    XMPPStanzaErrorCodeRemoteServerNotFound,  // remote-server-not-found
-    XMPPStanzaErrorCodeRemoteServerTimeout,   // remote-server-timeout
-    XMPPStanzaErrorCodeResourceConstraint,    // resource-constraint
-    XMPPStanzaErrorCodeServiceUnavailable,    // service-unavailable
-    XMPPStanzaErrorCodeSubscriptionRequired,  // subscription-required
-    XMPPStanzaErrorCodeUndefinedCondition,    // undefined-condition
-    XMPPStanzaErrorCodeUnexpectedRequest      // unexpected-request
-};
-
 @class PXDocument;
 @class PXElement;
 
 @interface NSError (XMPP)
 + (NSError *)streamErrorFromElement:(PXElement *)element;
-+ (NSInteger)stanzaErrorCodeWithName:(NSString *)name;
-+ (NSError *)errorFromStanza:(PXElement *)element;
-+ (NSError *)errorFromElement:(PXElement *)errorElement;
-+ (PXDocument *)IQResponseWithError:(NSError *)error;
 @end
