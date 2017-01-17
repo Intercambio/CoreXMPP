@@ -351,7 +351,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 {
     dispatch_async(_operationQueue, ^{
         
-        if (request.type == XMPPIQStanzaTypeGet || request.type == XMPPIQStanzaTypeGet) {
+        if (request.type == XMPPIQStanzaTypeSet || request.type == XMPPIQStanzaTypeGet) {
 
             NSString *requestId = request.identifier;
             if (requestId == nil) {
