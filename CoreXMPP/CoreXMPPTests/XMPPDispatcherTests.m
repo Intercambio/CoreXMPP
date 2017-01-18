@@ -98,6 +98,7 @@
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -133,6 +134,7 @@
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *from = JID(@"romeo@example.com");
     XMPPJID *to = JID(@"juliet@example.com");
@@ -169,6 +171,7 @@
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *to = JID(@"juliet@example.com");
 
@@ -305,6 +308,7 @@
          withIQQueryQNames:@[ PXQN(@"foo:bar", @"query") ]
                   features:nil];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -344,6 +348,7 @@
     XMPPDispatcherImpl *dispatcher = [[XMPPDispatcherImpl alloc] init];
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *from = JID(@"juliet@example.com");
     XMPPJID *to = JID(@"romeo@localhost");
@@ -376,6 +381,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
     connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
@@ -433,6 +439,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
     connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
@@ -488,6 +495,7 @@
 
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
     connection.connectionDelegate = dispatcher;
 
     XMPPJID *from = JID(@"romeo@localhost");
