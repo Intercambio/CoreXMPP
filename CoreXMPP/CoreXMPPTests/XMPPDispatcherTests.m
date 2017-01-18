@@ -246,6 +246,7 @@
     XMPPConnectionStub *connection = [[XMPPConnectionStub alloc] init];
 
     [dispatcher setConnection:connection forJID:JID(@"romeo@localhost")];
+    [dispatcher connection:connection didConnectTo:JID(@"romeo@localhost") resumed:NO];
 
     XMPPJID *from = JID(@"romeo@localhost");
     XMPPJID *to = JID(@"juliet@example.com");

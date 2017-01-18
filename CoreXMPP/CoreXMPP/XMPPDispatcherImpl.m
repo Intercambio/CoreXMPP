@@ -16,20 +16,23 @@
 
 NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain";
 
-@interface XMPPDispatcherImpl_PendingSubmission : NSObject
-@property (nonatomic, readwrite) NSDate *timeout;
-@property (nonatomic, readwrite) PXDocument *document;
-@property (nonatomic, readwrite) void (^completion)(NSError *);
+@interface XMPPDispatcherImplPendingSubmission : NSObject
+@property (nonatomic, readonly) NSDate *timeout;
+@property (nonatomic, readonly) PXDocument *document;
+@property (nonatomic, readonly) void (^completion)(NSError *);
+- (instancetype)initWithDocument:(PXDocument *)document timeout:(NSDate *)timeout completion:(void (^)(NSError *))completion;
 @end
 
-@implementation XMPPDispatcherImpl_PendingSubmission
+@interface XMPPDispatcherConnectionHandle : NSObject
+@property (nonatomic, readonly) id<XMPPConnection> connection;
+@property (nonatomic, readwrite) BOOL connected;
+@property (nonatomic, readonly) NSMutableArray<XMPPDispatcherImplPendingSubmission *> *pendingSubmissions;
+- (instancetype)initWithConnection:(id<XMPPConnection>)connection;
 @end
 
 @interface XMPPDispatcherImpl () {
     dispatch_queue_t _operationQueue;
-    NSMapTable *_offlineConnectionsByJID;
-    NSMapTable *_onlineConnectionsByJID;
-    NSMapTable *_pendingSubmissionsByConnection;
+    NSMapTable<XMPPJID *, XMPPDispatcherConnectionHandle *> *_connectionsByJID;
     NSHashTable *_handlers;
     NSMapTable *_handlersByQuery;
     NSMapTable *_responseHandlers;
@@ -46,11 +49,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
     self = [super init];
     if (self) {
         _operationQueue = dispatch_queue_create("XMPPDispatcher", DISPATCH_QUEUE_SERIAL);
-
-        _offlineConnectionsByJID = [NSMapTable strongToWeakObjectsMapTable];
-        _onlineConnectionsByJID = [NSMapTable strongToWeakObjectsMapTable];
-        _pendingSubmissionsByConnection = [NSMapTable weakToStrongObjectsMapTable];
-        
+        _connectionsByJID = [NSMapTable strongToStrongObjectsMapTable];
         _handlers = [NSHashTable weakObjectsHashTable];
         _handlersByQuery = [NSMapTable strongToWeakObjectsMapTable];
         _responseHandlers = [NSMapTable strongToStrongObjectsMapTable];
@@ -64,57 +63,90 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 {
     __block NSMutableDictionary *connectionsByJID = [[NSMutableDictionary alloc] init];
     dispatch_sync(_operationQueue, ^{
-        [connectionsByJID addEntriesFromDictionary:[_offlineConnectionsByJID dictionaryRepresentation]];
-        [connectionsByJID addEntriesFromDictionary:[_onlineConnectionsByJID dictionaryRepresentation]];
+        [[_connectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid,
+                                                                                          XMPPDispatcherConnectionHandle *handle,
+                                                                                          BOOL *stop) {
+            [connectionsByJID setObject:handle.connection forKey:jid];
+        }];
     });
     return connectionsByJID;
 }
 
 - (void)setConnection:(id<XMPPConnection>)connection forJID:(XMPPJID *)JID
 {
-    dispatch_async(_operationQueue, ^{
-        connection.connectionDelegate = self;
-        [_onlineConnectionsByJID removeObjectForKey:JID];
-        [_offlineConnectionsByJID setObject:connection forKey:[JID bareJID]];
-        [_pendingSubmissionsByConnection setObject:[[NSMutableArray alloc] init] forKey:connection];
+    dispatch_sync(_operationQueue, ^{
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        if (handle) {
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeNoRoute
+                                             userInfo:nil];
+            for (XMPPDispatcherImplPendingSubmission *pending in handle.pendingSubmissions) {
+                if (pending.completion) {
+                    pending.completion(error);
+                }
+            }
+        }
+
+        if (connection) {
+            connection.connectionDelegate = self;
+            XMPPDispatcherConnectionHandle *handle = [[XMPPDispatcherConnectionHandle alloc] initWithConnection:connection];
+            [_connectionsByJID setObject:handle forKey:JID];
+        }
     });
 }
 
 - (void)removeConnectionForJID:(XMPPJID *)JID
 {
-    dispatch_async(_operationQueue, ^{
-        [_offlineConnectionsByJID removeObjectForKey:[JID bareJID]];
-        [_onlineConnectionsByJID removeObjectForKey:[JID bareJID]];
-        for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-            [handler didDisconnect:[JID bareJID]];
+    dispatch_sync(_operationQueue, ^{
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:[JID bareJID]];
+        if (handle) {
+            NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                 code:XMPPDispatcherErrorCodeNoRoute
+                                             userInfo:nil];
+            for (XMPPDispatcherImplPendingSubmission *pending in handle.pendingSubmissions) {
+                if (pending.completion) {
+                    pending.completion(error);
+                }
+            }
+
+            [_connectionsByJID removeObjectForKey:[JID bareJID]];
+
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+                    [handler didDisconnect:[JID bareJID]];
+                }
+            });
         }
     });
 }
 
 - (void)removeConnection:(id<XMPPConnection>)connection
 {
-    dispatch_async(_operationQueue, ^{
-        NSMutableSet *jids = [[NSMutableSet alloc] init];
-        
-        [[_onlineConnectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid, id<XMPPConnection> onlineConnection, BOOL * _Nonnull stop) {
-            if (onlineConnection == connection) {
-                [_onlineConnectionsByJID removeObjectForKey:jid];
-                [jids addObject:jid];
+    dispatch_sync(_operationQueue, ^{
+
+        [[_connectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid,
+                                                                                          XMPPDispatcherConnectionHandle *handle, BOOL *stop) {
+
+            if (handle.connection == connection) {
+                NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
+                                                     code:XMPPDispatcherErrorCodeNoRoute
+                                                 userInfo:nil];
+                for (XMPPDispatcherImplPendingSubmission *pending in handle.pendingSubmissions) {
+                    if (pending.completion) {
+                        pending.completion(error);
+                    }
+                }
+
+                [_connectionsByJID removeObjectForKey:jid];
+
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                    for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
+                        [handler didDisconnect:jid];
+                    }
+                });
             }
+
         }];
-        
-        [[_offlineConnectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid, id<XMPPConnection> offlineConnection, BOOL * _Nonnull stop) {
-            if (offlineConnection == connection) {
-                [_offlineConnectionsByJID removeObjectForKey:jid];
-                [jids addObject:jid];
-            }
-        }];
-        
-        for (XMPPJID *jid in jids) {
-            for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-                [handler didDisconnect:jid];
-            }
-        }
     });
 }
 
@@ -222,21 +254,13 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed
 {
     dispatch_async(_operationQueue, ^{
-        if (connection == [_offlineConnectionsByJID objectForKey:[JID bareJID]]) {
-            
-            [_offlineConnectionsByJID removeObjectForKey:[JID bareJID]];
-            [_onlineConnectionsByJID setObject:connection forKey:[JID bareJID]];
-            
-            NSMutableArray *pendingSubmissions = [_pendingSubmissionsByConnection objectForKey:[JID bareJID]];
-            for (XMPPDispatcherImpl_PendingSubmission *pendingSumbission in pendingSubmissions) {
-                [connection handleDocument:pendingSumbission.document completion:pendingSumbission.completion];
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        if (handle && handle.connection == connection) {
+            handle.connected = YES;
+            for (XMPPDispatcherImplPendingSubmission *pending in handle.pendingSubmissions) {
+                [connection handleDocument:pending.document completion:pending.completion];
             }
-            [pendingSubmissions removeAllObjects];
-            
-            for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-                [handler didConnect:JID resumed:resumed features:nil];
-            }
-        } else if (connection == [_onlineConnectionsByJID objectForKey:[JID bareJID]]) {
+            [handle.pendingSubmissions removeAllObjects];
             for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
                 [handler didConnect:JID resumed:resumed features:nil];
             }
@@ -247,9 +271,9 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 - (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID
 {
     dispatch_async(_operationQueue, ^{
-        if (connection == [_onlineConnectionsByJID objectForKey:[JID bareJID]]) {
-            [_offlineConnectionsByJID setObject:connection forKey:[JID bareJID]];
-            [_onlineConnectionsByJID removeObjectForKey:[JID bareJID]];
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        if (handle && handle.connection == connection) {
+            handle.connected = NO;
             for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
                 [handler didDisconnect:JID];
             }
@@ -268,7 +292,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
         if ([document.root isKindOfClass:[XMPPMessageStanza class]]) {
 
             XMPPMessageStanza *stanza = (XMPPMessageStanza *)document.root;
-            
+
             for (id<XMPPMessageHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPMessageHandler)]) {
                 [handler handleMessage:stanza completion:nil];
             }
@@ -276,7 +300,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
         } else if ([document.root isKindOfClass:[XMPPPresenceStanza class]]) {
 
             XMPPPresenceStanza *stanza = (XMPPPresenceStanza *)document.root;
-            
+
             for (id<XMPPPresenceHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPPresenceHandler)]) {
                 [handler handlePresence:stanza completion:nil];
             }
@@ -284,7 +308,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
         } else if ([document.root isKindOfClass:[XMPPIQStanza class]]) {
 
             XMPPIQStanza *stanza = (XMPPIQStanza *)document.root;
-            
+
             NSString *type = [document.root valueForAttribute:@"type"];
 
             if ([type isEqualToString:@"set"] ||
@@ -393,7 +417,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
              completion:(void (^)(XMPPIQStanza *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        
+
         if (request.type == XMPPIQStanzaTypeSet || request.type == XMPPIQStanzaTypeGet) {
 
             NSString *requestId = request.identifier;
@@ -452,36 +476,30 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 {
     XMPPJID *from = stanza.from;
     if (from) {
-        
+
         XMPPJID *bareJID = [from bareJID];
-        id<XMPPConnection> offlineConnection = [_onlineConnectionsByJID objectForKey:bareJID];
-        id<XMPPConnection> onlineConnection = [_onlineConnectionsByJID objectForKey:bareJID];
-        
-        if (onlineConnection) {
-            
+
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:bareJID];
+        if (handle) {
             PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
-            [onlineConnection handleDocument:document completion:completion];
-            
-        } else if (offlineConnection) {
-            
-            NSMutableArray *submissions = [_pendingSubmissionsByConnection objectForKey:bareJID];
-            
-            NSTimeInterval timeout = 120.0;
-            
-            XMPPDispatcherImpl_PendingSubmission *pendingSubmission = [[XMPPDispatcherImpl_PendingSubmission alloc] init];
-            pendingSubmission.timeout = [NSDate dateWithTimeIntervalSinceNow:timeout];
-            pendingSubmission.document = [[PXDocument alloc] initWithElement:stanza];
-            pendingSubmission.completion = completion;
-            [submissions addObject:pendingSubmission];
-            
-            __weak typeof(self) _self = self;
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)), _operationQueue, ^{
-                typeof(self) this = _self;
-                [this xmpp_clearPendingSubmissions];
-            });
-            
+            if (handle.connected) {
+
+                [handle.connection handleDocument:document completion:completion];
+            } else {
+                NSTimeInterval timeout = 120.0;
+                NSDate *date = [NSDate dateWithTimeIntervalSinceNow:timeout];
+                XMPPDispatcherImplPendingSubmission *pending = [[XMPPDispatcherImplPendingSubmission alloc] initWithDocument:document
+                                                                                                                     timeout:date
+                                                                                                                  completion:completion];
+                [handle.pendingSubmissions addObject:pending];
+
+                __weak typeof(self) _self = self;
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(timeout * NSEC_PER_SEC)), _operationQueue, ^{
+                    typeof(self) this = _self;
+                    [this xmpp_clearPendingSubmissions];
+                });
+            }
         } else {
-            
             if (completion) {
                 NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                                      code:XMPPDispatcherErrorCodeNoRoute
@@ -489,16 +507,15 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
                 completion(error);
             }
         }
-        
+
     } else {
-        
+
         if (completion) {
             NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                                  code:XMPPDispatcherErrorCodeNoSender
                                              userInfo:nil];
             completion(error);
         }
-        
     }
 }
 
@@ -507,20 +524,43 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
     NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                          code:XMPPDispatcherErrorCodeNoRoute
                                      userInfo:nil];
-    
-    [[_pendingSubmissionsByConnection dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(id<XMPPConnection> connection,
-                                                                                                    NSMutableArray *pendingSubmissions,
-                                                                                                    BOOL *stop) {
-        
-        for (XMPPDispatcherImpl_PendingSubmission *pendingSumbission in [pendingSubmissions copy]) {
-            if ([pendingSumbission.timeout timeIntervalSinceNow] <= 0) {
-                if (pendingSumbission.completion) {
-                    pendingSumbission.completion(error);
+
+    [[_connectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid, XMPPDispatcherConnectionHandle *handle, BOOL *_Nonnull stop) {
+        for (XMPPDispatcherImplPendingSubmission *pending in [handle.pendingSubmissions copy]) {
+            if ([pending.timeout timeIntervalSinceNow] <= 0) {
+                if (pending.completion) {
+                    pending.completion(error);
                 }
-                [pendingSubmissions removeObject:pendingSumbission];
+                [handle.pendingSubmissions removeObject:pending];
             }
         }
     }];
 }
 
+@end
+
+@implementation XMPPDispatcherConnectionHandle
+- (instancetype)initWithConnection:(id<XMPPConnection>)connection
+{
+    self = [super init];
+    if (self) {
+        _connection = connection;
+        _connected = NO;
+        _pendingSubmissions = [[NSMutableArray alloc] init];
+    }
+    return self;
+}
+@end
+
+@implementation XMPPDispatcherImplPendingSubmission
+- (instancetype)initWithDocument:(PXDocument *)document timeout:(NSDate *)timeout completion:(void (^)(NSError *))completion
+{
+    self = [super init];
+    if (self) {
+        _document = document;
+        _timeout = timeout;
+        _completion = completion;
+    }
+    return self;
+}
 @end
