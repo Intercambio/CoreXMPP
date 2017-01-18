@@ -10,8 +10,8 @@
 @import XMPPFoundation;
 
 #import "XMPPStreamFeature.h"
-#import "XMPPError.h"
 #import "XMPPDispatcherImpl.h"
+#import "XMPPError.h"
 
 @interface XMPPStreamFeature () {
     NSMapTable *_responseHandlers;
@@ -108,7 +108,7 @@
         XMPPIQStanza *stanza = (XMPPIQStanza *)document.root;
 
         if (stanza.type == XMPPIQStanzaTypeResult ||
-            stanza.type == XMPPIQStanzaTypeError ) {
+            stanza.type == XMPPIQStanzaTypeError) {
             NSString *requestID = stanza.identifier;
             if (requestID) {
                 void (^completion)(PXDocument *response, NSError *error) = [_responseHandlers objectForKey:requestID];

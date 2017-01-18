@@ -9,8 +9,8 @@
 #import <CocoaLumberjack/CocoaLumberjack.h>
 #import <PureXML/PureXML.h>
 
-#import "XMPPError.h"
 #import "XMPPDispatcherImpl.h"
+#import "XMPPError.h"
 #import "XMPPStreamFeatureStreamManagement.h"
 
 NSString *const XMPPStreamFeatureStreamManagementNamespace = @"urn:xmpp:sm:3";
@@ -220,19 +220,19 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
             }
 
         } else if ([element.name isEqualToString:@"failed"]) {
-            
+
             _enabled = NO;
-            
+
             __block NSError *error = nil;
             [element enumerateElementsUsingBlock:^(PXElement *element, BOOL *stop) {
                 error = [NSError errorWithElement:element];
                 *stop = error != nil;
             }];
-            
+
             if (error == nil) {
                 error = [NSError errorWithDomain:XMPPStanzaErrorDomain code:XMPPStanzaErrorCodeUndefinedCondition userInfo:nil];
             }
-            
+
             [self.delegate streamFeature:self didFailNegotiationWithError:error];
 
         } else if ([element.name isEqualToString:@"r"]) {

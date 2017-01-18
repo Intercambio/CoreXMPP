@@ -91,12 +91,12 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     if ([document.root isKindOfClass:[XMPPIQStanza class]]) {
         XMPPIQStanza *iq = (XMPPIQStanza *)document.root;
         switch (iq.type) {
-            case XMPPIQStanzaTypeResult:
-                return [self handleIQResult:iq error:error];
-            case XMPPIQStanzaTypeError:
-                return [self handleIQError:iq error:error];
-            default:
-                return YES;
+        case XMPPIQStanzaTypeResult:
+            return [self handleIQResult:iq error:error];
+        case XMPPIQStanzaTypeError:
+            return [self handleIQError:iq error:error];
+        default:
+            return YES;
         }
     } else {
         return YES;

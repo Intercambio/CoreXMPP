@@ -13,7 +13,6 @@
 #import "XMPPClientFactory.h"
 #import "XMPPDispatcherImpl.h"
 
-
 #import <SASLKit/SASLKit.h>
 
 extern NSString *_Nonnull const XMPPAccountManagerDidAddAccount NS_SWIFT_NAME(AccountManagerDidAddAccount);

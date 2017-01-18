@@ -24,7 +24,6 @@ typedef NS_ENUM(NSInteger, XMPPErrorCode) {
 extern NSString *const XMPPErrorXMLDocumentKey;
 extern NSString *const XMPPErrorUnderlyingErrorsKey;
 
-
 // XMPPStreamFeature SASL
 
 extern NSString *const XMPPStreamFeatureSASLErrorDomain;

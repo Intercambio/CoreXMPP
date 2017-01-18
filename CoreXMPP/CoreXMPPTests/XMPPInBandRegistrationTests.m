@@ -220,7 +220,7 @@
         PXDocument *document = [[invocation mkt_arguments] lastObject];
 
         XMPPIQStanza *request = (XMPPIQStanza *)document.root;
-        
+
         dispatch_async(dispatch_get_main_queue(), ^{
             NSError *error = [NSError errorWithDomain:XMPPStanzaErrorDomain
                                                  code:XMPPStanzaErrorCodeNotAllowed
@@ -263,7 +263,7 @@
 
         PXDocument *document = [[invocation mkt_arguments] lastObject];
         XMPPIQStanza *request = (XMPPIQStanza *)document.root;
-        
+
         XCTAssertEqualObjects([request qualifiedName], PXQN(@"jabber:client", @"iq"));
         XCTAssertEqualObjects([request valueForAttribute:@"type"], @"get");
         XCTAssertEqualObjects([request valueForAttribute:@"to"], @"example.com");
