@@ -75,7 +75,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 - (void)setConnection:(id<XMPPConnection>)connection forJID:(XMPPJID *)JID
 {
     dispatch_sync(_operationQueue, ^{
-        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:[JID bareJID]];
         if (handle) {
             NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                                  code:XMPPDispatcherErrorCodeNoRoute
@@ -90,7 +90,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
         if (connection) {
             connection.connectionDelegate = self;
             XMPPDispatcherConnectionHandle *handle = [[XMPPDispatcherConnectionHandle alloc] initWithConnection:connection];
-            [_connectionsByJID setObject:handle forKey:JID];
+            [_connectionsByJID setObject:handle forKey:[JID bareJID]];
         }
     });
 }
@@ -124,7 +124,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 {
     dispatch_sync(_operationQueue, ^{
 
-        [[_connectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *jid,
+        [[_connectionsByJID dictionaryRepresentation] enumerateKeysAndObjectsUsingBlock:^(XMPPJID *JID,
                                                                                           XMPPDispatcherConnectionHandle *handle, BOOL *stop) {
 
             if (handle.connection == connection) {
@@ -137,11 +137,11 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
                     }
                 }
 
-                [_connectionsByJID removeObjectForKey:jid];
+                [_connectionsByJID removeObjectForKey:[JID bareJID]];
 
                 dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                     for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-                        [handler didDisconnect:jid];
+                        [handler didDisconnect:[JID bareJID]];
                     }
                 });
             }
@@ -254,7 +254,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 - (void)connection:(id<XMPPConnection>)connection didConnectTo:(XMPPJID *)JID resumed:(BOOL)resumed
 {
     dispatch_async(_operationQueue, ^{
-        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:[JID bareJID]];
         if (handle && handle.connection == connection) {
             handle.connected = YES;
             for (XMPPDispatcherImplPendingSubmission *pending in handle.pendingSubmissions) {
@@ -262,7 +262,7 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
             }
             [handle.pendingSubmissions removeAllObjects];
             for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-                [handler didConnect:JID resumed:resumed features:nil];
+                [handler didConnect:[JID bareJID] resumed:resumed features:nil];
             }
         }
     });
@@ -271,11 +271,11 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 - (void)connection:(id<XMPPConnection>)connection didDisconnectFrom:(XMPPJID *)JID
 {
     dispatch_async(_operationQueue, ^{
-        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:JID];
+        XMPPDispatcherConnectionHandle *handle = [_connectionsByJID objectForKey:[JID bareJID]];
         if (handle && handle.connection == connection) {
             handle.connected = NO;
             for (id<XMPPConnectionHandler> handler in [self xmpp_handlersConformingToProtocol:@protocol(XMPPConnectionHandler)]) {
-                [handler didDisconnect:JID];
+                [handler didDisconnect:[JID bareJID]];
             }
         }
     });
