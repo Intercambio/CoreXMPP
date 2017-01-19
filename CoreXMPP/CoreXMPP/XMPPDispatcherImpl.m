@@ -159,24 +159,21 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 
 - (void)addHandler:(id)handler withIQQueryQNames:(NSArray *)queryQNames features:(nullable NSArray<XMPPFeature *> *)features
 {
-    if ([handler conformsToProtocol:@protocol(XMPPConnectionHandler)] ||
-        [handler conformsToProtocol:@protocol(XMPPMessageHandler)] ||
-        [handler conformsToProtocol:@protocol(XMPPPresenceHandler)] ||
-        [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
-
-        [_handlers addObject:handler];
-
-        if ([queryQNames count] > 0 && [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
-            for (PXQName *queryQName in queryQNames) {
-                [_handlersByQuery setObject:handler forKey:queryQName];
+    dispatch_sync(_operationQueue, ^{
+        if ([handler conformsToProtocol:@protocol(XMPPHandler)]) {
+            [_handlers addObject:handler];
+            if ([queryQNames count] > 0 && [handler conformsToProtocol:@protocol(XMPPIQHandler)]) {
+                for (PXQName *queryQName in queryQNames) {
+                    [_handlersByQuery setObject:handler forKey:queryQName];
+                }
             }
         }
-    }
+    });
 }
 
 - (void)removeHandler:(id)handler
 {
-    dispatch_async(_operationQueue, ^{
+    dispatch_sync(_operationQueue, ^{
         [_handlers removeObject:handler];
 
         NSMutableArray *keys = [[NSMutableArray alloc] init];
