@@ -6,11 +6,11 @@
 //  Copyright © 2016 Tobias Kräntzer. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
+@import Foundation;
+@import XMPPFoundation;
 
 #import "XMPPAccountManager.h"
 #import "XMPPClient.h"
-#import "XMPPJID.h"
 #import "XMPPReconnectStrategy.h"
 
 @class XMPPAccountConnectivityImpl;

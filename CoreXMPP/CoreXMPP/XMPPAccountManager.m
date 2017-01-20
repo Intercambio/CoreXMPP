@@ -31,13 +31,13 @@ NSString *const XMPPAccountManagerAccountInfoKey = @"XMPPAccountManagerAccountIn
 
 #pragma mark Life-cycle
 
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher
+- (instancetype)initWithDispatcher:(XMPPDispatcherImpl *)dispatcher
 {
     return [self initWithDispatcher:dispatcher
                       clientFactory:nil];
 }
 
-- (instancetype)initWithDispatcher:(XMPPDispatcher *)dispatcher
+- (instancetype)initWithDispatcher:(XMPPDispatcherImpl *)dispatcher
                      clientFactory:(id<XMPPClientFactory>)clientFactory
 {
     self = [super init];

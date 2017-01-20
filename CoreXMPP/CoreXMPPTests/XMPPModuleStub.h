@@ -10,14 +10,12 @@
 
 @class PXElement;
 
-@interface XMPPModuleStub : NSObject <XMPPDispatcherHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
+@interface XMPPModuleStub : NSObject <XMPPConnectionHandler, XMPPMessageHandler, XMPPPresenceHandler, XMPPIQHandler>
 
-- (void)onMessage:(void (^)(PXDocument *document))callback;
-- (void)onPresence:(void (^)(PXDocument *document))callback;
-- (void)onIQRequest:(void (^)(PXDocument *document, NSTimeInterval timeout, void (^)(PXDocument *, NSError *)))callback;
+- (void)onMessage:(void (^)(XMPPMessageStanza *stanza))callback;
+- (void)onPresence:(void (^)(XMPPPresenceStanza *stanza))callback;
+- (void)onIQRequest:(void (^)(XMPPIQStanza *stanza, NSTimeInterval timeout, void (^)(XMPPIQStanza *, NSError *)))callback;
 
-- (void)onAddConnection:(void (^)(XMPPJID *JID))callback;
-- (void)onRemoveConnection:(void (^)(XMPPJID *JID))callback;
 - (void)onConnect:(void (^)(XMPPJID *JID, BOOL resumed))callback;
 - (void)onDisconnect:(void (^)(XMPPJID *JID))callback;
 

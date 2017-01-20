@@ -45,62 +45,40 @@
 
 #pragma mark Handler
 
-- (void)handleMessage:(PXDocument *)document completion:(void (^)(NSError *))completion
+- (void)handleMessage:(XMPPMessageStanza *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXDocument *) = [_onMessageCallbacks firstObject];
+        void (^_callback)(XMPPMessageStanza *) = [_onMessageCallbacks firstObject];
         if (_callback) {
             [_onMessageCallbacks removeObjectAtIndex:0];
-            _callback(document);
+            _callback(stanza);
         }
     });
 }
 
-- (void)handlePresence:(PXDocument *)document completion:(void (^)(NSError *))completion
+- (void)handlePresence:(XMPPPresenceStanza *)stanza completion:(void (^)(NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXDocument *) = [_onPresenceCallbacks firstObject];
+        void (^_callback)(XMPPPresenceStanza *) = [_onPresenceCallbacks firstObject];
         if (_callback) {
             [_onPresenceCallbacks removeObjectAtIndex:0];
-            _callback(document);
+            _callback(stanza);
         }
     });
 }
 
-- (void)handleIQRequest:(PXDocument *)document timeout:(NSTimeInterval)timeout completion:(void (^)(PXDocument *, NSError *))completion
+- (void)handleIQRequest:(XMPPIQStanza *)stanza timeout:(NSTimeInterval)timeout completion:(void (^)(XMPPIQStanza *, NSError *))completion
 {
     dispatch_async(_operationQueue, ^{
-        void (^_callback)(PXDocument *document, NSTimeInterval timeout, void (^)(PXDocument *, NSError *)) = [_onIQRequestCallbacks firstObject];
+        void (^_callback)(XMPPIQStanza *, NSTimeInterval, void (^)(XMPPIQStanza *, NSError *)) = [_onIQRequestCallbacks firstObject];
         if (_callback) {
             [_onIQRequestCallbacks removeObjectAtIndex:0];
-            _callback(document, timeout, completion);
+            _callback(stanza, timeout, completion);
         }
     });
 }
 
-- (void)didAddConnectionTo:(XMPPJID *)JID
-{
-    dispatch_async(_operationQueue, ^{
-        void (^_callback)(XMPPJID *JID) = [_onAddConnectionCallbacks firstObject];
-        if (_callback) {
-            [_onAddConnectionCallbacks removeObjectAtIndex:0];
-            _callback(JID);
-        }
-    });
-}
-
-- (void)didRemoveConnectionTo:(XMPPJID *)JID
-{
-    dispatch_async(_operationQueue, ^{
-        void (^_callback)(XMPPJID *JID) = [_onRemoveConnectionCallbacks firstObject];
-        if (_callback) {
-            [_onRemoveConnectionCallbacks removeObjectAtIndex:0];
-            _callback(JID);
-        }
-    });
-}
-
-- (void)didConnect:(XMPPJID *)JID resumed:(BOOL)resumed
+- (void)didConnect:(XMPPJID *)JID resumed:(BOOL)resumed features:(nullable NSArray<XMPPFeature *> *)features
 {
     dispatch_async(_operationQueue, ^{
         void (^_callback)(XMPPJID *JID, BOOL resumed) = [_onConnectCallbacks firstObject];
@@ -124,7 +102,7 @@
 
 #pragma mark -
 
-- (void)onMessage:(void (^)(PXDocument *))callback
+- (void)onMessage:(void (^)(XMPPMessageStanza *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
@@ -133,7 +111,7 @@
     });
 }
 
-- (void)onPresence:(void (^)(PXDocument *))callback
+- (void)onPresence:(void (^)(XMPPPresenceStanza *))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
@@ -142,29 +120,11 @@
     });
 }
 
-- (void)onIQRequest:(void (^)(PXDocument *, NSTimeInterval, void (^)(PXDocument *, NSError *)))callback
+- (void)onIQRequest:(void (^)(XMPPIQStanza *, NSTimeInterval, void (^)(XMPPIQStanza *, NSError *)))callback
 {
     dispatch_async(_operationQueue, ^{
         if (callback) {
             [_onIQRequestCallbacks addObject:callback];
-        }
-    });
-}
-
-- (void)onAddConnection:(void (^)(XMPPJID *JID))callback
-{
-    dispatch_async(_operationQueue, ^{
-        if (callback) {
-            [_onAddConnectionCallbacks addObject:callback];
-        }
-    });
-}
-
-- (void)onRemoveConnection:(void (^)(XMPPJID *JID))callback
-{
-    dispatch_async(_operationQueue, ^{
-        if (callback) {
-            [_onRemoveConnectionCallbacks addObject:callback];
         }
     });
 }

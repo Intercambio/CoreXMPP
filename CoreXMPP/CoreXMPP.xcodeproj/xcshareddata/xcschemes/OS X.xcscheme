@@ -38,6 +38,20 @@
                BlueprintName = "CoreXMPPOSXTests"
                ReferencedContainer = "container:CoreXMPP.xcodeproj">
             </BuildableReference>
+            <SkippedTests>
+               <Test
+                  Identifier = "XMPPClientTests/testConnectToServer">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testRegisterAccount">
+               </Test>
+               <Test
+                  Identifier = "XMPPClientTests/testResumeClient">
+               </Test>
+               <Test
+                  Identifier = "XMPPWebsocketStreamTests">
+               </Test>
+            </SkippedTests>
          </TestableReference>
       </Testables>
       <MacroExpansion>

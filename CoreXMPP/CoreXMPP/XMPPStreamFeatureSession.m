@@ -88,18 +88,14 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
 - (BOOL)handleDocument:(PXDocument *)document error:(NSError **)error
 {
-    PXElement *stanza = document.root;
-
-    if ([stanza.namespace isEqualToString:@"jabber:client"] &&
-        [stanza.name isEqualToString:@"iq"]) {
-
-        NSString *type = [stanza valueForAttribute:@"type"];
-
-        if ([type isEqualToString:@"result"]) {
-            return [self handleIQResult:stanza error:error];
-        } else if ([type isEqualToString:@"error"]) {
-            return [self handleIQError:stanza error:error];
-        } else {
+    if ([document.root isKindOfClass:[XMPPIQStanza class]]) {
+        XMPPIQStanza *iq = (XMPPIQStanza *)document.root;
+        switch (iq.type) {
+        case XMPPIQStanzaTypeResult:
+            return [self handleIQResult:iq error:error];
+        case XMPPIQStanzaTypeError:
+            return [self handleIQError:iq error:error];
+        default:
             return YES;
         }
     } else {
@@ -109,9 +105,9 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
 #pragma mark -
 
-- (BOOL)handleIQResult:(PXElement *)iq error:(NSError **)error
+- (BOOL)handleIQResult:(XMPPIQStanza *)iq error:(NSError **)error
 {
-    NSString *responseId = [iq valueForAttribute:@"id"];
+    NSString *responseId = iq.identifier;
 
     if (responseId && [responseId isEqualToString:_requestId]) {
 
@@ -124,12 +120,12 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     return YES;
 }
 
-- (BOOL)handleIQError:(PXElement *)iq error:(NSError **)error
+- (BOOL)handleIQError:(XMPPIQStanza *)iq error:(NSError **)error
 {
-    NSString *responseId = [iq valueForAttribute:@"id"];
+    NSString *responseId = iq.identifier;
 
     if (responseId && [responseId isEqualToString:_requestId]) {
-        NSError *error = [NSError errorFromStanza:iq];
+        NSError *error = iq.error;
 
         DDLogInfo(@"Host '%@' did reject new session with error: %@", _hostname, [error localizedDescription]);
 

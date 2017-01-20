@@ -218,7 +218,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
         } else {
             NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
-                                                 code:XMPPDispatcherErrorCodeNotConnected
+                                                 code:XMPPDispatcherErrorCodeNoRoute
                                              userInfo:nil];
             if (completion) {
                 completion(error);
