@@ -14,7 +14,14 @@
 
 @class PXQName;
 
+@protocol XMPPDispatcherDelegate <NSObject>
+- (void)dispatcher:(nonnull id<XMPPDispatcher>)dispatcher didReceiveDocument:(nonnull PXDocument *)document;
+- (void)dispatcher:(nonnull id<XMPPDispatcher>)dispatcher willSendDocument:(nonnull PXDocument *)document;
+@end
+
 @interface XMPPDispatcherImpl : NSObject <XMPPConnectionDelegate, XMPPDispatcher>
+
+@property (nonatomic, readwrite, weak, nullable) id<XMPPDispatcherDelegate> delegate;
 
 #pragma mark Manage Connections
 @property (nonatomic, readonly) NSDictionary *_Nonnull connectionsByJID;

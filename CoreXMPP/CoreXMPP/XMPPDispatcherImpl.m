@@ -284,6 +284,13 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 {
     dispatch_async(_operationQueue, ^{
 
+        if (self.delegate) {
+            id<XMPPDispatcherDelegate> delegate = self.delegate;
+            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                [delegate dispatcher:self didReceiveDocument:document];
+            });
+        }
+
         NSError *error = nil;
 
         if ([document.root isKindOfClass:[XMPPMessageStanza class]]) {
@@ -471,6 +478,15 @@ NSString *_Nonnull const XMPPDispatcherErrorDomain = @"XMPPDispatcherErrorDomain
 
 - (void)xmpp_routeDocument:(XMPPStanza *)stanza completion:(void (^)(NSError *))completion
 {
+
+    if (self.delegate) {
+        PXDocument *document = [[PXDocument alloc] initWithElement:stanza];
+        id<XMPPDispatcherDelegate> delegate = self.delegate;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            [delegate dispatcher:self willSendDocument:document];
+        });
+    }
+
     XMPPJID *from = stanza.from;
     if (from) {
 
