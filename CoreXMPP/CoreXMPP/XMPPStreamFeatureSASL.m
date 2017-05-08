@@ -33,13 +33,9 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
-
 #import "XMPPClient.h"
 #import "XMPPError.h"
 #import "XMPPStreamFeatureSASL.h"
-
-static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-sasl";
 
@@ -56,18 +52,6 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureSASL name] namespace:[XMPPStreamFeatureSASL namespace]];
     [self registerStreamFeatureClass:[XMPPStreamFeatureSASL class] forStreamFeatureQName:QName];
-}
-
-#pragma mark Logging
-
-+ (DDLogLevel)ddLogLevel
-{
-    return ddLogLevel;
-}
-
-+ (void)ddSetLogLevel:(DDLogLevel)logLevel
-{
-    ddLogLevel = logLevel;
 }
 
 #pragma mark SASL Errors
@@ -199,7 +183,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
     if (_mechanism) {
 
-        DDLogInfo(@"Begin SASL authentication exchange with host '%@' using mechanism '%@'.", _hostname, [[_mechanism class] name]);
+        NSLog(@"Begin SASL authentication exchange with host '%@' using mechanism '%@'.", _hostname, [[_mechanism class] name]);
 
         [_mechanism beginAuthenticationExchangeWithHostname:hostname
                                             responseHandler:^(NSData *initialResponse, BOOL abort) {
@@ -232,7 +216,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
                                             }];
     } else {
 
-        DDLogError(@"Delegate does not provide a SASL mechanism for the provided mechansims (%@).", [self.mechanisms componentsJoinedByString:@", "]);
+        NSLog(@"Delegate does not provide a SASL mechanism for the provided mechansims (%@).", [self.mechanisms componentsJoinedByString:@", "]);
 
         NSError *error = [NSError errorWithDomain:XMPPStreamFeatureSASLErrorDomain
                                              code:XMPPStreamFeatureSASLErrorCodeInvalidMechanism
@@ -253,7 +237,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
         if ([stanza.name isEqualToString:@"success"]) {
 
-            DDLogInfo(@"Did authenticated against host '%@'.", _hostname);
+            NSLog(@"Did authenticated against host '%@'.", _hostname);
 
             NSString *responseString = stanza.stringValue;
             NSData *responseData = [responseString length] > 0 ? [[NSData alloc] initWithBase64EncodedString:responseString options:0] : nil;
@@ -266,7 +250,7 @@ NSString *const XMPPStreamFeatureSASLNamespace = @"urn:ietf:params:xml:ns:xmpp-s
 
             NSError *error = [[self class] errorFromElement:stanza];
 
-            DDLogWarn(@"Did fail to authenticated against host '%@' with error: %@", _hostname, [error localizedDescription]);
+            NSLog(@"Did fail to authenticated against host '%@' with error: %@", _hostname, [error localizedDescription]);
 
             [_mechanism failedWithError:error];
 

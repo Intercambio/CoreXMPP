@@ -33,13 +33,10 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
 #import <SocketRocket/SRWebSocket.h>
 
 #import "XMPPError.h"
 #import "XMPPWebsocketStream.h"
-
-static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPWebsocketStreamURLKey = @"XMPPWebsocketStreamURLKey";
 NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
@@ -53,18 +50,6 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 @end
 
 @implementation XMPPWebsocketStream
-
-#pragma mark Logging
-
-+ (DDLogLevel)ddLogLevel
-{
-    return ddLogLevel;
-}
-
-+ (void)ddSetLogLevel:(DDLogLevel)logLevel
-{
-    ddLogLevel = logLevel;
-}
 
 #pragma mark Life-cycle
 
@@ -93,7 +78,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 {
     NSAssert(_state == XMPPStreamStateClosed, @"Invalid State: Can only open a closed stream.");
 
-    DDLogInfo(@"Open stream to host: %@", self.hostname);
+    NSLog(@"Open stream to host: %@", self.hostname);
 
     if ([self xmpp_needsDiscoverWebsocketURL]) {
         [self xmpp_discoverWebsocketURL];
@@ -102,7 +87,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         [self xmpp_setUpWebsocket];
         [_websocket open];
         _state = XMPPStreamStateConnecting;
-        DDLogInfo(@"Connecting to host: %@ (%@)", self.hostname, _websocket.url);
+        NSLog(@"Connecting to host: %@ (%@)", self.hostname, _websocket.url);
     }
 }
 
@@ -110,7 +95,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 {
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only reopen a already opened stream.");
 
-    DDLogInfo(@"Repoen stream to host: %@", self.hostname);
+    NSLog(@"Repoen stream to host: %@", self.hostname);
 
     [self xmpp_sendOpenFrame];
     _state = XMPPStreamStateOpening;
@@ -120,7 +105,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 {
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only close an open stream.");
 
-    DDLogInfo(@"Close stream to host: %@", self.hostname);
+    NSLog(@"Close stream to host: %@", self.hostname);
 
     [self xmpp_sendCloseFrame];
     _state = XMPPStreamStateClosing;
@@ -130,7 +115,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 {
     NSAssert(_state == XMPPStreamStateOpen, @"Invalid State: Can only suspend an open stream.");
 
-    DDLogInfo(@"Suspending stream to host: %@", self.hostname);
+    NSLog(@"Suspending stream to host: %@", self.hostname);
 
     [self xmpp_tearDownWebsocket];
     _state = XMPPStreamStateClosed;
@@ -160,7 +145,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     [openFrameDocument.root setValue:self.hostname forAttribute:@"to"];
     [openFrameDocument.root setValue:@"1.0" forAttribute:@"version"];
 
-    DDLogDebug(@"Send open frame.");
+    NSLog(@"Send open frame.");
 
     [self xmpp_sendDocument:openFrameDocument];
 }
@@ -170,7 +155,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     PXDocument *closeFrameDocument = [[PXDocument alloc] initWithElementName:@"close"
                                                                    namespace:XMPPWebsocketStream_NS
                                                                       prefix:nil];
-    DDLogDebug(@"Send close frame.");
+    NSLog(@"Send close frame.");
 
     [self xmpp_sendDocument:closeFrameDocument];
 }
@@ -194,7 +179,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)xmpp_handleOpenFrame:(PXDocument *)document
 {
-    DDLogVerbose(@"Received open frame: %@", document);
+    NSLog(@"Received open frame: %@", document);
 
     if (_state != XMPPStreamStateOpening) {
 
@@ -222,7 +207,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)xmpp_handleCloseFrame:(PXDocument *)document
 {
-    DDLogVerbose(@"Received close frame: %@", document);
+    NSLog(@"Received close frame: %@", document);
 
     if (_state != XMPPStreamStateOpen && _state != XMPPStreamStateClosing) {
 
@@ -251,11 +236,10 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 - (void)xmpp_sendDocument:(PXDocument *)document
 {
     NSString *message = [[self class] stringFromDocument:document];
-    DDLogVerbose(@"OUT >>> %@", message);
     NSError *error = nil;
     BOOL success = [_websocket sendString:message error:&error];
     if (!success) {
-        DDLogError(@"Failed to send message: %@", [error localizedDescription]);
+        NSLog(@"Failed to send message: %@", [error localizedDescription]);
     }
 }
 
@@ -265,7 +249,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         [self xmpp_handleFrameDocument:document];
     } else {
         if (_state != XMPPStreamStateOpen) {
-            DDLogWarn(@"Can only handle elements other than framing elements if the stream is open. Dropping received element. Current state is %lu and the received document is: %@", (unsigned long)_state, document);
+            NSLog(@"Can only handle elements other than framing elements if the stream is open. Dropping received element. Current state is %lu and the received document is: %@", (unsigned long)_state, document);
         } else {
             if ([self.delegate respondsToSelector:@selector(stream:didReceiveDocument:)]) {
                 [self.delegate stream:self didReceiveDocument:document];
@@ -285,7 +269,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
             NSError *error = nil;
             BOOL success = [_websocket sendPing:nil error:&error];
             if (!success) {
-                DDLogError(@"Failed to send ping: %@", [error localizedDescription]);
+                NSLog(@"Failed to send ping: %@", [error localizedDescription]);
             }
             [_self keepAlive];
         }
@@ -296,7 +280,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)xmpp_handleError:(NSError *)error
 {
-    DDLogError(@"Stream to host '%@' did fail with error: %@", self.hostname, [error localizedDescription]);
+    NSLog(@"Stream to host '%@' did fail with error: %@", self.hostname, [error localizedDescription]);
 
     [self xmpp_tearDownWebsocket];
     _state = XMPPStreamStateClosed;
@@ -322,7 +306,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
     NSAssert(_websocket == nil, @"Invalid State: Websocket is already set up.");
 
     NSURL *websocketURL = [self xmpp_websocketURL];
-    DDLogDebug(@"Setup Websocket with URL: %@", websocketURL);
+    NSLog(@"Setup Websocket with URL: %@", websocketURL);
 
     SRWebSocket *websocket = [[SRWebSocket alloc] initWithURL:websocketURL
                                                     protocols:@[ @"xmpp" ]
@@ -351,7 +335,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
 
 - (void)xmpp_discoverWebsocketURL
 {
-    DDLogInfo(@"Discovering websocket URL for host: %@", self.hostname);
+    NSLog(@"Discovering websocket URL for host: %@", self.hostname);
 
     NSURLComponents *hostMetadataURLComponents = [[NSURLComponents alloc] init];
     hostMetadataURLComponents.scheme = @"https";
@@ -442,7 +426,7 @@ NSString *const XMPPWebsocketStream_NS = @"urn:ietf:params:xml:ns:xmpp-framing";
         messageData = message;
     }
 
-    DDLogVerbose(@"IN <<< %@", messageData ? [[NSString alloc] initWithData:messageData encoding:NSUTF8StringEncoding] : @"<no string or data>");
+//    NSLog(@"IN <<< %@", messageData ? [[NSString alloc] initWithData:messageData encoding:NSUTF8StringEncoding] : @"<no string or data>");
 
     if (messageData) {
         PXDocument *document = [PXDocument documentWithData:messageData];

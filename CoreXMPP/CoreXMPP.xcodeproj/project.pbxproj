@@ -14,7 +14,6 @@
 		F60703781CEB209100FBEE02 /* SASLKit.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F60703751CEB207700FBEE02 /* SASLKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F619BDA91C4CE78100F87F50 /* XMPPTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = F619BDA81C4CE78100F87F50 /* XMPPTestCase.m */; };
 		F619BDAA1C4CE78100F87F50 /* XMPPTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = F619BDA81C4CE78100F87F50 /* XMPPTestCase.m */; };
-		F619BE0F1C4D323600F87F50 /* CocoaLumberjack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F619BE031C4D322600F87F50 /* CocoaLumberjack.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		F619BE101C4D323A00F87F50 /* PureXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F619BE071C4D322600F87F50 /* PureXML.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		F619BE121C4D34C800F87F50 /* OCHamcrest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F619BE041C4D322600F87F50 /* OCHamcrest.framework */; };
 		F619BE131C4D34C800F87F50 /* OCMockito.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F619BE051C4D322600F87F50 /* OCMockito.framework */; };
@@ -41,7 +40,6 @@
 		F6564EA81D1D63810082CCD0 /* XMPPInBandRegistrationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = F6564EA41D1D5FDB0082CCD0 /* XMPPInBandRegistrationTests.m */; };
 		F676EF841CD7A762003047EC /* XMPPModuleStub.m in Sources */ = {isa = PBXBuildFile; fileRef = F676EF801CD7A754003047EC /* XMPPModuleStub.m */; };
 		F676EF851CD7A763003047EC /* XMPPModuleStub.m in Sources */ = {isa = PBXBuildFile; fileRef = F676EF801CD7A754003047EC /* XMPPModuleStub.m */; };
-		F68413D31C4D4A63009B37BE /* CocoaLumberjack.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F619BE031C4D322600F87F50 /* CocoaLumberjack.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F68413D41C4D4A63009B37BE /* OCHamcrest.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F619BE041C4D322600F87F50 /* OCHamcrest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F68413D51C4D4A63009B37BE /* OCMockito.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F619BE051C4D322600F87F50 /* OCMockito.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F68413D61C4D4A63009B37BE /* OHHTTPStubs.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F619BE061C4D322600F87F50 /* OHHTTPStubs.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -53,7 +51,6 @@
 		F68413F31C4D80E6009B37BE /* PureXML.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = F619BE071C4D322600F87F50 /* PureXML.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		F68413F41C4D826D009B37BE /* PureXML.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F68413E51C4D7FB8009B37BE /* PureXML.framework */; };
 		F68413F51C4D826D009B37BE /* SocketRocket.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F68413E61C4D7FB8009B37BE /* SocketRocket.framework */; };
-		F68413F61C4D826D009B37BE /* CocoaLumberjack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F68413E41C4D7FB8009B37BE /* CocoaLumberjack.framework */; };
 		F68414201C4ED835009B37BE /* XMPPDispatcherImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = F684141E1C4ED835009B37BE /* XMPPDispatcherImpl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F68414211C4ED835009B37BE /* XMPPDispatcherImpl.h in Headers */ = {isa = PBXBuildFile; fileRef = F684141E1C4ED835009B37BE /* XMPPDispatcherImpl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F68414221C4ED835009B37BE /* XMPPDispatcherImpl.m in Sources */ = {isa = PBXBuildFile; fileRef = F684141F1C4ED835009B37BE /* XMPPDispatcherImpl.m */; };
@@ -202,7 +199,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				F68413F31C4D80E6009B37BE /* PureXML.framework in CopyFiles */,
-				F68413D31C4D4A63009B37BE /* CocoaLumberjack.framework in CopyFiles */,
 				F68413D41C4D4A63009B37BE /* OCHamcrest.framework in CopyFiles */,
 				F68413D51C4D4A63009B37BE /* OCMockito.framework in CopyFiles */,
 				F68413D61C4D4A63009B37BE /* OHHTTPStubs.framework in CopyFiles */,
@@ -219,7 +215,6 @@
 		F60703751CEB207700FBEE02 /* SASLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SASLKit.framework; sourceTree = "<group>"; };
 		F619BDA71C4CE78100F87F50 /* XMPPTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XMPPTestCase.h; sourceTree = "<group>"; };
 		F619BDA81C4CE78100F87F50 /* XMPPTestCase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPTestCase.m; sourceTree = "<group>"; };
-		F619BE031C4D322600F87F50 /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaLumberjack.framework; sourceTree = "<group>"; };
 		F619BE041C4D322600F87F50 /* OCHamcrest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OCHamcrest.framework; sourceTree = "<group>"; };
 		F619BE051C4D322600F87F50 /* OCMockito.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OCMockito.framework; sourceTree = "<group>"; };
 		F619BE061C4D322600F87F50 /* OHHTTPStubs.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OHHTTPStubs.framework; sourceTree = "<group>"; };
@@ -242,7 +237,6 @@
 		F676EF7F1CD7A754003047EC /* XMPPModuleStub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = XMPPModuleStub.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		F676EF801CD7A754003047EC /* XMPPModuleStub.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = XMPPModuleStub.m; sourceTree = "<group>"; };
 		F68413D91C4D510F009B37BE /* SocketRocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SocketRocket.framework; sourceTree = "<group>"; };
-		F68413E41C4D7FB8009B37BE /* CocoaLumberjack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CocoaLumberjack.framework; sourceTree = "<group>"; };
 		F68413E51C4D7FB8009B37BE /* PureXML.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PureXML.framework; sourceTree = "<group>"; };
 		F68413E61C4D7FB8009B37BE /* SocketRocket.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SocketRocket.framework; sourceTree = "<group>"; };
 		F68413EB1C4D7FDA009B37BE /* OCHamcrest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OCHamcrest.framework; sourceTree = "<group>"; };
@@ -324,7 +318,6 @@
 				F60703731CEB204300FBEE02 /* SASLKit.framework in Frameworks */,
 				F68413F41C4D826D009B37BE /* PureXML.framework in Frameworks */,
 				F68413F51C4D826D009B37BE /* SocketRocket.framework in Frameworks */,
-				F68413F61C4D826D009B37BE /* CocoaLumberjack.framework in Frameworks */,
 				F6F56B0F1C539CE900C34CC8 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -350,7 +343,6 @@
 				F60703761CEB207700FBEE02 /* SASLKit.framework in Frameworks */,
 				F619BE101C4D323A00F87F50 /* PureXML.framework in Frameworks */,
 				F68413DA1C4D5115009B37BE /* SocketRocket.framework in Frameworks */,
-				F619BE0F1C4D323600F87F50 /* CocoaLumberjack.framework in Frameworks */,
 				F6F56B111C539CFB00C34CC8 /* SystemConfiguration.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -388,7 +380,6 @@
 				F60703751CEB207700FBEE02 /* SASLKit.framework */,
 				F619BE071C4D322600F87F50 /* PureXML.framework */,
 				F68413D91C4D510F009B37BE /* SocketRocket.framework */,
-				F619BE031C4D322600F87F50 /* CocoaLumberjack.framework */,
 				F619BE041C4D322600F87F50 /* OCHamcrest.framework */,
 				F619BE051C4D322600F87F50 /* OCMockito.framework */,
 				F619BE061C4D322600F87F50 /* OHHTTPStubs.framework */,
@@ -514,7 +505,6 @@
 				F60703721CEB204300FBEE02 /* SASLKit.framework */,
 				F68413E51C4D7FB8009B37BE /* PureXML.framework */,
 				F68413E61C4D7FB8009B37BE /* SocketRocket.framework */,
-				F68413E41C4D7FB8009B37BE /* CocoaLumberjack.framework */,
 				F68413EB1C4D7FDA009B37BE /* OCHamcrest.framework */,
 				F68413EC1C4D7FDA009B37BE /* OCMockito.framework */,
 				F68413ED1C4D7FDA009B37BE /* OHHTTPStubs.framework */,
@@ -902,7 +892,6 @@
 			inputPaths = (
 				"$(SRCROOT)/../Carthage/Build/iOS/PureXML.framework",
 				"$(SRCROOT)/../Carthage/Build/iOS/SocketRocket.framework",
-				"$(SRCROOT)/../Carthage/Build/iOS/CocoaLumberjack.framework",
 				"$(SRCROOT)/../Carthage/Build/iOS/OCHamcrest.framework",
 				"$(SRCROOT)/../Carthage/Build/iOS/OCMockito.framework",
 				"$(SRCROOT)/../Carthage/Build/iOS/OHHTTPStubs.framework",

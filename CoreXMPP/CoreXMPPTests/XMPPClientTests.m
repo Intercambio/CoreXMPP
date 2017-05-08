@@ -57,8 +57,6 @@
 
 - (void)testRegisterAccount
 {
-    [DDLog setLevel:DDLogLevelAll forClassWithName:@"XMPPClient"];
-
     NSString *username = [[NSUUID UUID] UUIDString];
     NSString *password = @"123";
 
