@@ -33,7 +33,6 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
 #import <PureXML/PureXML.h>
 
 #import "XMPPDispatcherImpl.h"
@@ -48,8 +47,6 @@ NSString *const XMPPStreamFeatureStreamManagementNamespace = @"urn:xmpp:sm:3";
 @end
 
 #pragma mark -
-
-static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 @interface XMPPStreamFeatureStreamManagement () {
     BOOL _enabled;
@@ -69,18 +66,6 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 {
     PXQName *QName = [[PXQName alloc] initWithName:[XMPPStreamFeatureStreamManagement name] namespace:[XMPPStreamFeatureStreamManagement namespace]];
     [self registerStreamFeatureClass:[XMPPStreamFeatureStreamManagement class] forStreamFeatureQName:QName];
-}
-
-#pragma mark Logging
-
-+ (DDLogLevel)ddLogLevel
-{
-    return ddLogLevel;
-}
-
-+ (void)ddSetLogLevel:(DDLogLevel)logLevel
-{
-    ddLogLevel = logLevel;
 }
 
 #pragma mark Feature Name & Namespace
@@ -111,7 +96,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
-    DDLogInfo(@"Negotiating stream management for host '%@'.", hostname);
+    NSLog(@"Negotiating stream management for host '%@'.", hostname);
 
     if (_id && _resumable) {
         [self xmpp_resume];
@@ -189,7 +174,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 - (void)cancelUnacknowledgedDocuments
 {
     if ([_unacknowledgedDocuments count] > 0) {
-        DDLogInfo(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
+        NSLog(@"Canceling (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
         NSError *error = [NSError errorWithDomain:XMPPDispatcherErrorDomain
                                              code:XMPPDispatcherErrorCodeNoRoute
                                          userInfo:nil];
@@ -309,7 +294,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
     if (_numberOfAcknowledgedDocuments > numberOfAcknowledgedStanzas ||
         _numberOfSentDocuments < numberOfAcknowledgedStanzas) {
 
-        DDLogWarn(@"Received invalid ack (%ld). Stream has sent (%ld) stanzas and (%ld) have already been acknowledged.",
+        NSLog(@"Received invalid ack (%ld). Stream has sent (%ld) stanzas and (%ld) have already been acknowledged.",
                   (unsigned long)numberOfAcknowledgedStanzas,
                   (unsigned long)_numberOfSentDocuments,
                   (unsigned long)_numberOfAcknowledgedDocuments);
@@ -328,7 +313,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
             _unacknowledgedDocuments = [_unacknowledgedDocuments subarrayWithRange:NSMakeRange(diff, [_unacknowledgedDocuments count] - diff)];
             _numberOfAcknowledgedDocuments = numberOfAcknowledgedStanzas;
 
-            DDLogInfo(@"Acknowledged (%ld) of (%ld) stanzas.", (unsigned long)_numberOfAcknowledgedDocuments, (unsigned long)_numberOfSentDocuments);
+            NSLog(@"Acknowledged (%ld) of (%ld) stanzas.", (unsigned long)_numberOfAcknowledgedDocuments, (unsigned long)_numberOfSentDocuments);
         }
     }
 }
@@ -336,7 +321,7 @@ static DDLogLevel ddLogLevel = DDLogLevelWarning;
 - (void)xmpp_resendPendingStanzas
 {
     if ([_unacknowledgedDocuments count] > 0) {
-        DDLogInfo(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
+        NSLog(@"Resending (%ld) unacknowledged stanzas.", (unsigned long)[_unacknowledgedDocuments count]);
         for (XMPPStreamFeatureStreamManagement_Stanza *wrapper in _unacknowledgedDocuments) {
             [self.delegate streamFeature:self handleDocument:wrapper.document];
         }

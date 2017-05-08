@@ -41,7 +41,6 @@
 #define MOCKITO_SHORTHAND
 #import <OCMockito/OCMockito.h>
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
 #import <OHHTTPStubs/OHHTTPStubs.h>
 
 #import "XMPPStreamFeatureBind.h"

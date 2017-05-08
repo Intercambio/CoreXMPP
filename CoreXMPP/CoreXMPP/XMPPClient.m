@@ -33,7 +33,6 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
 #import <SASLKit/SASLKit.h>
 
 #import "XMPPError.h"
@@ -45,8 +44,6 @@
 #import "XMPPWebsocketStream.h"
 
 #import "XMPPClient.h"
-
-static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPClientOptionsPreferedSASLMechanismsKey = @"XMPPClientOptionsPreferedSASLMechanismsKey";
 NSString *const XMPPClientOptionsResourceKey = @"XMPPClientOptionsResourceKey";
@@ -72,18 +69,6 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 @end
 
 @implementation XMPPClient
-
-#pragma mark Logging
-
-+ (DDLogLevel)ddLogLevel
-{
-    return ddLogLevel;
-}
-
-+ (void)ddSetLogLevel:(DDLogLevel)logLevel
-{
-    ddLogLevel = logLevel;
-}
 
 #pragma mark Life-cycle
 
@@ -151,9 +136,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 {
     dispatch_async(_operationQueue, ^{
         if (self.state != XMPPClientStateDisconnected) {
-            DDLogWarn(@"Invalid State: Can only connect a disconnected client: %@", self);
+            NSLog(@"Invalid State: Can only connect a disconnected client: %@", self);
         } else {
-            DDLogInfo(@"Connecting: '%@'.", self.hostname);
+            NSLog(@"Connecting: '%@'.", self.hostname);
 
             self.state = XMPPClientStateConnecting;
             _negotiatedFeatures = @[];
@@ -170,9 +155,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
     dispatch_async(_operationQueue, ^{
 
         if (self.state != XMPPClientStateConnected) {
-            DDLogWarn(@"Invalid State: Can only disconnect a connected client: %@", self);
+            NSLog(@"Invalid State: Can only disconnect a connected client: %@", self);
         } else {
-            DDLogInfo(@"Disconnecting: '%@'.", self.hostname);
+            NSLog(@"Disconnecting: '%@'.", self.hostname);
 
             self.state = XMPPClientStateDisconnecting;
 
@@ -189,9 +174,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 {
     dispatch_async(_operationQueue, ^{
         if (self.state != XMPPClientStateConnected) {
-            DDLogWarn(@"Invalid State: Can only suspend a connected client: %@", self);
+            NSLog(@"Invalid State: Can only suspend a connected client: %@", self);
         } else {
-            DDLogInfo(@"Suspending: %@", self);
+            NSLog(@"Suspending: %@", self);
 
             self.state = XMPPClientStateDisconnecting;
 
@@ -210,7 +195,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 {
     dispatch_async(_operationQueue, ^{
         if (self.state != XMPPClientStateConnected) {
-            DDLogWarn(@"Invalid State: Could not exchange acknowledgement, because the client is not connected: %@", self);
+            NSLog(@"Invalid State: Could not exchange acknowledgement, because the client is not connected: %@", self);
         } else {
             [_streamManagement sendAcknowledgement];
             [_streamManagement requestAcknowledgement];
@@ -234,7 +219,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             if (self.state == XMPPClientStateConnected) {
                 [_stream sendDocument:document];
             } else {
-                DDLogDebug(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
+                NSLog(@"Stanza can not be sended by client directly, because there is no stream to the host. Will be send later if the connection has been resumed.");
             }
 
             if (_streamManagement.enabled) {
@@ -292,7 +277,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
 - (void)xmpp_updateSupportedFeaturesWithElement:(PXElement *)features
 {
-    DDLogInfo(@"Client '%@' updating features: %@", self, features.document);
+    NSLog(@"Client '%@' updating features: %@", self, features.document);
 
     NSMutableDictionary *featureConfigurations = [[NSMutableDictionary alloc] init];
 
@@ -364,14 +349,14 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             _currentFeature.queue = _operationQueue;
             _currentFeature.delegate = self;
 
-            DDLogInfo(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
+            NSLog(@"Client '%@' begin negotiation of feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [_currentFeature beginNegotiationWithHostname:self.hostname
                                                   options:nil];
 
         } else {
 
-            DDLogInfo(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
+            NSLog(@"Client '%@' does not support feature: (%@, %@)", self, configuration.root.namespace, configuration.root.name);
 
             [self xmpp_negotiateNextFeature];
         }
@@ -472,9 +457,9 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
             BOOL success = [_currentFeature handleDocument:document error:&error];
 
             if (!success) {
-                DDLogError(@"Stream feature %@ failed to handle element with error: %@",
-                           _currentFeature,
-                           [error localizedDescription]);
+                NSLog(@"Stream feature %@ failed to handle element with error: %@",
+                      _currentFeature,
+                      [error localizedDescription]);
             }
             break;
         }
@@ -488,7 +473,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                                          completion:^(NSError *error) {
                                              dispatch_async(_operationQueue, ^{
                                                  if (error) {
-                                                     DDLogError(@"Failed to handle stanza with error: %@", [error localizedDescription]);
+                                                     NSLog(@"Failed to handle stanza with error: %@", [error localizedDescription]);
                                                  } else {
                                                      [_streamManagement didHandleReceviedDocument:document];
                                                  }
@@ -498,7 +483,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                 [_connectionDelegate processPendingDocuments:^(NSError *error) {
                     dispatch_async(_operationQueue, ^{
                         if (error) {
-                            DDLogError(@"Failed to process pending stanzas with error: %@", [error localizedDescription]);
+                            NSLog(@"Failed to process pending stanzas with error: %@", [error localizedDescription]);
                         } else {
                             BOOL handled = NO;
                             for (XMPPStreamFeature *feature in _negotiatedFeatures) {
@@ -506,7 +491,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
                                     NSError *error = nil;
                                     BOOL success = [feature handleDocument:document error:&error];
                                     if (!success) {
-                                        DDLogError(@"Stream feature %@ failed to handle element with error: %@",
+                                        NSLog(@"Stream feature %@ failed to handle element with error: %@",
                                                    feature,
                                                    [error localizedDescription]);
                                     }
@@ -599,7 +584,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 {
     if (streamFeature == _currentFeature) {
 
-        DDLogInfo(@"Client '%@' succeed negotiation of feature: (%@, %@)", self, [[streamFeature class] namespace], [[streamFeature class] name]);
+        NSLog(@"Client '%@' succeed negotiation of feature: (%@, %@)", self, [[streamFeature class] namespace], [[streamFeature class] name]);
 
         _negotiatedFeatures = [_negotiatedFeatures arrayByAddingObject:streamFeature];
         _currentFeature = nil;
@@ -618,7 +603,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 
         if (streamFeature.needsRestart) {
             self.state = XMPPClientStateConnecting;
-            DDLogInfo(@"Client '%@' resetting stream.", self);
+            NSLog(@"Client '%@' resetting stream.", self);
             [_stream reopen];
         } else {
             [self xmpp_negotiateNextFeature];
@@ -630,7 +615,7 @@ NSString *const XMPPClientResumedKey = @"XMPPClientResumedKey";
 {
     if (streamFeature == _currentFeature) {
 
-        DDLogWarn(@"Client '%@' failed negotiation of feature: (%@, %@) error: %@", self, [[streamFeature class] namespace], [[streamFeature class] name], [error localizedDescription]);
+        NSLog(@"Client '%@' failed negotiation of feature: (%@, %@) error: %@", self, [[streamFeature class] namespace], [[streamFeature class] name], [error localizedDescription]);
 
         _currentFeature.delegate = nil;
         _currentFeature = nil;

@@ -33,25 +33,11 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
 #import <Security/Security.h>
 
 #import "XMPPTestCase.h"
 
 @implementation XMPPTestCase
-
-+ (void)load
-{
-    [DDLog addLogger:[DDTTYLogger sharedInstance]]; // TTY = Xcode console
-    [DDLog addLogger:[DDASLLogger sharedInstance]]; // ASL = Apple System Logs
-}
-
-+ (void)initialize
-{
-    for (NSString *name in [DDLog registeredClassNames]) {
-        [DDLog setLevel:DDLogLevelOff forClassWithName:name];
-    }
-}
 
 - (void)setUp
 {
