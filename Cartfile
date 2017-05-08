@@ -1,5 +1,4 @@
-github "Intercambio/PureXML" ~> 1.1
+github "Intercambio/PureXML" ~> 1.2
 github "Intercambio/SASLKit" ~> 1.1
 github "Intercambio/XMPPFoundation" ~> 1.2
-github "CocoaLumberjack/CocoaLumberjack" ~> 2.2.0
 github "anagromataf/SocketRocket" "master"

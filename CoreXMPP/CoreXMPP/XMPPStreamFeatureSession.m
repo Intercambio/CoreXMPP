@@ -33,11 +33,7 @@
 //  this library, you must extend this exception to your version of the library.
 //
 
-#import <CocoaLumberjack/CocoaLumberjack.h>
-
 #import "XMPPStreamFeatureSession.h"
-
-static DDLogLevel ddLogLevel = DDLogLevelWarning;
 
 NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmpp-session";
 
@@ -49,18 +45,6 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 @end
 
 @implementation XMPPStreamFeatureSession
-
-#pragma mark Logging
-
-+ (DDLogLevel)ddLogLevel
-{
-    return ddLogLevel;
-}
-
-+ (void)ddSetLogLevel:(DDLogLevel)logLevel
-{
-    ddLogLevel = logLevel;
-}
 
 #pragma mark Feature Name & Namespace
 
@@ -96,7 +80,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
 - (void)beginNegotiationWithHostname:(NSString *)hostname options:(NSDictionary *)options
 {
-    DDLogInfo(@"Requesting new session for host '%@'.", hostname);
+    NSLog(@"Requesting new session for host '%@'.", hostname);
 
     _hostname = hostname;
     _requestId = [[NSUUID UUID] UUIDString];
@@ -138,7 +122,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
 
     if (responseId && [responseId isEqualToString:_requestId]) {
 
-        DDLogInfo(@"Host '%@' did accept new session.", _hostname);
+        NSLog(@"Host '%@' did accept new session.", _hostname);
 
         [self.delegate streamFeatureDidSucceedNegotiation:self];
         _requestId = nil;
@@ -154,7 +138,7 @@ NSString *const XMPPStreamFeatureSessionNamespace = @"urn:ietf:params:xml:ns:xmp
     if (responseId && [responseId isEqualToString:_requestId]) {
         NSError *error = iq.error;
 
-        DDLogInfo(@"Host '%@' did reject new session with error: %@", _hostname, [error localizedDescription]);
+        NSLog(@"Host '%@' did reject new session with error: %@", _hostname, [error localizedDescription]);
 
         [self.delegate streamFeature:self didFailNegotiationWithError:error];
         _requestId = nil;

@@ -1,2 +1,2 @@
-github "AliSoftware/OHHTTPStubs" ~> 5.1
+github "AliSoftware/OHHTTPStubs" ~> 6.0
 github "jonreid/OCMockito" ~> 3.0.2
